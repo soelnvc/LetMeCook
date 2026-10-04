@@ -24,6 +24,9 @@ export default function App() {
   // Dine-in states
   const [dishes, setDishes] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [dineInTab, setDineInTab] = useState('join_to_cook'); // 'join_to_cook', 'cooking', 'global', 'my_dishes'
+  const [expandedDishes, setExpandedDishes] = useState({});
+  const [navHovered, setNavHovered] = useState(false);
 
   // Kitchen states
   const [dishDesc, setDishDesc] = useState('');
@@ -440,54 +443,140 @@ export default function App() {
 
   // Authenticated View
   return (
-    <div style={{ padding: 20, fontFamily: 'monospace', maxWidth: 900, margin: '0 auto' }}>
-      {/* Top Header */}
-      <header style={{ borderBottom: '2px solid black', paddingBottom: 10, marginBottom: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <strong>LetMeCook</strong> | User: <u>@{user.username}</u> ({user.name})
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#fafbfc', fontFamily: 'monospace', color: '#000000' }}>
+      {/* Reserved Navigation Space (blank space reserved so hovering nav never shifts content) */}
+      <div
+        onMouseEnter={() => setNavHovered(true)}
+        onMouseLeave={() => setNavHovered(false)}
+        style={{
+          width: 220,
+          flexShrink: 0,
+          position: 'relative'
+        }}
+      >
+        <aside
+          style={{
+            width: navHovered ? 210 : 54,
+            transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s ease',
+            backgroundColor: '#f3f4f6',
+            borderRight: '1.5px solid #d1d5db',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            bottom: 0,
+            height: '100vh',
+            zIndex: 50,
+            overflow: 'hidden',
+            boxShadow: navHovered ? '4px 0 16px rgba(0,0,0,0.1)' : 'none'
+          }}
+        >
+          {/* Top brand icon */}
+          <div style={{ padding: '18px 14px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #e5e7eb' }}>
+            <span style={{ fontSize: 22, flexShrink: 0 }}>🍳</span>
+            {navHovered && <strong style={{ whiteSpace: 'nowrap', fontSize: 16, color: '#000000' }}>LetMeCook</strong>}
           </div>
-          <button onClick={handleLogout}>[Logout]</button>
-        </div>
-      </header>
 
-      {/* Global Feedback */}
-      {error && <div style={{ border: '1px solid red', padding: 8, marginBottom: 12, color: 'red' }}>Error: {error}</div>}
-      {message && <div style={{ border: '1px solid green', padding: 8, marginBottom: 12, color: 'green' }}>{message}</div>}
+          {/* Middle Navigation Links or Rotated Wireframe Annotation */}
+          {navHovered ? (
+            <div style={{ padding: '16px 10px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+              {[
+                { id: 'home', label: 'Home', icon: '🏠' },
+                { id: 'dine-in', label: 'Dine in', icon: '🍽️' },
+                { id: 'kitchen', label: 'Kitchen', icon: '🍳' },
+                { id: 'messages', label: 'Messages', icon: '💬' },
+                { id: 'profile', label: 'Profile', icon: '👤' }
+              ].map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { setActiveTab(item.id); setShowSettings(false); }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '10px 14px',
+                      borderRadius: 10,
+                      background: isActive ? '#000000' : 'transparent',
+                      color: isActive ? '#ffffff' : '#000000',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: 14,
+                      textAlign: 'left',
+                      fontWeight: isActive ? 'bold' : '600',
+                      width: '100%',
+                      transition: 'background 0.15s ease'
+                    }}
+                  >
+                    <span style={{ fontSize: 16 }}>{item.icon}</span>
+                    <span style={{ whiteSpace: 'nowrap', color: isActive ? '#ffffff' : '#000000' }}>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                style={{
+                  writingMode: 'vertical-rl',
+                  transform: 'rotate(180deg)',
+                  whiteSpace: 'nowrap',
+                  fontSize: 11,
+                  letterSpacing: 2.5,
+                  fontWeight: 'bold',
+                  color: '#000000',
+                  textTransform: 'uppercase',
+                  userSelect: 'none',
+                  padding: '20px 0'
+                }}
+              >
+                NAVIGATION (on HOVER STATE expanded)
+              </div>
+            </div>
+          )}
 
-      {/* 5 Primary Navigation Tabs strictly matching PRODUCT.md Section 12 */}
-      <nav style={{ display: 'flex', gap: 10, borderBottom: '2px solid black', paddingBottom: 10, marginBottom: 16 }}>
-        <button
-          onClick={() => { setActiveTab('home'); setShowSettings(false); }}
-          style={{ fontWeight: activeTab === 'home' ? 'bold' : 'normal' }}
-        >
-          [Home]
-        </button>
-        <button
-          onClick={() => { setActiveTab('dine-in'); setShowSettings(false); }}
-          style={{ fontWeight: activeTab === 'dine-in' ? 'bold' : 'normal' }}
-        >
-          [Dine-in]
-        </button>
-        <button
-          onClick={() => { setActiveTab('kitchen'); setShowSettings(false); }}
-          style={{ fontWeight: activeTab === 'kitchen' ? 'bold' : 'normal' }}
-        >
-          [Kitchen]
-        </button>
-        <button
-          onClick={() => { setActiveTab('messages'); setShowSettings(false); }}
-          style={{ fontWeight: activeTab === 'messages' ? 'bold' : 'normal' }}
-        >
-          [Messages]
-        </button>
-        <button
-          onClick={() => { setActiveTab('profile'); setShowSettings(false); }}
-          style={{ fontWeight: activeTab === 'profile' ? 'bold' : 'normal' }}
-        >
-          [Profile]
-        </button>
-      </nav>
+          {/* Bottom User Area */}
+          <div style={{ padding: '14px 12px', borderTop: '1px solid #e5e7eb' }}>
+            {navHovered ? (
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 'bold', color: '#000000', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  @{user.username}
+                </div>
+                <div style={{ fontSize: 11, color: '#333333', marginBottom: 8 }}>
+                  {user.name}
+                </div>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    width: '100%',
+                    padding: '6px 10px',
+                    fontSize: 12,
+                    fontWeight: 'bold',
+                    background: '#ffffff',
+                    color: '#000000',
+                    border: '1px solid #000000',
+                    borderRadius: 6,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', fontSize: 18 }}>👤</div>
+            )}
+          </div>
+        </aside>
+      </div>
+
+      {/* Main App Container */}
+      <div style={{ flex: 1, padding: '24px 36px', maxWidth: 960, margin: '0 auto', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
+        {/* Global Feedback */}
+        {error && <div style={{ border: '1px solid red', padding: 10, marginBottom: 16, color: '#b91c1c', backgroundColor: '#fef2f2', borderRadius: 6 }}>Error: {error}</div>}
+        {message && <div style={{ border: '1px solid green', padding: 10, marginBottom: 16, color: '#15803d', backgroundColor: '#f0fdf4', borderRadius: 6 }}>{message}</div>}
 
       {/* ========================================================= */}
       {/* 1. HOME SCREEN (PRODUCT.md Section 13) */}
@@ -547,15 +636,59 @@ export default function App() {
       )}
 
       {/* ========================================================= */}
-      {/* 2. DINE-IN SCREEN (PRODUCT.md Section 14) */}
+      {/* 2. DINE-IN SCREEN (Proposed Design) */}
       {/* ========================================================= */}
       {activeTab === 'dine-in' && (
-        <section>
-          <h3>Dine-in (Browse & Join Active Dishes)</h3>
-          <div style={{ marginBottom: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
-            <label>Category Filter:</label>
-            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-              <option value="">All Categories</option>
+        <section style={{ maxWidth: 860, margin: '0 auto', color: '#000000' }}>
+          {/* Header Title */}
+          <div style={{ textAlign: 'center', marginBottom: 24 }}>
+            <h1 style={{ fontSize: 40, fontFamily: '"Georgia", "Playfair Display", "Times New Roman", serif', fontWeight: 'bold', margin: '0 0 20px 0', letterSpacing: '-0.5px', color: '#000000' }}>
+              Dine in
+            </h1>
+            
+            {/* Top Sub-Navigation Tabs */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2.5px solid #000000', paddingBottom: 0, fontSize: 16 }}>
+              {[
+                { key: 'join_to_cook', label: 'Join to Cook' },
+                { key: 'cooking', label: 'Cooking' },
+                { key: 'global', label: 'Global' },
+                { key: 'my_dishes', label: 'My Dishes' }
+              ].map((tab) => {
+                const isActive = dineInTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setDineInTab(tab.key)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontSize: 17,
+                      fontFamily: 'inherit',
+                      cursor: 'pointer',
+                      fontWeight: isActive ? 'bold' : 'normal',
+                      color: '#000000',
+                      borderBottom: isActive ? '3.5px solid #000000' : '3.5px solid transparent',
+                      padding: '6px 12px 10px 12px',
+                      marginBottom: -2.5,
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Category Filter Bar */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginBottom: 20, color: '#000000' }}>
+            <span style={{ fontSize: 12, color: '#000000', fontWeight: 'bold' }}>Filter Category:</span>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              style={{ padding: '3px 8px', fontSize: 12, color: '#000000', backgroundColor: '#ffffff', border: '1px solid #000000', borderRadius: 4 }}
+            >
+              <option value="">All</option>
               <option value="sport">Sport</option>
               <option value="study">Study</option>
               <option value="travel">Travel</option>
@@ -566,64 +699,243 @@ export default function App() {
               <option value="learning">Learning</option>
               <option value="other">Other</option>
             </select>
-            <button onClick={fetchDishes}>[Refresh]</button>
+            <button
+              onClick={fetchDishes}
+              style={{ padding: '3px 10px', fontSize: 12, color: '#000000', backgroundColor: '#ffffff', border: '1px solid #000000', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              [Refresh]
+            </button>
           </div>
 
-          {dishes.length === 0 ? (
-            <p>No active dishes found in Dine-in.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {dishes.map((dish) => {
-                const isCreator = dish.creator?._id === user._id || dish.creator === user._id;
+          {/* Filtered Dishes based on Sub-Tab */}
+          {(() => {
+            const filteredDishes = dishes.filter((dish) => {
+              if (dineInTab === 'join_to_cook') {
+                return dish.status === 'lets_cook';
+              }
+              if (dineInTab === 'cooking') {
+                return dish.status === 'cooking';
+              }
+              if (dineInTab === 'global') {
+                return dish.visibility === 'global';
+              }
+              if (dineInTab === 'my_dishes') {
+                const isCreator = (dish.creator?._id || dish.creator) === user._id;
                 const isParticipant = dish.participants?.some((p) => (p.user?._id || p.user) === user._id);
-                const hasPendingReq = dish.requests?.some(
-                  (r) => (r.user?._id || r.user) === user._id && r.status === 'pending'
-                );
+                return isCreator || isParticipant;
+              }
+              return true;
+            });
 
-                return (
-                  <div key={dish._id} style={{ border: '1px solid black', padding: 12 }}>
-                    <div><strong>Description:</strong> {dish.description}</div>
-                    <div><strong>Category:</strong> {dish.category} | <strong>Type:</strong> {dish.type} | <strong>Status:</strong> {dish.status}</div>
-                    <div><strong>Creator:</strong> @{dish.creator?.username || dish.creator} | <strong>Location:</strong> {dish.location?.areaName || 'Nearby'}</div>
-                    <div><strong>Join Mode:</strong> {dish.joinMode} | <strong>Capacity:</strong> {dish.participants?.length}/{dish.capacity?.max}</div>
+            if (filteredDishes.length === 0) {
+              return (
+                <div style={{ textAlign: 'center', padding: '40px 20px', border: '1px dashed #999', borderRadius: 12, color: '#555' }}>
+                  No dishes found in <strong>{dineInTab.replace('_', ' ')}</strong>.
+                </div>
+              );
+            }
 
-                    <div style={{ marginTop: 6, fontSize: 12 }}>
-                      <strong>Participants:</strong> {dish.participants?.map((p) => `@${p.user?.username || p.user}`).join(', ')}
-                    </div>
+            return (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+                  gap: 20
+                }}
+              >
+                {filteredDishes.map((dish) => {
+                  const creatorObj = dish.creator || {};
+                  const creatorName = creatorObj.name || 'Unknown Chef';
+                  const creatorUsername = creatorObj.username || 'user';
+                  const isCreator = (creatorObj._id || creatorObj) === user._id;
+                  const isParticipant = dish.participants?.some((p) => (p.user?._id || p.user) === user._id);
+                  const hasPendingReq = dish.requests?.some(
+                    (r) => (r.user?._id || r.user) === user._id && r.status === 'pending'
+                  );
+                  const isExpanded = !!expandedDishes[dish._id];
+                  const spotsLeft = dish.capacity?.unlimited ? '∞' : Math.max(0, (dish.capacity?.max || 4) - (dish.participants?.length || 0));
 
-                    {isCreator && dish.requests?.length > 0 && (
-                      <div style={{ marginTop: 8, borderTop: '1px dashed #777', paddingTop: 6 }}>
-                        <strong>Pending Requests ({dish.requests.filter(r => r.status === 'pending').length}):</strong>
-                        {dish.requests.filter(r => r.status === 'pending').map((r) => (
-                          <div key={r._id} style={{ marginTop: 4 }}>
-                            User ID: {r.user?._id || r.user}
-                            <button onClick={() => handleApproveRequest(dish._id, r._id)} style={{ marginLeft: 6 }}>[Approve]</button>
-                            <button onClick={() => handleRejectRequest(dish._id, r._id)} style={{ marginLeft: 6 }}>[Reject]</button>
-                          </div>
-                        ))}
+                  return (
+                    <div
+                      key={dish._id}
+                      style={{
+                        backgroundColor: '#ccd5de',
+                        borderRadius: 24,
+                        padding: '18px 20px',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 16,
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.06)',
+                        border: '1px solid #b8c4cf',
+                        border: '1px solid #b8c4cf',
+                        position: 'relative',
+                        color: '#000000'
+                      }}
+                    >
+                      {/* Left Icon: Wireframe Shopping Cart SVG */}
+                      <div style={{ paddingTop: 4, flexShrink: 0 }}>
+                        <svg
+                          width="44"
+                          height="44"
+                          viewBox="0 0 40 40"
+                          fill="none"
+                          stroke="#000000"
+                          strokeWidth="2.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M4 6h5l3.5 17h18l3.5-12H11" />
+                          <line x1="14" y1="15" x2="31.5" y2="15" />
+                          <line x1="15.5" y1="19" x2="28" y2="19" />
+                          <line x1="19" y1="11" x2="18" y2="23" />
+                          <line x1="25" y1="11" x2="24" y2="23" />
+                          <circle cx="16" cy="29" r="2.8" fill="#000000" />
+                          <circle cx="28" cy="29" r="2.8" fill="#000000" />
+                        </svg>
                       </div>
-                    )}
 
-                    <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
-                      {!isParticipant && !hasPendingReq && (
-                        <button onClick={() => handleJoinDish(dish._id)}>[Join / Request]</button>
-                      )}
-                      {hasPendingReq && <span>(Join request pending approval)</span>}
-                      {isParticipant && !isCreator && (
-                        <button onClick={() => handleLeaveDish(dish._id)}>[Leave Dish]</button>
-                      )}
-                      {isCreator && dish.status === 'lets_cook' && (
-                        <button onClick={() => handleUpdateStatus(dish._id, 'cooking')}>[Start Cooking]</button>
-                      )}
-                      {isCreator && dish.status === 'cooking' && (
-                        <button onClick={() => handleUpdateStatus(dish._id, 'cooked')}>[Mark Cooked]</button>
-                      )}
+                      {/* Right Card Content */}
+                      <div style={{ flex: 1, minWidth: 0, color: '#000000' }}>
+                        {/* Header: DP + Name + Username */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                          <div
+                            style={{
+                              width: 38,
+                              height: 38,
+                              borderRadius: '50%',
+                              backgroundColor: '#9353d3',
+                              color: '#ffffff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: 13,
+                              fontWeight: 'bold',
+                              flexShrink: 0
+                            }}
+                          >
+                            dp
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: 'bold', fontSize: 15, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.5px', lineHeight: 1.2 }}>
+                              {creatorName}
+                            </div>
+                            <div style={{ fontSize: 11, color: '#111111', marginTop: 1 }}>
+                              @{creatorUsername} • <span style={{ textTransform: 'capitalize' }}>{dish.category}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Description with read more */}
+                        <div style={{ fontSize: 13, color: '#000000', lineHeight: 1.4, marginBottom: 4, wordBreak: 'break-word' }}>
+                          <span style={{ fontWeight: 600, color: '#000000' }}>Description: </span>
+                          {isExpanded || dish.description.length <= 80
+                            ? dish.description
+                            : `${dish.description.slice(0, 80)}...`}
+                        </div>
+
+                        {dish.description.length > 80 && (
+                          <div style={{ textAlign: 'right', marginBottom: 6 }}>
+                            <button
+                              onClick={() =>
+                                setExpandedDishes((prev) => ({ ...prev, [dish._id]: !prev[dish._id] }))
+                              }
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#000000',
+                                fontSize: 11,
+                                cursor: 'pointer',
+                                textDecoration: 'underline',
+                                padding: 0,
+                                fontWeight: 'bold'
+                              }}
+                            >
+                              {isExpanded ? 'show less' : 'read more'}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Meta Info Bar: Capacity, Join Mode, Status */}
+                        <div style={{ fontSize: 11, color: '#000000', marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 8, fontWeight: '500' }}>
+                          <span>👥 {dish.participants?.length || 1}/{dish.capacity?.max || 4} spots ({spotsLeft} left)</span>
+                          <span>• {dish.joinMode === 'auto' ? '⚡ Auto-join' : '⏳ Request approval'}</span>
+                          {dish.type === 'chefs_special' && <span style={{ color: '#8b0000', fontWeight: 'bold' }}>• ⭐ Chef's Special</span>}
+                        </div>
+
+                        {/* Creator Pending Requests Section */}
+                        {isCreator && dish.requests?.filter((r) => r.status === 'pending').length > 0 && (
+                          <div style={{ background: '#e5ebf1', borderRadius: 8, padding: 8, marginBottom: 10, fontSize: 11, color: '#000000' }}>
+                            <strong>Pending Requests ({dish.requests.filter((r) => r.status === 'pending').length}):</strong>
+                            {dish.requests
+                              .filter((r) => r.status === 'pending')
+                              .map((r) => (
+                                <div key={r._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                                  <span style={{ color: '#000000' }}>User: {r.user?._id || r.user}</span>
+                                  <div>
+                                    <button onClick={() => handleApproveRequest(dish._id, r._id)} style={{ padding: '2px 6px', fontSize: 11, marginRight: 4, color: '#000000', background: '#fff', border: '1px solid #000', borderRadius: 3, cursor: 'pointer' }}>[✓ Approve]</button>
+                                    <button onClick={() => handleRejectRequest(dish._id, r._id)} style={{ padding: '2px 6px', fontSize: 11, color: '#000000', background: '#fff', border: '1px solid #000', borderRadius: 3, cursor: 'pointer' }}>[✕ Reject]</button>
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                          {!isParticipant && !hasPendingReq && (
+                            <button
+                              onClick={() => handleJoinDish(dish._id)}
+                              style={{
+                                padding: '5px 12px',
+                                fontSize: 12,
+                                fontWeight: 'bold',
+                                background: '#000000',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: 6,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {dish.joinMode === 'auto' ? 'Join Dish' : 'Request to Join'}
+                            </button>
+                          )}
+                          {hasPendingReq && (
+                            <span style={{ fontSize: 11, color: '#000000', fontStyle: 'italic', alignSelf: 'center', fontWeight: 'bold' }}>
+                              Request pending approval
+                            </span>
+                          )}
+                          {isParticipant && !isCreator && (
+                            <button
+                              onClick={() => handleLeaveDish(dish._id)}
+                              style={{ padding: '4px 10px', fontSize: 11, background: '#ffffff', color: '#000000', border: '1px solid #000000', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold' }}
+                            >
+                              Leave Dish
+                            </button>
+                          )}
+                          {isCreator && dish.status === 'lets_cook' && (
+                            <button
+                              onClick={() => handleUpdateStatus(dish._id, 'cooking')}
+                              style={{ padding: '4px 10px', fontSize: 11, background: '#ffffff', color: '#000000', border: '1px solid #000000', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold' }}
+                            >
+                              Start Cooking
+                            </button>
+                          )}
+                          {isCreator && dish.status === 'cooking' && (
+                            <button
+                              onClick={() => handleUpdateStatus(dish._id, 'cooked')}
+                              style={{ padding: '4px 10px', fontSize: 11, background: '#ffffff', color: '#000000', border: '1px solid #000000', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold' }}
+                            >
+                              Mark Cooked
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            );
+          })()}
         </section>
       )}
 
@@ -910,6 +1222,7 @@ export default function App() {
           </form>
         </section>
       )}
+      </div>
     </div>
   );
 }
