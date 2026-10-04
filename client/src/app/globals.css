@@ -3,5 +3,191 @@
 html, body, button, input, select, textarea {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #000000;
-  background-color: #fafbfc;
+  background-color: #e6dfe4;
+}
+
+:root {
+  --f-cubic: cubic-bezier(0.35, 0.35, 0, 1);
+  --f-cubic-in: cubic-bezier(0.69, 0, 0, 1);
+  --f-fast: cubic-bezier(0, 0.81, 0.35, 1);
+  --f-smooth: cubic-bezier(0.5, 0, 0.3, 1);
+  --f-smooth-alt: cubic-bezier(0.6, 0, 0.05, 1);
+  --f-bounce: cubic-bezier(0.6, 0.5, 0, 3);
+  --f-bounce-alt: cubic-bezier(0.6, 0.5, 0, 2);
+  --c-grey: #e6dfe4;
+  --c-grey-rgb: 230, 223, 228;
+  --c-grey-dark: #544d56;
+  --c-grey-dark-rgb: 84, 77, 86;
+  --c-black: #101214;
+  --c-black-rgb: 16, 18, 20;
+  --c-white: #fff;
+  --c-white-rgb: 255, 255, 255;
+}
+
+@keyframes opacityGlare {
+  0% {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 0.1;
+  }
+}
+
+/* StringTune Button Base */
+.st-btn {
+  --border-radius: 9999px;
+  --spotlight-angle: -45deg;
+  --spotlight-distance: 0;
+  --skX: 0.05;
+  --skY: 0.12;
+  --x: 0;
+  --y: 0;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.62rem 1.6rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #101214;
+  text-decoration: none;
+  box-shadow: 0 0.8rem 0.8rem rgba(84, 77, 86, 0.05);
+  transform-origin: center center;
+  scale: 1 1;
+  transform: scale(1);
+  transition: scale 0.45s var(--f-bounce), transform 0.3s var(--f-bounce), opacity 0.3s var(--f-cubic);
+  will-change: transform, scale;
+  touch-action: manipulation;
+  outline: none;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+/* Border pseudo element */
+.st-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--border-radius);
+  padding: 1px;
+  box-sizing: border-box;
+  background-image: linear-gradient(
+    calc(1deg * var(--spotlight-angle, -45)),
+    rgba(255, 255, 255, calc(0.75 - var(--spotlight-distance, 0) / 4000)) 0%,
+    rgba(255, 255, 255, 0.2) 40%,
+    rgba(255, 255, 255, 0.2) 60%,
+    rgba(255, 255, 255, calc(0.75 - var(--spotlight-distance, 0) / 4000)) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  transform: translateZ(0);
+  scale: 1 1;
+  transform: scale(1);
+  transition: background-color 0.6s var(--f-cubic), box-shadow 1.8s var(--f-cubic), scale 0.45s var(--f-bounce), transform 0.3s var(--f-bounce), backdrop-filter 0.6s var(--f-cubic), -webkit-backdrop-filter 0.6s var(--f-cubic);
+}
+
+/* Glare container inside button */
+.st-btn .st-glare {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--border-radius);
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  overflow: hidden;
+  contain: paint;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  -webkit-backdrop-filter: blur(0.4rem) saturate(120%);
+  backdrop-filter: blur(0.4rem) saturate(120%);
+  background-color: rgba(167, 167, 180, 0.12);
+  box-shadow: inset 0 0 0.4rem 0.2rem rgba(16, 18, 20, 0.08);
+  pointer-events: none;
+  transform: translateZ(0);
+  scale: 1 1;
+  transform: scale(1);
+  transition: background-color 0.6s var(--f-cubic), box-shadow 1.8s var(--f-cubic), scale 0.45s var(--f-bounce), transform 0.3s var(--f-bounce), backdrop-filter 0.6s var(--f-cubic), -webkit-backdrop-filter 0.6s var(--f-cubic);
+}
+
+/* Glare before: flashing circle shine */
+.st-btn .st-glare::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 140px);
+  aspect-ratio: 1/1;
+  background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 70%), url('/images/flashing-circle-w.png');
+  background-position: 50%;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) translate3d(calc(100% * var(--x, 0)), calc(100% * var(--y, 0)), 0);
+}
+
+/* Hover State */
+.st-btn:hover:not(:disabled) .st-glare::before {
+  animation: opacityGlare 1.5s var(--f-cubic) forwards;
+}
+
+.st-btn:hover:not(:disabled) .st-glare,
+.st-btn:hover:not(:disabled)::after {
+  scale: 1 calc(1 + var(--skY, 0.12) / 1.5);
+  transform: scaleX(calc(1 + var(--skX, 0.05) / 1.5));
+  transition: background-color 0.6s var(--f-cubic), box-shadow 1.8s var(--f-cubic), scale 0.3s var(--f-bounce), transform 0.45s var(--f-bounce), backdrop-filter 0.6s var(--f-cubic), -webkit-backdrop-filter 0.6s var(--f-cubic);
+}
+
+/* Active / Pressed State */
+.st-btn:active:not(:disabled) {
+  scale: 1 calc(1 + var(--skY, 0.12) / 2);
+  transform: scaleX(calc(1 + var(--skX, 0.05) / 2));
+  transition: scale 0s, transform 0s, opacity 0s;
+}
+
+.st-btn:active:not(:disabled) .st-glare {
+  background-color: rgba(167, 167, 180, 0.22);
+  transition: background-color 0s, box-shadow 0s, scale 0s, transform 0s;
+}
+
+.st-btn:active:not(:disabled) .st-glare::before {
+  animation: none;
+  opacity: 0.6;
+}
+
+/* Button Content */
+.st-btn .st-content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  font-weight: 500;
+  color: #101214;
+}
+
+/* Circular icon button variant */
+.st-btn-icon {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0 !important;
+  border-radius: 50% !important;
+}
+.st-btn-icon::after,
+.st-btn-icon .st-glare {
+  border-radius: 50% !important;
 }
