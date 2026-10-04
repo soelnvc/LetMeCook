@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api';
 import GlassContainer from '@/components/GlassContainer';
+import FluidButton from '@/components/FluidButton';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -10,6 +11,7 @@ export default function App() {
   // Navigation strictly per Section 12 of PRODUCT.md: Home, Dine-in, Kitchen, Messages, Profile
   const [activeTab, setActiveTab] = useState('home'); 
   const [showSettings, setShowSettings] = useState(false);
+  const [showKitchenModal, setShowKitchenModal] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -224,7 +226,8 @@ export default function App() {
       });
       setMessage(`Dish published: ${res.data._id}`);
       setDishDesc('');
-      setActiveTab('dine-in');
+      setShowKitchenModal(false);
+      fetchDishes();
     } catch (err) {
       setError(err.message);
     }
@@ -566,11 +569,18 @@ export default function App() {
                 { id: 'messages', label: 'Messages', icon: '💬' },
                 { id: 'profile', label: 'Profile', icon: '👤' }
               ].map((item) => {
-                const isActive = activeTab === item.id;
+                const isActive = item.id === 'kitchen' ? showKitchenModal : activeTab === item.id;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => { setActiveTab(item.id); setShowSettings(false); }}
+                    onClick={() => {
+                      if (item.id === 'kitchen') {
+                        setShowKitchenModal(true);
+                      } else {
+                        setActiveTab(item.id);
+                        setShowSettings(false);
+                      }
+                    }}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -625,22 +635,17 @@ export default function App() {
                 <div style={{ fontSize: 11, color: '#333333', marginBottom: 8 }}>
                   {user.name}
                 </div>
-                <button
+                <FluidButton
                   onClick={handleLogout}
                   style={{
                     width: '100%',
-                    padding: '6px 10px',
+                    padding: '6px 12px',
                     fontSize: 12,
-                    fontWeight: 'bold',
-                    background: '#ffffff',
-                    color: '#000000',
-                    border: '1px solid #000000',
-                    borderRadius: 6,
-                    cursor: 'pointer'
+                    fontWeight: 600
                   }}
                 >
                   Logout
-                </button>
+                </FluidButton>
               </div>
             ) : (
               <div style={{ textAlign: 'center', fontSize: 18 }}>👤</div>
@@ -680,21 +685,16 @@ export default function App() {
             ) : (
               <div style={{ marginTop: 8, color: '#374151', fontSize: 15, display: 'flex', alignItems: 'center', gap: 12 }}>
                 <span>"Nothing cooking yet. Someone has to start the chaos."</span>
-                <button
-                  onClick={() => setActiveTab('kitchen')}
+                <FluidButton
+                  onClick={() => setShowKitchenModal(true)}
                   style={{
-                    backgroundColor: '#000000',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: 9999,
-                    padding: '6px 14px',
+                    padding: '6px 16px',
                     fontSize: 13,
-                    fontWeight: 600,
-                    cursor: 'pointer'
+                    fontWeight: 600
                   }}
                 >
-                  Go to Kitchen
-                </button>
+                  Create a Dish
+                </FluidButton>
               </div>
             )}
           </GlassContainer>
@@ -805,12 +805,12 @@ export default function App() {
               <option value="learning">Learning</option>
               <option value="other">Other</option>
             </select>
-            <button
+            <FluidButton
               onClick={fetchDishes}
-              style={{ padding: '3px 10px', fontSize: 12, color: '#000000', backgroundColor: '#ffffff', border: '1px solid #000000', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold' }}
+              style={{ padding: '4px 14px', fontSize: 12, fontWeight: 600 }}
             >
-              [Refresh]
-            </button>
+              Refresh
+            </FluidButton>
           </div>
 
           {/* Filtered Dishes based on Sub-Tab */}
@@ -990,21 +990,16 @@ export default function App() {
                         {/* Actions */}
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                           {!isParticipant && !hasPendingReq && (
-                            <button
+                            <FluidButton
                               onClick={() => handleJoinDish(dish._id)}
                               style={{
-                                padding: '5px 12px',
+                                padding: '5px 14px',
                                 fontSize: 12,
-                                fontWeight: 'bold',
-                                background: '#000000',
-                                color: '#ffffff',
-                                border: 'none',
-                                borderRadius: 6,
-                                cursor: 'pointer'
+                                fontWeight: 600
                               }}
                             >
                               {dish.joinMode === 'auto' ? 'Join Dish' : 'Request to Join'}
-                            </button>
+                            </FluidButton>
                           )}
                           {hasPendingReq && (
                             <span style={{ fontSize: 11, color: '#000000', fontStyle: 'italic', alignSelf: 'center', fontWeight: 'bold' }}>
@@ -1012,28 +1007,28 @@ export default function App() {
                             </span>
                           )}
                           {isParticipant && !isCreator && (
-                            <button
+                            <FluidButton
                               onClick={() => handleLeaveDish(dish._id)}
-                              style={{ padding: '4px 10px', fontSize: 11, background: '#ffffff', color: '#000000', border: '1px solid #000000', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold' }}
+                              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600 }}
                             >
                               Leave Dish
-                            </button>
+                            </FluidButton>
                           )}
                           {isCreator && dish.status === 'lets_cook' && (
-                            <button
+                            <FluidButton
                               onClick={() => handleUpdateStatus(dish._id, 'cooking')}
-                              style={{ padding: '4px 10px', fontSize: 11, background: '#ffffff', color: '#000000', border: '1px solid #000000', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold' }}
+                              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600 }}
                             >
                               Start Cooking
-                            </button>
+                            </FluidButton>
                           )}
                           {isCreator && dish.status === 'cooking' && (
-                            <button
+                            <FluidButton
                               onClick={() => handleUpdateStatus(dish._id, 'cooked')}
-                              style={{ padding: '4px 10px', fontSize: 11, background: '#ffffff', color: '#000000', border: '1px solid #000000', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold' }}
+                              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600 }}
                             >
                               Mark Cooked
-                            </button>
+                            </FluidButton>
                           )}
                         </div>
                       </div>
@@ -1046,177 +1041,7 @@ export default function App() {
         </section>
       )}
 
-      {/* ========================================================= */}
-      {/* 3. KITCHEN SCREEN (PRODUCT.md Section 15) */}
-      {/* ========================================================= */}
-      {activeTab === 'kitchen' && (
-        <section style={{ width: '100%', maxWidth: 580 }}>
-          <GlassContainer radius={28} style={{ width: '100%' }} innerStyle={{ padding: '32px 36px' }}>
-            <h2 style={{ fontSize: 28, fontWeight: 800, margin: '0 0 20px 0', letterSpacing: '-0.5px', color: '#000000' }}>
-              Kitchen (Create a Dish)
-            </h2>
-            <form onSubmit={handleCreateDish} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>
-                  Dish Description (What do you want to do?):
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  value={dishDesc}
-                  onChange={(e) => setDishDesc(e.target.value)}
-                  placeholder="e.g. Badminton doubles at 6 PM near campus court"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: 12,
-                    border: '1px solid rgba(0, 0, 0, 0.15)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                    fontSize: 14,
-                    color: '#000000',
-                    boxSizing: 'border-box',
-                    fontFamily: 'inherit'
-                  }}
-                />
-              </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Category:</label>
-                  <select
-                    value={dishCategory}
-                    onChange={(e) => setDishCategory(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0, 0, 0, 0.15)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 14,
-                      color: '#000000',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="sport">Sport</option>
-                    <option value="study">Study</option>
-                    <option value="travel">Travel</option>
-                    <option value="food">Food</option>
-                    <option value="gaming">Gaming</option>
-                    <option value="social">Social</option>
-                    <option value="help">Help</option>
-                    <option value="learning">Learning</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Dish Type:</label>
-                  <select
-                    value={dishType}
-                    onChange={(e) => setDishType(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0, 0, 0, 0.15)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 14,
-                      color: '#000000',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="regular">Regular</option>
-                    <option value="chefs_special">Chef's Special</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Join Mode:</label>
-                  <select
-                    value={dishJoinMode}
-                    onChange={(e) => setDishJoinMode(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0, 0, 0, 0.15)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 14,
-                      color: '#000000',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="auto">Auto (instant join)</option>
-                    <option value="approval">Approval (creator approves)</option>
-                    <option value="invite_only">Invite Only</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Capacity (Max):</label>
-                  <input
-                    type="number"
-                    min={2}
-                    max={50}
-                    value={dishCapacity}
-                    onChange={(e) => setDishCapacity(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0, 0, 0, 0.15)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 14,
-                      color: '#000000',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Approximate Location / Area:</label>
-                <input
-                  type="text"
-                  value={dishArea}
-                  onChange={(e) => setDishArea(e.target.value)}
-                  placeholder="e.g. Campus Court"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: 12,
-                    border: '1px solid rgba(0, 0, 0, 0.15)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                    fontSize: 14,
-                    color: '#000000',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-
-              <button
-                type="submit"
-                style={{
-                  marginTop: 10,
-                  padding: '12px 24px',
-                  borderRadius: 9999,
-                  backgroundColor: '#000000',
-                  color: '#ffffff',
-                  border: 'none',
-                  fontSize: 15,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  alignSelf: 'flex-start'
-                }}
-              >
-                Publish Dish
-              </button>
-            </form>
-          </GlassContainer>
-        </section>
-      )}
 
       {/* ========================================================= */}
       {/* 4. MESSAGES SCREEN (PRODUCT.md Section 16) */}
@@ -1566,27 +1391,22 @@ export default function App() {
                                 fontFamily: 'inherit'
                               }}
                             />
-                            <button
+                            <FluidButton
                               type="submit"
+                              variant="icon"
                               style={{
-                                backgroundColor: '#000000',
-                                color: '#ffffff',
-                                border: 'none',
-                                borderRadius: '50%',
                                 width: 36,
                                 height: 36,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
+                                minWidth: 36,
+                                minHeight: 36,
                                 flexShrink: 0
                               }}
                             >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                               </svg>
-                            </button>
+                            </FluidButton>
                           </GlassContainer>
                         </form>
                       </div>
@@ -1642,27 +1462,17 @@ export default function App() {
                 <h1 style={{ fontSize: 34, fontWeight: 800, margin: 0, letterSpacing: '-0.5px', color: '#000000', lineHeight: 1 }}>
                   {user.username || 'username'}
                 </h1>
-                <button
+                <FluidButton
+                  variant="icon"
                   onClick={() => setShowSettings(true)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'transform 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'rotate(45deg)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'rotate(0deg)')}
                   title="Open Settings & Privacy"
+                  style={{ width: 34, height: 34, minWidth: 34, minHeight: 34 }}
                 >
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="3" />
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
-                </button>
+                </FluidButton>
               </div>
 
               {/* Line 2: Name, Pronouns, Connections */}
@@ -1718,21 +1528,17 @@ export default function App() {
 
               {/* Line 5: Edit Profile Pill Button */}
               <div>
-                <GlassContainer
-                  as="button"
-                  radius={9999}
+                <FluidButton
                   onClick={() => setShowEditProfile(true)}
-                  innerStyle={{
+                  style={{
                     padding: '10px 24px',
                     fontSize: 14,
                     fontWeight: 600,
-                    cursor: 'pointer',
-                    lineHeight: 1.2,
                     color: '#000000'
                   }}
                 >
                   Edit Profile (Only show when viewing Own Profile)
-                </GlassContainer>
+                </FluidButton>
               </div>
             </div>
           </div>
@@ -1746,20 +1552,19 @@ export default function App() {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 10px', width: 230 }}>
                 {(interests && interests.length > 0 ? interests : ['music', 'Gym', 'Sports', 'Anime', 'Coffee']).map((tag, idx) => (
-                  <GlassContainer
+                  <FluidButton
                     key={idx}
-                    radius={9999}
-                    innerStyle={{
+                    as="span"
+                    style={{
                       padding: '7px 20px',
                       fontSize: 14,
                       fontWeight: 500,
                       color: '#000000',
-                      display: 'inline-flex',
-                      alignItems: 'center'
+                      cursor: 'default'
                     }}
                   >
                     {tag}
-                  </GlassContainer>
+                  </FluidButton>
                 ))}
               </div>
             </div>
@@ -2188,37 +1993,27 @@ export default function App() {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
-                    <button
+                    <FluidButton
                       type="button"
                       onClick={() => setShowEditProfile(false)}
                       style={{
-                        backgroundColor: '#f3f4f6',
-                        color: '#111827',
-                        border: 'none',
-                        borderRadius: 9999,
-                        padding: '10px 20px',
+                        padding: '8px 22px',
                         fontSize: 14,
-                        fontWeight: 600,
-                        cursor: 'pointer'
+                        fontWeight: 600
                       }}
                     >
                       Cancel
-                    </button>
-                    <button
+                    </FluidButton>
+                    <FluidButton
                       type="submit"
                       style={{
-                        backgroundColor: '#000000',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: 9999,
-                        padding: '10px 24px',
+                        padding: '8px 26px',
                         fontSize: 14,
-                        fontWeight: 600,
-                        cursor: 'pointer'
+                        fontWeight: 600
                       }}
                     >
                       Save Profile
-                    </button>
+                    </FluidButton>
                   </div>
                 </form>
               </GlassContainer>
@@ -2260,12 +2055,13 @@ export default function App() {
                     <span style={{ fontSize: 22 }}>⚙️</span>
                     <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Settings & Privacy</h3>
                   </div>
-                  <button
+                  <FluidButton
+                    variant="icon"
                     onClick={() => setShowSettings(false)}
-                    style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#6b7280' }}
+                    style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
                   >
                     ✕
-                  </button>
+                  </FluidButton>
                 </div>
 
                 {/* Privacy & Visibility Settings Form */}
@@ -2351,23 +2147,18 @@ export default function App() {
                     </label>
                   </div>
 
-                  <button
+                  <FluidButton
                     type="submit"
                     style={{
-                      backgroundColor: '#000000',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: 9999,
-                      padding: '10px 24px',
+                      padding: '8px 24px',
                       fontSize: 14,
                       fontWeight: 600,
-                      cursor: 'pointer',
                       marginTop: 8,
                       alignSelf: 'flex-start'
                     }}
                   >
                     Save Privacy Settings
-                  </button>
+                  </FluidButton>
                 </form>
 
                 {/* Privacy Filter Inspector */}
@@ -2392,21 +2183,16 @@ export default function App() {
                         color: '#000000'
                       }}
                     />
-                    <button
+                    <FluidButton
                       type="submit"
                       style={{
-                        backgroundColor: '#cdd5de',
-                        color: '#000000',
-                        border: 'none',
-                        borderRadius: 8,
-                        padding: '8px 16px',
+                        padding: '8px 18px',
                         fontSize: 13,
-                        fontWeight: 600,
-                        cursor: 'pointer'
+                        fontWeight: 600
                       }}
                     >
                       Lookup
-                    </button>
+                    </FluidButton>
                   </form>
 
                   {searchedProfile && (
@@ -2440,6 +2226,223 @@ export default function App() {
           )}
 
         </section>
+      )}
+
+      {/* ========================================================= */}
+      {/* KITCHEN POPUP MODAL (Opens on ANY page via navigation or actions) */}
+      {/* ========================================================= */}
+      {showKitchenModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16
+          }}
+          onClick={() => setShowKitchenModal(false)}
+        >
+          <GlassContainer
+            radius={28}
+            style={{ width: '100%', maxWidth: 580 }}
+            innerStyle={{
+              padding: '30px 34px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              color: '#000000'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 24 }}>🍳</span>
+                <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: '-0.5px', color: '#000000' }}>
+                  Kitchen (Create a Dish)
+                </h2>
+              </div>
+              <FluidButton
+                variant="icon"
+                onClick={() => setShowKitchenModal(false)}
+                style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
+              >
+                ✕
+              </FluidButton>
+            </div>
+
+            <form onSubmit={handleCreateDish} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>
+                  Dish Description (What do you want to do?):
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={dishDesc}
+                  onChange={(e) => setDishDesc(e.target.value)}
+                  placeholder="e.g. Badminton doubles at 6 PM near campus court"
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(0, 0, 0, 0.15)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                    fontSize: 14,
+                    color: '#000000',
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Category:</label>
+                  <select
+                    value={dishCategory}
+                    onChange={(e) => setDishCategory(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: '1px solid rgba(0, 0, 0, 0.15)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: 14,
+                      color: '#000000',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="sport">Sport</option>
+                    <option value="study">Study</option>
+                    <option value="travel">Travel</option>
+                    <option value="food">Food</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="social">Social</option>
+                    <option value="help">Help</option>
+                    <option value="learning">Learning</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Dish Type:</label>
+                  <select
+                    value={dishType}
+                    onChange={(e) => setDishType(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: '1px solid rgba(0, 0, 0, 0.15)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: 14,
+                      color: '#000000',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="regular">Regular</option>
+                    <option value="chefs_special">Chef's Special</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Join Mode:</label>
+                  <select
+                    value={dishJoinMode}
+                    onChange={(e) => setDishJoinMode(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: '1px solid rgba(0, 0, 0, 0.15)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: 14,
+                      color: '#000000',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="auto">Auto (instant join)</option>
+                    <option value="approval">Approval (creator approves)</option>
+                    <option value="invite_only">Invite Only</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Capacity (Max):</label>
+                  <input
+                    type="number"
+                    min={2}
+                    max={50}
+                    value={dishCapacity}
+                    onChange={(e) => setDishCapacity(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: '1px solid rgba(0, 0, 0, 0.15)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: 14,
+                      color: '#000000',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Approximate Location / Area:</label>
+                <input
+                  type="text"
+                  value={dishArea}
+                  onChange={(e) => setDishArea(e.target.value)}
+                  placeholder="e.g. Campus Court"
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(0, 0, 0, 0.15)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                    fontSize: 14,
+                    color: '#000000',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 10 }}>
+                <FluidButton
+                  type="button"
+                  onClick={() => setShowKitchenModal(false)}
+                  style={{
+                    padding: '8px 22px',
+                    fontSize: 14,
+                    fontWeight: 600
+                  }}
+                >
+                  Cancel
+                </FluidButton>
+                <FluidButton
+                  type="submit"
+                  style={{
+                    padding: '8px 26px',
+                    fontSize: 14,
+                    fontWeight: 600
+                  }}
+                >
+                  Publish Dish
+                </FluidButton>
+              </div>
+            </form>
+          </GlassContainer>
+        </div>
       )}
       </div>
     </div>
