@@ -639,7 +639,7 @@ export default function App() {
       </div>
 
       {/* Main App Container */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px 32px', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: activeTab === 'profile' ? 'center' : 'flex-start', minHeight: '100vh', padding: activeTab === 'profile' ? '24px 32px' : '40px 32px', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
         {/* Global Feedback */}
         {error && <div style={{ border: '1px solid red', padding: 10, marginBottom: 16, color: '#b91c1c', backgroundColor: '#fef2f2', borderRadius: 6 }}>Error: {error}</div>}
         {message && <div style={{ border: '1px solid green', padding: 10, marginBottom: 16, color: '#15803d', backgroundColor: '#f0fdf4', borderRadius: 6 }}>{message}</div>}
@@ -705,7 +705,7 @@ export default function App() {
       {/* 2. DINE-IN SCREEN (Proposed Design) */}
       {/* ========================================================= */}
       {activeTab === 'dine-in' && (
-        <section style={{ maxWidth: 860, margin: '0 auto', color: '#000000' }}>
+        <section style={{ width: '100%', maxWidth: 860, margin: '0 auto', color: '#000000' }}>
           {/* Header Title */}
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <h1 style={{ fontSize: 40, fontFamily: '"Georgia", "Playfair Display", "Times New Roman", serif', fontWeight: 'bold', margin: '0 0 20px 0', letterSpacing: '-0.5px', color: '#000000' }}>
@@ -795,7 +795,7 @@ export default function App() {
 
             if (filteredDishes.length === 0) {
               return (
-                <div style={{ textAlign: 'center', padding: '40px 20px', border: '1px dashed #999', borderRadius: 12, color: '#555' }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', border: '1px dashed #999', borderRadius: 12, color: '#555', width: '100%', boxSizing: 'border-box' }}>
                   No dishes found in <strong>{dineInTab.replace('_', ' ')}</strong>.
                 </div>
               );
@@ -805,8 +805,10 @@ export default function App() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-                  gap: 20
+                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                  gap: 20,
+                  alignItems: 'start',
+                  width: '100%'
                 }}
               >
                 {filteredDishes.map((dish) => {
@@ -833,7 +835,9 @@ export default function App() {
                         gap: 16,
                         border: '1px solid #b8c4cf',
                         position: 'relative',
-                        color: '#000000'
+                        color: '#000000',
+                        boxSizing: 'border-box',
+                        width: '100%'
                       }}
                     >
                       {/* Left Icon: Wireframe Shopping Cart SVG */}
