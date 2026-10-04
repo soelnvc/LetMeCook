@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/error.middleware');
+const { generalLimiter } = require('./middleware/rateLimit.middleware');
 
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
@@ -26,6 +27,9 @@ app.use(
 );
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// Apply general rate limiting across /api
+app.use('/api', generalLimiter);
 
 // Health Check
 app.get('/api/health', (req, res) => {

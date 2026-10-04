@@ -195,10 +195,95 @@ const transitionDishStatus = async (dishId, creatorId, newStatus) => {
   return dish;
 };
 
+const leaveDish = async (dishId, userId) => {
+  const dish = await Dish.findById(dishId);
+  if (!dish) {
+    throw new Error('Dish not found');
+  }
+
+  const isCreator = dish.creator.toString() === userId.toString();
+  if (isCreator) {
+    throw new Error('The creator cannot leave their own Dish. You can mark it as cooked or delete it.');
+  }
+
+  const participantIndex = dish.participants.findIndex(
+    (p) => p.user.toString() === userId.toString()
+  );
+  if (participantIndex === -1) {
+    throw new Error('You are not a participant in this Dish');
+  }
+
+  dish.participants.splice(participantIndex, 1);
+  await dish.save();
+
+  await User.findByIdAndUpdate(userId, {
+    $inc: { 'stats.dishesJoined': -1 },
+    currentDish: null
+  });
+
+  return { success: true, message: 'Successfully left Dish' };
+};
+
+const respondToJoinRequest = async (dishId, creatorId, requestId, action) => {
+  const dish = await Dish.findById(dishId);
+  if (!dish) {
+    throw new Error('Dish not found');
+  }
+
+  if (dish.creator.toString() !== creatorId.toString()) {
+    throw new Error('Only the creator can approve or reject join requests');
+  }
+
+  const request = dish.requests.id(requestId);
+  if (!request) {
+    throw new Error('Join request not found');
+  }
+
+  if (request.status !== 'pending') {
+    throw new Error(`Request has already been ${request.status}`);
+  }
+
+  if (action === 'approve') {
+    // Capacity check
+    if (!dish.capacity.unlimited && dish.participants.length >= dish.capacity.max) {
+      throw new Error('Cannot approve: Dish capacity is already full');
+    }
+
+    request.status = 'approved';
+    request.respondedAt = new Date();
+
+    dish.participants.push({
+      user: request.user,
+      joinedAt: new Date(),
+      role: 'participant'
+    });
+
+    await dish.save();
+
+    await User.findByIdAndUpdate(request.user, {
+      $inc: { 'stats.dishesJoined': 1 },
+      currentDish: dish._id
+    });
+
+    return { success: true, status: 'approved', user: request.user };
+  } else if (action === 'reject') {
+    request.status = 'rejected';
+    request.respondedAt = new Date();
+    await dish.save();
+
+    return { success: true, status: 'rejected' };
+  } else {
+    throw new Error('Invalid request action. Must be approve or reject');
+  }
+};
+
 module.exports = {
   createDish,
   getDishes,
   getDishById,
   joinDish,
+  leaveDish,
+  respondToJoinRequest,
   transitionDishStatus
 };
+

@@ -62,10 +62,60 @@ const updateStatus = async (req, res, next) => {
   }
 };
 
+const leaveDish = async (req, res, next) => {
+  try {
+    const result = await dishService.leaveDish(req.params.id, req.user.userId);
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const approveRequest = async (req, res, next) => {
+  try {
+    const result = await dishService.respondToJoinRequest(
+      req.params.id,
+      req.user.userId,
+      req.params.requestId,
+      'approve'
+    );
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const rejectRequest = async (req, res, next) => {
+  try {
+    const result = await dishService.respondToJoinRequest(
+      req.params.id,
+      req.user.userId,
+      req.params.requestId,
+      'reject'
+    );
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createDish,
   getDishes,
   getDishById,
   joinDish,
+  leaveDish,
+  approveRequest,
+  rejectRequest,
   updateStatus
 };
+

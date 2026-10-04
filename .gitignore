@@ -34,6 +34,10 @@ client/node_modules/
 .env.production.local
 *.env
 *.env.*
+*credentials*
+*credentials.env
+atlas-credentials.env
+atlas_credentials.env
 
 # Build and production outputs
 dist/
