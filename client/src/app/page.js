@@ -42,6 +42,8 @@ export default function App() {
   const [convMessages, setConvMessages] = useState([]);
   const [msgReceiverId, setMsgReceiverId] = useState('');
   const [msgContent, setMsgContent] = useState('');
+  const [messagesTab, setMessagesTab] = useState('message'); // 'message' | 'requests'
+  const [searchMsgQuery, setSearchMsgQuery] = useState('');
 
   // Profile & Settings states
   const [bio, setBio] = useState('');
@@ -102,10 +104,34 @@ export default function App() {
     }
   };
 
-  const fetchConversations = async () => {
+  const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diffSec = Math.floor((now - date) / 1000);
+    if (diffSec < 60) return 'just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours}hrs ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 30) return `${diffDays}days ago`;
+    const diffMonths = Math.floor(diffDays / 30);
+    return `${diffMonths}mon ago`;
+  };
+
+  const fetchConversations = async (forceConvId) => {
     try {
       const res = await apiFetch('/messages/conversations');
-      setConversations(res.data || []);
+      const data = res.data || [];
+      setConversations(data);
+      const targetId = forceConvId || selectedConvId;
+      if (!targetId && data.length > 0) {
+        const first = data.find(c => !c.isRequest) || data[0];
+        if (first) {
+          handleOpenConversation(first.conversationId);
+        }
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -251,16 +277,33 @@ export default function App() {
   // Messages
   const handleSendMessage = async (e) => {
     e.preventDefault();
+    if (!msgContent.trim()) return;
     setError('');
     setMessage('');
+
+    let targetReceiverId = msgReceiverId;
+    if (selectedConvId) {
+      const activeConv = conversations.find((c) => c.conversationId === selectedConvId);
+      if (activeConv && activeConv.user) {
+        targetReceiverId = activeConv.user._id || activeConv.user;
+      }
+    }
+
+    if (!targetReceiverId) {
+      setError('Please select a conversation to reply to.');
+      return;
+    }
+
     try {
-      const res = await apiFetch('/messages', {
+      await apiFetch('/messages', {
         method: 'POST',
-        body: JSON.stringify({ receiverId: msgReceiverId, content: msgContent })
+        body: JSON.stringify({ receiverId: targetReceiverId, content: msgContent })
       });
-      setMessage(`Message sent (isRequest: ${res.data.isRequest})`);
       setMsgContent('');
-      fetchConversations();
+      if (selectedConvId) {
+        handleOpenConversation(selectedConvId);
+      }
+      fetchConversations(selectedConvId);
     } catch (err) {
       setError(err.message);
     }
@@ -350,13 +393,13 @@ export default function App() {
   };
 
   if (loading) {
-    return <div style={{ padding: 20, fontFamily: 'monospace' }}>Checking session...</div>;
+    return <div style={{ padding: 20, fontFamily: "'Inter', sans-serif" }}>Checking session...</div>;
   }
 
   // Unauthenticated View
   if (!user) {
     return (
-      <div style={{ padding: 24, maxWidth: 450, margin: '40px auto', fontFamily: 'monospace', border: '1px solid black' }}>
+      <div style={{ padding: 24, maxWidth: 450, margin: '40px auto', fontFamily: "'Inter', sans-serif", border: '1px solid black' }}>
         <h2>LetMeCook — Auth Test</h2>
         <div style={{ marginBottom: 16 }}>
           <button
@@ -443,7 +486,7 @@ export default function App() {
 
   // Authenticated View
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#fafbfc', fontFamily: 'monospace', color: '#000000' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#fafbfc', fontFamily: "'Inter', sans-serif", color: '#000000' }}>
       {/* Reserved Navigation Space (blank space reserved so hovering nav never shifts content) */}
       <div
         onMouseEnter={() => setNavHovered(true)}
@@ -1007,71 +1050,389 @@ export default function App() {
       {/* 4. MESSAGES SCREEN (PRODUCT.md Section 16) */}
       {/* ========================================================= */}
       {activeTab === 'messages' && (
-        <section>
-          <h3>Messages (1-on-1 DMs & Message Requests)</h3>
+        <section
+          style={{
+            height: 'calc(100vh - 64px)',
+            display: 'flex',
+            border: '1.5px solid #000000',
+            borderRadius: 16,
+            overflow: 'hidden',
+            backgroundColor: '#ffffff',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
+          }}
+        >
+          {/* Left Panel: Conversations List */}
+          <div
+            style={{
+              width: 360,
+              flexShrink: 0,
+              borderRight: '1.5px solid #000000',
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: '#ffffff'
+            }}
+          >
+            {/* Header: Username + Tabs */}
+            <div style={{ padding: '22px 24px 0 24px' }}>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#000000', marginBottom: 16, letterSpacing: '-0.3px' }}>
+                {user.name || user.username}
+              </div>
 
-          <form onSubmit={handleSendMessage} style={{ border: '1px solid black', padding: 10, marginBottom: 16 }}>
-            <h4>Send Message:</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 500 }}>
-              <label>Recipient User ID:</label>
-              <input
-                type="text"
-                required
-                value={msgReceiverId}
-                onChange={(e) => setMsgReceiverId(e.target.value)}
-                placeholder="User ObjectId"
-              />
-              <label>Content:</label>
-              <input
-                type="text"
-                required
-                value={msgContent}
-                onChange={(e) => setMsgContent(e.target.value)}
-                placeholder="Type message..."
-              />
-              <button type="submit">[Send Message]</button>
-            </div>
-          </form>
-
-          <h4>Conversations:</h4>
-          {conversations.length === 0 ? (
-            <p>No conversations yet.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {conversations.map((c) => (
-                <div key={c.conversationId} style={{ border: '1px solid #777', padding: 8 }}>
-                  <div>
-                    <strong>User:</strong> @{c.user?.username} ({c.user?.name}) | <strong>Last Message:</strong> "{c.lastMessage}"
-                  </div>
-                  <div style={{ marginTop: 4 }}>
-                    {c.needsResponse && (
-                      <span style={{ color: 'orange', fontWeight: 'bold' }}>
-                        [Incoming Message Request]
-                        <button onClick={() => handleRespondMessageRequest(c.conversationId, 'accepted')} style={{ marginLeft: 8 }}>[Accept]</button>
-                        <button onClick={() => handleRespondMessageRequest(c.conversationId, 'rejected')} style={{ marginLeft: 6 }}>[Decline]</button>
-                      </span>
-                    )}
-                    <button onClick={() => handleOpenConversation(c.conversationId)} style={{ marginLeft: 8 }}>
-                      [View Thread]
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {selectedConvId && (
-            <div style={{ marginTop: 16, border: '1px solid black', padding: 10 }}>
-              <h4>Thread ({selectedConvId}):</h4>
-              <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid #ccc', padding: 8 }}>
-                {convMessages.map((m) => (
-                  <div key={m._id} style={{ marginBottom: 4 }}>
-                    <strong>@{m.sender?.username}:</strong> {m.content} <span style={{ fontSize: 10, color: '#888' }}>({new Date(m.createdAt).toLocaleTimeString()})</span>
-                  </div>
-                ))}
+              {/* Message / Requests Sub-tabs */}
+              <div style={{ display: 'flex', gap: 32, borderBottom: '2px solid #000000', paddingBottom: 0 }}>
+                <button
+                  onClick={() => setMessagesTab('message')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: 16,
+                    fontFamily: 'inherit',
+                    cursor: 'pointer',
+                    fontWeight: messagesTab === 'message' ? 700 : 500,
+                    color: '#000000',
+                    borderBottom: messagesTab === 'message' ? '3.5px solid #000000' : '3.5px solid transparent',
+                    padding: '0 4px 8px 4px',
+                    marginBottom: -2,
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  Message
+                </button>
+                <button
+                  onClick={() => setMessagesTab('requests')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: 16,
+                    fontFamily: 'inherit',
+                    cursor: 'pointer',
+                    fontWeight: messagesTab === 'requests' ? 700 : 500,
+                    color: '#000000',
+                    borderBottom: messagesTab === 'requests' ? '3.5px solid #000000' : '3.5px solid transparent',
+                    padding: '0 4px 8px 4px',
+                    marginBottom: -2,
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  Requests {conversations.filter((c) => c.isRequest).length > 0 && `(${conversations.filter((c) => c.isRequest).length})`}
+                </button>
               </div>
             </div>
-          )}
+
+            {/* Pill Search Bar */}
+            <div style={{ padding: '16px 20px 10px 20px' }}>
+              <div
+                style={{
+                  backgroundColor: '#cdd5de',
+                  borderRadius: 24,
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '10px 18px',
+                  gap: 10
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input
+                  type="text"
+                  value={searchMsgQuery}
+                  onChange={(e) => setSearchMsgQuery(e.target.value)}
+                  placeholder="Search Bar"
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    outline: 'none',
+                    fontSize: 14,
+                    width: '100%',
+                    color: '#000000',
+                    fontWeight: 500,
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Conversation List */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '6px 14px' }}>
+              {(() => {
+                const list = conversations.filter((c) => {
+                  const matchTab = messagesTab === 'requests' ? c.isRequest : !c.isRequest;
+                  const query = searchMsgQuery.trim().toLowerCase();
+                  if (!query) return matchTab;
+                  const nameMatch = (c.user?.name || '').toLowerCase().includes(query);
+                  const usernameMatch = (c.user?.username || '').toLowerCase().includes(query);
+                  const lastMsgMatch = (c.lastMessage || '').toLowerCase().includes(query);
+                  return matchTab && (nameMatch || usernameMatch || lastMsgMatch);
+                });
+
+                if (list.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '36px 16px', color: '#666666', fontSize: 14 }}>
+                      {messagesTab === 'requests' ? 'No message requests' : 'No conversations found'}
+                    </div>
+                  );
+                }
+
+                return list.map((c) => {
+                  const isSelected = selectedConvId === c.conversationId;
+                  const otherUser = c.user || {};
+                  return (
+                    <div
+                      key={c.conversationId}
+                      onClick={() => handleOpenConversation(c.conversationId)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 14,
+                        padding: '12px 14px',
+                        borderRadius: 14,
+                        cursor: 'pointer',
+                        backgroundColor: isSelected ? '#eef2f6' : 'transparent',
+                        marginBottom: 4,
+                        transition: 'background-color 0.15s ease'
+                      }}
+                    >
+                      {/* Purple Avatar Circle */}
+                      <div
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: '50%',
+                          backgroundColor: '#8257e5',
+                          flexShrink: 0
+                        }}
+                      />
+
+                      {/* Name & Snippet */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                          {otherUser.name || 'NAME'}
+                        </div>
+                        <div style={{ fontSize: 13, color: '#333333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>
+                          {c.lastMessage || 'Hey there how are...'}
+                        </div>
+
+                        {/* Requests Action Buttons */}
+                        {c.needsResponse && (
+                          <div style={{ marginTop: 6, display: 'flex', gap: 6 }}>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleRespondMessageRequest(c.conversationId, 'accepted'); }}
+                              style={{ padding: '3px 8px', fontSize: 11, background: '#000000', color: '#ffffff', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleRespondMessageRequest(c.conversationId, 'rejected'); }}
+                              style={{ padding: '3px 8px', fontSize: 11, background: '#ffffff', color: '#000000', border: '1px solid #000000', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Timestamp */}
+                      <div style={{ fontSize: 12, color: '#555555', flexShrink: 0, alignSelf: 'flex-start', marginTop: 4 }}>
+                        {formatTimeAgo(c.updatedAt)}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+
+          {/* Right Panel: Chat Thread */}
+          {(() => {
+            const activeConv = conversations.find((c) => c.conversationId === selectedConvId);
+            const activeUser = activeConv?.user || (convMessages.length > 0 ? (convMessages[0].sender?._id === user._id ? convMessages[0].receiver : convMessages[0].sender) : null);
+
+            return (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', minWidth: 0 }}>
+                {activeUser ? (
+                  <>
+                    {/* Top Header */}
+                    <div
+                      style={{
+                        padding: '16px 28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 18,
+                        borderBottom: '1.5px solid #000000',
+                        backgroundColor: '#ffffff'
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 62,
+                          height: 62,
+                          borderRadius: '50%',
+                          backgroundColor: '#8257e5',
+                          flexShrink: 0
+                        }}
+                      />
+                      <div>
+                        <div style={{ fontSize: 22, fontWeight: 700, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {activeUser.name || 'NAME'}
+                        </div>
+                        <div style={{ fontSize: 13, color: '#555555', marginTop: 2 }}>
+                          @{activeUser.username || 'username'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Messages Area */}
+                    <div
+                      style={{
+                        flex: 1,
+                        overflowY: 'auto',
+                        padding: '24px 32px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 18
+                      }}
+                    >
+                      {convMessages.length === 0 ? (
+                        <div style={{ textAlign: 'center', margin: 'auto', color: '#888888', fontSize: 14 }}>
+                          No messages yet in this conversation. Say hello!
+                        </div>
+                      ) : (
+                        convMessages.map((m) => {
+                          const isMe = (m.sender?._id || m.sender) === user._id;
+
+                          if (isMe) {
+                            // Outgoing Message (Person 1Message user)
+                            return (
+                              <div
+                                key={m._id}
+                                style={{
+                                  alignSelf: 'flex-end',
+                                  maxWidth: '70%',
+                                  backgroundColor: '#cdd5de',
+                                  borderRadius: 22,
+                                  padding: '14px 22px',
+                                  color: '#000000',
+                                  fontSize: 15,
+                                  lineHeight: 1.4,
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                                }}
+                              >
+                                {m.content}
+                              </div>
+                            );
+                          } else {
+                            // Incoming Message (Person 2 Message)
+                            return (
+                              <div
+                                key={m._id}
+                                style={{
+                                  alignSelf: 'flex-start',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 12,
+                                  maxWidth: '75%'
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#8257e5',
+                                    flexShrink: 0
+                                  }}
+                                />
+                                <div
+                                  style={{
+                                    backgroundColor: '#cdd5de',
+                                    borderRadius: 22,
+                                    padding: '14px 22px',
+                                    color: '#000000',
+                                    fontSize: 15,
+                                    lineHeight: 1.4,
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                                  }}
+                                >
+                                  {m.content}
+                                </div>
+                              </div>
+                            );
+                          }
+                        })
+                      )}
+                    </div>
+
+                    {/* Bottom Input Bar */}
+                    <div style={{ padding: '16px 24px', backgroundColor: '#ffffff' }}>
+                      <form
+                        onSubmit={handleSendMessage}
+                        style={{
+                          backgroundColor: '#cdd5de',
+                          borderRadius: 26,
+                          padding: '6px 14px 6px 18px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12
+                        }}
+                      >
+                        {/* Winking Smiley SVG Icon */}
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                          <line x1="9" y1="9" x2="9.01" y2="9" />
+                          <path d="M15 8.5a1.5 1.5 0 0 1 1.5 1.5" />
+                        </svg>
+                        <input
+                          type="text"
+                          required
+                          value={msgContent}
+                          onChange={(e) => setMsgContent(e.target.value)}
+                          placeholder="Type a Message..."
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            outline: 'none',
+                            fontSize: 15,
+                            flex: 1,
+                            color: '#000000',
+                            fontFamily: 'inherit'
+                          }}
+                        />
+                        <button
+                          type="submit"
+                          style={{
+                            backgroundColor: '#000000',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: 36,
+                            height: 36,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            flexShrink: 0
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                          </svg>
+                        </button>
+                      </form>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#666666' }}>
+                    <div style={{ fontSize: 44, marginBottom: 12 }}>💬</div>
+                    <div style={{ fontSize: 16, fontWeight: 600 }}>Select a conversation to start chatting</div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </section>
       )}
 
