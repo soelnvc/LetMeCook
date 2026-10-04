@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api';
 import GlassContainer from '@/components/GlassContainer';
 import FluidButton from '@/components/FluidButton';
+import KitchenModal from '@/components/KitchenModal';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -32,12 +33,7 @@ export default function App() {
   const [navHovered, setNavHovered] = useState(false);
 
   // Kitchen states
-  const [dishDesc, setDishDesc] = useState('');
-  const [dishCategory, setDishCategory] = useState('sport');
-  const [dishCapacity, setDishCapacity] = useState(4);
-  const [dishJoinMode, setDishJoinMode] = useState('auto');
-  const [dishType, setDishType] = useState('regular');
-  const [dishArea, setDishArea] = useState('Campus Court');
+  const [isSubmittingDish, setIsSubmittingDish] = useState(false);
 
   // Messages states
   const [conversations, setConversations] = useState([]);
@@ -207,29 +203,23 @@ export default function App() {
     setMessage('Logged out');
   };
 
-  // Kitchen Create Dish
-  const handleCreateDish = async (e) => {
-    e.preventDefault();
+  // Kitchen Create Dish (Sequential Flow)
+  const handleCreateDish = async (payload) => {
     setError('');
     setMessage('');
+    setIsSubmittingDish(true);
     try {
       const res = await apiFetch('/dishes', {
         method: 'POST',
-        body: JSON.stringify({
-          description: dishDesc,
-          category: dishCategory,
-          type: dishType,
-          joinMode: dishJoinMode,
-          capacity: { max: Number(dishCapacity), unlimited: false },
-          location: { areaName: dishArea }
-        })
+        body: JSON.stringify(payload)
       });
       setMessage(`Dish published: ${res.data._id}`);
-      setDishDesc('');
       setShowKitchenModal(false);
       fetchDishes();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsSubmittingDish(false);
     }
   };
 
@@ -2229,221 +2219,14 @@ export default function App() {
       )}
 
       {/* ========================================================= */}
-      {/* KITCHEN POPUP MODAL (Opens on ANY page via navigation or actions) */}
+      {/* KITCHEN POPUP MODAL (Guided Sequential Creation Flow) */}
       {/* ========================================================= */}
-      {showKitchenModal && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.55)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16
-          }}
-          onClick={() => setShowKitchenModal(false)}
-        >
-          <GlassContainer
-            radius={28}
-            style={{ width: '100%', maxWidth: 580 }}
-            innerStyle={{
-              padding: '30px 34px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              color: '#000000'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 24 }}>🍳</span>
-                <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: '-0.5px', color: '#000000' }}>
-                  Kitchen (Create a Dish)
-                </h2>
-              </div>
-              <FluidButton
-                variant="icon"
-                onClick={() => setShowKitchenModal(false)}
-                style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
-              >
-                ✕
-              </FluidButton>
-            </div>
-
-            <form onSubmit={handleCreateDish} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>
-                  Dish Description (What do you want to do?):
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  value={dishDesc}
-                  onChange={(e) => setDishDesc(e.target.value)}
-                  placeholder="e.g. Badminton doubles at 6 PM near campus court"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: 12,
-                    border: '1px solid rgba(0, 0, 0, 0.15)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                    fontSize: 14,
-                    color: '#000000',
-                    boxSizing: 'border-box',
-                    fontFamily: 'inherit'
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Category:</label>
-                  <select
-                    value={dishCategory}
-                    onChange={(e) => setDishCategory(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0, 0, 0, 0.15)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 14,
-                      color: '#000000',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="sport">Sport</option>
-                    <option value="study">Study</option>
-                    <option value="travel">Travel</option>
-                    <option value="food">Food</option>
-                    <option value="gaming">Gaming</option>
-                    <option value="social">Social</option>
-                    <option value="help">Help</option>
-                    <option value="learning">Learning</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Dish Type:</label>
-                  <select
-                    value={dishType}
-                    onChange={(e) => setDishType(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0, 0, 0, 0.15)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 14,
-                      color: '#000000',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="regular">Regular</option>
-                    <option value="chefs_special">Chef's Special</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Join Mode:</label>
-                  <select
-                    value={dishJoinMode}
-                    onChange={(e) => setDishJoinMode(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0, 0, 0, 0.15)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 14,
-                      color: '#000000',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="auto">Auto (instant join)</option>
-                    <option value="approval">Approval (creator approves)</option>
-                    <option value="invite_only">Invite Only</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Capacity (Max):</label>
-                  <input
-                    type="number"
-                    min={2}
-                    max={50}
-                    value={dishCapacity}
-                    onChange={(e) => setDishCapacity(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0, 0, 0, 0.15)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 14,
-                      color: '#000000',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6, color: '#374151' }}>Approximate Location / Area:</label>
-                <input
-                  type="text"
-                  value={dishArea}
-                  onChange={(e) => setDishArea(e.target.value)}
-                  placeholder="e.g. Campus Court"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: 12,
-                    border: '1px solid rgba(0, 0, 0, 0.15)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                    fontSize: 14,
-                    color: '#000000',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 10 }}>
-                <FluidButton
-                  type="button"
-                  onClick={() => setShowKitchenModal(false)}
-                  style={{
-                    padding: '8px 22px',
-                    fontSize: 14,
-                    fontWeight: 600
-                  }}
-                >
-                  Cancel
-                </FluidButton>
-                <FluidButton
-                  type="submit"
-                  style={{
-                    padding: '8px 26px',
-                    fontSize: 14,
-                    fontWeight: 600
-                  }}
-                >
-                  Publish Dish
-                </FluidButton>
-              </div>
-            </form>
-          </GlassContainer>
-        </div>
-      )}
+      <KitchenModal
+        isOpen={showKitchenModal}
+        onClose={() => setShowKitchenModal(false)}
+        onSubmitDish={handleCreateDish}
+        isSubmitting={isSubmittingDish}
+      />
       </div>
     </div>
   );
