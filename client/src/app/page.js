@@ -524,7 +524,7 @@ export default function App() {
         <aside
           style={{
             width: navHovered ? 210 : 54,
-            transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s ease',
+            transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
             backgroundColor: '#f3f4f6',
             borderRight: '1.5px solid #d1d5db',
             display: 'flex',
@@ -536,8 +536,7 @@ export default function App() {
             bottom: 0,
             height: '100vh',
             zIndex: 50,
-            overflow: 'hidden',
-            boxShadow: navHovered ? '4px 0 16px rgba(0,0,0,0.1)' : 'none'
+            overflow: 'hidden'
           }}
         >
           {/* Top brand icon */}
@@ -640,7 +639,7 @@ export default function App() {
       </div>
 
       {/* Main App Container */}
-      <div style={{ flex: 1, padding: '24px 36px', maxWidth: 960, margin: '0 auto', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px 32px', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
         {/* Global Feedback */}
         {error && <div style={{ border: '1px solid red', padding: 10, marginBottom: 16, color: '#b91c1c', backgroundColor: '#fef2f2', borderRadius: 6 }}>Error: {error}</div>}
         {message && <div style={{ border: '1px solid green', padding: 10, marginBottom: 16, color: '#15803d', backgroundColor: '#f0fdf4', borderRadius: 6 }}>{message}</div>}
@@ -832,8 +831,6 @@ export default function App() {
                         display: 'flex',
                         alignItems: 'flex-start',
                         gap: 16,
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.06)',
-                        border: '1px solid #b8c4cf',
                         border: '1px solid #b8c4cf',
                         position: 'relative',
                         color: '#000000'
@@ -1081,8 +1078,7 @@ export default function App() {
             border: '1.5px solid #000000',
             borderRadius: 16,
             overflow: 'hidden',
-            backgroundColor: '#ffffff',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
+            backgroundColor: '#ffffff'
           }}
         >
           {/* Left Panel: Conversations List */}
@@ -1339,8 +1335,7 @@ export default function App() {
                                   padding: '14px 22px',
                                   color: '#000000',
                                   fontSize: 15,
-                                  lineHeight: 1.4,
-                                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                                  lineHeight: 1.4
                                 }}
                               >
                                 {m.content}
@@ -1375,8 +1370,7 @@ export default function App() {
                                     padding: '14px 22px',
                                     color: '#000000',
                                     fontSize: 15,
-                                    lineHeight: 1.4,
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                                    lineHeight: 1.4
                                   }}
                                 >
                                   {m.content}
@@ -1467,30 +1461,35 @@ export default function App() {
       {/* 5. PROFILE SCREEN & SETTINGS (Matching Wireframe)        */}
       {/* ========================================================= */}
       {activeTab === 'profile' && (
-        <section style={{ maxWidth: 960, margin: '0 auto', padding: '16px 24px 64px 24px', color: '#000000' }}>
+        <section style={{ width: '100%', maxWidth: 800, margin: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', color: '#000000' }}>
           
           {/* TOP PROFILE IDENTITY HEADER */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 40, marginBottom: 44 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 36, marginBottom: 44, width: '100%' }}>
             {/* Large Purple Avatar */}
             <div
               style={{
-                width: 170,
-                height: 170,
+                width: 216,
+                height: 216,
                 borderRadius: '50%',
                 backgroundColor: '#8257e5',
-                flexShrink: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(130, 87, 229, 0.18)'
+                flexShrink: 0
               }}
             />
 
             {/* Profile Info Details */}
-            <div style={{ flex: 1 }}>
+            <div
+              style={{
+                height: 216,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                flex: 1,
+                maxWidth: 520
+              }}
+            >
               {/* Line 1: username + Settings Gear */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <h1 style={{ fontSize: 36, fontWeight: 800, margin: 0, letterSpacing: '-0.5px', color: '#000000' }}>
+                <h1 style={{ fontSize: 34, fontWeight: 800, margin: 0, letterSpacing: '-0.5px', color: '#000000', lineHeight: 1 }}>
                   {user.username || 'username'}
                 </h1>
                 <button
@@ -1499,7 +1498,7 @@ export default function App() {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    padding: 4,
+                    padding: 2,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1509,7 +1508,7 @@ export default function App() {
                   onMouseLeave={(e) => (e.currentTarget.style.transform = 'rotate(0deg)')}
                   title="Open Settings & Privacy"
                 >
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="3" />
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
@@ -1517,22 +1516,22 @@ export default function App() {
               </div>
 
               {/* Line 2: Name, Pronouns, Connections */}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 6, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: '#000000' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+                <span style={{ fontSize: 22, fontWeight: 700, color: '#000000', lineHeight: 1 }}>
                   {user.name || 'Name'}
                 </span>
                 <span style={{ fontSize: 13, color: '#4b5563', fontWeight: 500 }}>
                   {pronouns || user.pronouns || 'He/Him'}
                 </span>
-                <span style={{ fontSize: 15, color: '#111827', fontWeight: 500, marginLeft: 16 }}>
+                <span style={{ fontSize: 14, color: '#111827', fontWeight: 500, marginLeft: 14 }}>
                   {connections.length > 0 ? `${connections.length} connections` : '72 connections'}
                 </span>
               </div>
 
               {/* Line 3: Bio with Read More toggle */}
-              <div style={{ marginTop: 10, fontSize: 15, lineHeight: '1.5', color: '#111827', maxWidth: 620 }}>
+              <div style={{ fontSize: 14, lineHeight: '1.45', color: '#111827' }}>
                 {(() => {
-                  const fullBio = user.bio || bio || 'Passionate home cook exploring artisanal sourdough, late night pasta experiments, and finding the best espresso roast in town.';
+                  const fullBio = user.bio || bio || 'Mastering sourdough fermentation, late night pasta experiments, and finding the best espresso roast in town. Always down to cook together!';
                   const isLong = fullBio.length > 70;
                   const displayBio = isLong && !bioExpanded ? fullBio.slice(0, 70) + '...' : fullBio;
                   return (
@@ -1547,7 +1546,7 @@ export default function App() {
                             cursor: 'pointer',
                             color: '#000000',
                             fontWeight: 600,
-                            fontSize: 14,
+                            fontSize: 13,
                             marginLeft: 6,
                             padding: 0,
                             textDecoration: 'underline'
@@ -1562,13 +1561,13 @@ export default function App() {
               </div>
 
               {/* Line 4: Stats */}
-              <div style={{ display: 'flex', gap: 20, marginTop: 14, fontSize: 16, fontWeight: 600, color: '#111827' }}>
+              <div style={{ display: 'flex', gap: 20, fontSize: 15, fontWeight: 600, color: '#111827', lineHeight: 1 }}>
                 <span>{user.stats?.dishesCreated ?? 16} Cooked</span>
                 <span>{user.stats?.dishesJoined ?? 19} Joined</span>
               </div>
 
               {/* Line 5: Edit Profile Pill Button */}
-              <div style={{ marginTop: 18 }}>
+              <div>
                 <button
                   onClick={() => setShowEditProfile(true)}
                   style={{
@@ -1576,11 +1575,11 @@ export default function App() {
                     color: '#000000',
                     border: 'none',
                     borderRadius: 9999,
-                    padding: '10px 26px',
+                    padding: '10px 24px',
                     fontSize: 14,
                     fontWeight: 600,
                     cursor: 'pointer',
-                    transition: 'background-color 0.15s ease'
+                    lineHeight: 1.2
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#bcc6d2')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#cdd5de')}
@@ -1592,22 +1591,22 @@ export default function App() {
           </div>
 
           {/* MIDDLE SECTION: TAGS & ACHIEVEMENTS */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 300px) 1fr', gap: 32, alignItems: 'start' }}>
+          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', width: '100%', marginBottom: 36 }}>
             {/* Left Column: Tags */}
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 12 }}>
+            <div style={{ width: 230, flexShrink: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 10 }}>
                 \Tags
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 12px', maxWidth: 280 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 10px', width: 230 }}>
                 {(interests && interests.length > 0 ? interests : ['music', 'Gym', 'Sports', 'Anime', 'Coffee']).map((tag, idx) => (
                   <span
                     key={idx}
                     style={{
                       backgroundColor: '#cdd5de',
                       color: '#000000',
-                      padding: '7px 22px',
+                      padding: '7px 20px',
                       borderRadius: 9999,
-                      fontSize: 15,
+                      fontSize: 14,
                       fontWeight: 500,
                       display: 'inline-flex',
                       alignItems: 'center'
@@ -1620,19 +1619,19 @@ export default function App() {
             </div>
 
             {/* Right Column: Achievements */}
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 12 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 10 }}>
                 Achievements
               </div>
               <div
                 style={{
                   backgroundColor: '#cdd5de',
-                  borderRadius: 28,
-                  height: 110,
+                  borderRadius: 24,
+                  height: 112,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-around',
-                  padding: '12px 36px'
+                  padding: '12px 28px'
                 }}
               >
                 {/* 1. Chef's Hat Badge */}
@@ -1692,29 +1691,27 @@ export default function App() {
           </div>
 
           {/* BOTTOM SECTION: INSTITUTES */}
-          <div style={{ marginTop: 36 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 12 }}>
+          <div style={{ width: '100%' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 10 }}>
               Institutes
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, width: '100%' }}>
               {/* Card 1: IIT MADRAS with Academic Crest */}
               <div
                 style={{
                   backgroundColor: '#cdd5de',
-                  borderRadius: 28,
+                  borderRadius: 24,
                   padding: '24px 28px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 24
+                  gap: 22
                 }}
               >
                 {/* Academic Book + Globe Crest SVG */}
-                <div style={{ width: 80, height: 80, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="78" height="78" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Segmented outer ring */}
+                <div style={{ width: 78, height: 78, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="76" height="76" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="50" cy="50" r="44" stroke="#000000" strokeWidth="5" strokeDasharray="9 4" fill="none" />
-                    {/* Globe lower sphere */}
                     <g transform="translate(0, 8)">
                       <circle cx="50" cy="54" r="28" stroke="#000000" strokeWidth="4" fill="none" />
                       <ellipse cx="50" cy="54" rx="14" ry="28" stroke="#000000" strokeWidth="3" fill="none" />
@@ -1723,7 +1720,6 @@ export default function App() {
                       <path d="M 26 65 Q 50 60 74 65" stroke="#000000" strokeWidth="2.5" fill="none" />
                       <line x1="50" y1="26" x2="50" y2="82" stroke="#000000" strokeWidth="3" />
                     </g>
-                    {/* Open Book atop */}
                     <g transform="translate(0, -7)">
                       <path
                         d="M 50 26 C 42 16, 28 17, 20 20 L 20 40 C 28 37, 42 36, 50 44 C 58 36, 72 37, 80 40 L 80 20 C 72 17, 58 16, 50 26 Z"
@@ -1741,10 +1737,10 @@ export default function App() {
                   </svg>
                 </div>
                 <div>
-                  <div style={{ fontSize: 26, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                     {user.institute?.name || instituteName || 'IIT MADRAS'}
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 500, color: '#111827', marginTop: 4 }}>
+                  <div style={{ fontSize: 15, fontWeight: 500, color: '#111827', marginTop: 4 }}>
                     Batch of {user.institute?.year || instituteYear || '2029'}
                   </div>
                 </div>
@@ -1754,35 +1750,30 @@ export default function App() {
               <div
                 style={{
                   backgroundColor: '#cdd5de',
-                  borderRadius: 28,
+                  borderRadius: 24,
                   padding: '24px 28px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 24
+                  gap: 22
                 }}
               >
                 {/* University Campus Building Silhouette SVG */}
-                <div style={{ width: 80, height: 80, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="78" height="78" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Solid Black Silhouette */}
+                <div style={{ width: 78, height: 78, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="76" height="76" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 90 L12 55 L35 55 L35 32 L50 20 L65 32 L65 55 L88 55 L88 90 Z" fill="#000000" />
-                    {/* Arched Center Door cutout */}
                     <path d="M42 90 L42 66 Q50 60 58 66 L58 90 Z" fill="#cdd5de" />
-                    {/* Left Wing Windows */}
                     <rect x="18" y="60" width="10" height="12" rx="2" fill="#cdd5de" />
                     <rect x="18" y="76" width="10" height="10" rx="2" fill="#cdd5de" />
-                    {/* Right Wing Windows */}
                     <rect x="72" y="60" width="10" height="12" rx="2" fill="#cdd5de" />
                     <rect x="72" y="76" width="10" height="10" rx="2" fill="#cdd5de" />
-                    {/* Center Tower Round Window */}
                     <circle cx="50" cy="42" r="5" fill="#cdd5de" />
                   </svg>
                 </div>
                 <div>
-                  <div style={{ fontSize: 28, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                     {user.secondaryInstitute?.name || secondaryInstituteName || 'SST'}
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 500, color: '#111827', marginTop: 4 }}>
+                  <div style={{ fontSize: 15, fontWeight: 500, color: '#111827', marginTop: 4 }}>
                     Batch of {user.secondaryInstitute?.year || secondaryInstituteYear || '2029'}
                   </div>
                 </div>
@@ -1818,7 +1809,7 @@ export default function App() {
                   maxWidth: 540,
                   maxHeight: '90vh',
                   overflowY: 'auto',
-                  boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                  border: '2px solid #000000',
                   color: '#000000'
                 }}
                 onClick={(e) => e.stopPropagation()}
@@ -2116,7 +2107,7 @@ export default function App() {
                   maxWidth: 580,
                   maxHeight: '90vh',
                   overflowY: 'auto',
-                  boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                  border: '2px solid #000000',
                   color: '#000000'
                 }}
                 onClick={(e) => e.stopPropagation()}
