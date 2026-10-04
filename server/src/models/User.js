@@ -52,6 +52,10 @@ const userSchema = new mongoose.Schema(
       maxlength: 160,
       default: ''
     },
+    pronouns: {
+      type: String,
+      default: 'He/Him'
+    },
     interests: {
       type: [String],
       default: []
@@ -63,6 +67,10 @@ const userSchema = new mongoose.Schema(
       year: { type: Number, default: null },
       verified: { type: Boolean, default: false },
       verifiedAt: { type: Date, default: null }
+    },
+    secondaryInstitute: {
+      name: { type: String, default: null },
+      year: { type: Number, default: null }
     },
     age: {
       type: Number,

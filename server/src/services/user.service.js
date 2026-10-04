@@ -2,7 +2,7 @@ const User = require('../models/User');
 const Connection = require('../models/Connection');
 
 const updateProfile = async (userId, updateData) => {
-  const allowedUpdates = ['bio', 'interests', 'avatar', 'institute', 'privacy'];
+  const allowedUpdates = ['name', 'pronouns', 'bio', 'interests', 'avatar', 'institute', 'secondaryInstitute', 'privacy'];
   const updatePayload = {};
 
   for (const key of allowedUpdates) {
@@ -60,10 +60,12 @@ const getPublicProfile = async (username, requesterId) => {
     _id: targetUser._id,
     username: targetUser.username,
     name: targetUser.name,
+    pronouns: targetUser.pronouns || 'He/Him',
     avatar: canView(privacy.avatarVisibility) ? targetUser.avatar : null,
     bio: canView(privacy.bioVisibility) ? targetUser.bio : '',
     interests: targetUser.interests,
     institute: canView(privacy.instituteVisibility) ? targetUser.institute : null,
+    secondaryInstitute: canView(privacy.instituteVisibility) ? targetUser.secondaryInstitute : null,
     verification: {
       institute: targetUser.verification?.institute || false
     },

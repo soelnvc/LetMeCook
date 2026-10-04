@@ -47,7 +47,16 @@ export default function App() {
 
   // Profile & Settings states
   const [bio, setBio] = useState('');
-  const [instituteName, setInstituteName] = useState('');
+  const [instituteName, setInstituteName] = useState('IIT MADRAS');
+  const [instituteYear, setInstituteYear] = useState('2029');
+  const [secondaryInstituteName, setSecondaryInstituteName] = useState('SST');
+  const [secondaryInstituteYear, setSecondaryInstituteYear] = useState('2029');
+  const [profileName, setProfileName] = useState('');
+  const [pronouns, setPronouns] = useState('He/Him');
+  const [interests, setInterests] = useState(['music', 'Gym', 'Sports', 'Anime', 'Coffee']);
+  const [newTagInput, setNewTagInput] = useState('');
+  const [bioExpanded, setBioExpanded] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const [searchUsername, setSearchUsername] = useState('');
   const [searchedProfile, setSearchedProfile] = useState(null);
   const [connections, setConnections] = useState([]);
@@ -71,8 +80,18 @@ export default function App() {
     try {
       const res = await apiFetch('/auth/me');
       setUser(res.data);
+      setProfileName(res.data.name || '');
+      setPronouns(res.data.pronouns || 'He/Him');
       setBio(res.data.bio || '');
-      setInstituteName(res.data.institute?.name || '');
+      setInstituteName(res.data.institute?.name || 'IIT MADRAS');
+      setInstituteYear(res.data.institute?.year ? String(res.data.institute.year) : '2029');
+      setSecondaryInstituteName(res.data.secondaryInstitute?.name || 'SST');
+      setSecondaryInstituteYear(res.data.secondaryInstitute?.year ? String(res.data.secondaryInstitute.year) : '2029');
+      if (res.data.interests && res.data.interests.length > 0) {
+        setInterests(res.data.interests);
+      } else {
+        setInterests(['music', 'Gym', 'Sports', 'Anime', 'Coffee']);
+      }
       if (res.data.privacy) {
         setBioVisibility(res.data.privacy.bioVisibility || 'everyone');
         setInstituteVisibility(res.data.privacy.instituteVisibility || 'institute');
@@ -336,19 +355,24 @@ export default function App() {
 
   // Profile & Settings
   const handleSaveProfile = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setError('');
     setMessage('');
     try {
       const res = await apiFetch('/users/me', {
         method: 'PATCH',
         body: JSON.stringify({
+          name: profileName,
+          pronouns,
           bio,
-          institute: { name: instituteName }
+          interests,
+          institute: { name: instituteName, year: Number(instituteYear) || 2029 },
+          secondaryInstitute: { name: secondaryInstituteName, year: Number(secondaryInstituteYear) || 2029 }
         })
       });
       setUser(res.data);
-      setMessage('Profile updated');
+      setShowEditProfile(false);
+      setMessage('Profile updated successfully!');
     } catch (err) {
       setError(err.message);
     }
@@ -1439,148 +1463,848 @@ export default function App() {
       {/* ========================================================= */}
       {/* 5. PROFILE SCREEN & SETTINGS (PRODUCT.md Section 18 & 23) */}
       {/* ========================================================= */}
+      {/* ========================================================= */}
+      {/* 5. PROFILE SCREEN & SETTINGS (Matching Wireframe)        */}
+      {/* ========================================================= */}
       {activeTab === 'profile' && (
-        <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h3>Profile (Identity + Trust + Activity)</h3>
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              style={{ fontWeight: showSettings ? 'bold' : 'normal' }}
+        <section style={{ maxWidth: 960, margin: '0 auto', padding: '16px 24px 64px 24px', color: '#000000' }}>
+          
+          {/* TOP PROFILE IDENTITY HEADER */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 40, marginBottom: 44 }}>
+            {/* Large Purple Avatar */}
+            <div
+              style={{
+                width: 170,
+                height: 170,
+                borderRadius: '50%',
+                backgroundColor: '#8257e5',
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 24px rgba(130, 87, 229, 0.18)'
+              }}
+            />
+
+            {/* Profile Info Details */}
+            <div style={{ flex: 1 }}>
+              {/* Line 1: username + Settings Gear */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <h1 style={{ fontSize: 36, fontWeight: 800, margin: 0, letterSpacing: '-0.5px', color: '#000000' }}>
+                  {user.username || 'username'}
+                </h1>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 4,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'rotate(45deg)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'rotate(0deg)')}
+                  title="Open Settings & Privacy"
+                >
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Line 2: Name, Pronouns, Connections */}
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 24, fontWeight: 700, color: '#000000' }}>
+                  {user.name || 'Name'}
+                </span>
+                <span style={{ fontSize: 13, color: '#4b5563', fontWeight: 500 }}>
+                  {pronouns || user.pronouns || 'He/Him'}
+                </span>
+                <span style={{ fontSize: 15, color: '#111827', fontWeight: 500, marginLeft: 16 }}>
+                  {connections.length > 0 ? `${connections.length} connections` : '72 connections'}
+                </span>
+              </div>
+
+              {/* Line 3: Bio with Read More toggle */}
+              <div style={{ marginTop: 10, fontSize: 15, lineHeight: '1.5', color: '#111827', maxWidth: 620 }}>
+                {(() => {
+                  const fullBio = user.bio || bio || 'Passionate home cook exploring artisanal sourdough, late night pasta experiments, and finding the best espresso roast in town.';
+                  const isLong = fullBio.length > 70;
+                  const displayBio = isLong && !bioExpanded ? fullBio.slice(0, 70) + '...' : fullBio;
+                  return (
+                    <div>
+                      <span>Bio: {displayBio}</span>
+                      {isLong && (
+                        <button
+                          onClick={() => setBioExpanded(!bioExpanded)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#000000',
+                            fontWeight: 600,
+                            fontSize: 14,
+                            marginLeft: 6,
+                            padding: 0,
+                            textDecoration: 'underline'
+                          }}
+                        >
+                          {bioExpanded ? 'show less' : 'read more'}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Line 4: Stats */}
+              <div style={{ display: 'flex', gap: 20, marginTop: 14, fontSize: 16, fontWeight: 600, color: '#111827' }}>
+                <span>{user.stats?.dishesCreated ?? 16} Cooked</span>
+                <span>{user.stats?.dishesJoined ?? 19} Joined</span>
+              </div>
+
+              {/* Line 5: Edit Profile Pill Button */}
+              <div style={{ marginTop: 18 }}>
+                <button
+                  onClick={() => setShowEditProfile(true)}
+                  style={{
+                    backgroundColor: '#cdd5de',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: 9999,
+                    padding: '10px 26px',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#bcc6d2')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#cdd5de')}
+                >
+                  Edit Profile (Only show when viewing Own Profile)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* MIDDLE SECTION: TAGS & ACHIEVEMENTS */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 300px) 1fr', gap: 32, alignItems: 'start' }}>
+            {/* Left Column: Tags */}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 12 }}>
+                \Tags
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 12px', maxWidth: 280 }}>
+                {(interests && interests.length > 0 ? interests : ['music', 'Gym', 'Sports', 'Anime', 'Coffee']).map((tag, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      backgroundColor: '#cdd5de',
+                      color: '#000000',
+                      padding: '7px 22px',
+                      borderRadius: 9999,
+                      fontSize: 15,
+                      fontWeight: 500,
+                      display: 'inline-flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column: Achievements */}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 12 }}>
+                Achievements
+              </div>
+              <div
+                style={{
+                  backgroundColor: '#cdd5de',
+                  borderRadius: 28,
+                  height: 110,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-around',
+                  padding: '12px 36px'
+                }}
+              >
+                {/* 1. Chef's Hat Badge */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} title="Master Chef">
+                  <svg width="60" height="54" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M18 36 C12 36 8 30 11 23 C13 18 19 16 23 18 C25 11 34 8 40 13 C46 9 55 12 56 19 C60 21 61 29 56 34 C54 36 51 36 49 36 Z"
+                      fill="#ffffff"
+                      stroke="#cbd5e1"
+                      strokeWidth="1.8"
+                    />
+                    <path d="M25 21 C26 28 27 34 27 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
+                    <path d="M36 15 C36 24 36 32 36 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
+                    <path d="M46 19 C45 26 44 32 43 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
+                    <rect x="17" y="36" width="33" height="13" rx="3" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
+                    <line x1="20" y1="41" x2="47" y2="41" stroke="#e2e8f0" strokeWidth="1.5" />
+                  </svg>
+                </div>
+
+                {/* 2. Steaming Coffee Cup Badge */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} title="Coffee Connoisseur">
+                  <svg width="66" height="54" viewBox="0 0 68 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 13 C20 9 24 6 22 2" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                    <path d="M30 11 C28 7 32 4 30 1" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                    <path d="M38 13 C36 9 40 6 38 2" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                    <ellipse cx="32" cy="49" rx="27" ry="5" fill="#fdfbf7" stroke="#78350f" strokeWidth="2" />
+                    <ellipse cx="32" cy="48" rx="21" ry="3" fill="#e7d8c9" />
+                    <path d="M44 26 C53 26 55 38 43 41" stroke="#78350f" strokeWidth="3.2" fill="none" strokeLinecap="round" />
+                    <path d="M14 21 L18 43 C19 46 25 47 32 47 C39 47 45 46 46 43 L50 21 Z" fill="#6f4e37" stroke="#451a03" strokeWidth="2" />
+                    <ellipse cx="32" cy="21" rx="18" ry="4.5" fill="#3e2312" stroke="#451a03" strokeWidth="1.5" />
+                    <ellipse cx="31" cy="21" rx="13" ry="3" fill="#583119" />
+                    <ellipse cx="28" cy="20" rx="4" ry="1.2" fill="#a16207" opacity="0.6" />
+                  </svg>
+                </div>
+
+                {/* 3. Crescent Moon on Cloud Badge */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} title="Midnight Kitchen">
+                  <svg width="66" height="54" viewBox="0 0 68 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M37 7 C32 12 32 20 37 25 C40 28 44 29 47 28 C43 35 33 37 26 32 C19 26 20 15 27 9 C30 7 33 6 37 7 Z"
+                      fill="#fde047"
+                      stroke="#ca8a04"
+                      strokeWidth="2"
+                    />
+                    <circle cx="51" cy="13" r="1.5" fill="#eab308" />
+                    <circle cx="16" cy="18" r="1.2" fill="#eab308" />
+                    <path
+                      d="M18 43 C13 43 9 39 10 34 C11 29 16 28 19 29 C22 23 30 22 35 26 C38 24 43 24 45 27 C50 26 55 30 54 35 C57 37 57 42 52 43 Z"
+                      fill="#ffffff"
+                      stroke="#cbd5e1"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* BOTTOM SECTION: INSTITUTES */}
+          <div style={{ marginTop: 36 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 12 }}>
+              Institutes
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 24 }}>
+              {/* Card 1: IIT MADRAS with Academic Crest */}
+              <div
+                style={{
+                  backgroundColor: '#cdd5de',
+                  borderRadius: 28,
+                  padding: '24px 28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 24
+                }}
+              >
+                {/* Academic Book + Globe Crest SVG */}
+                <div style={{ width: 80, height: 80, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="78" height="78" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Segmented outer ring */}
+                    <circle cx="50" cy="50" r="44" stroke="#000000" strokeWidth="5" strokeDasharray="9 4" fill="none" />
+                    {/* Globe lower sphere */}
+                    <g transform="translate(0, 8)">
+                      <circle cx="50" cy="54" r="28" stroke="#000000" strokeWidth="4" fill="none" />
+                      <ellipse cx="50" cy="54" rx="14" ry="28" stroke="#000000" strokeWidth="3" fill="none" />
+                      <line x1="22" y1="54" x2="78" y2="54" stroke="#000000" strokeWidth="3.5" />
+                      <path d="M 26 43 Q 50 48 74 43" stroke="#000000" strokeWidth="2.5" fill="none" />
+                      <path d="M 26 65 Q 50 60 74 65" stroke="#000000" strokeWidth="2.5" fill="none" />
+                      <line x1="50" y1="26" x2="50" y2="82" stroke="#000000" strokeWidth="3" />
+                    </g>
+                    {/* Open Book atop */}
+                    <g transform="translate(0, -7)">
+                      <path
+                        d="M 50 26 C 42 16, 28 17, 20 20 L 20 40 C 28 37, 42 36, 50 44 C 58 36, 72 37, 80 40 L 80 20 C 72 17, 58 16, 50 26 Z"
+                        fill="#ffffff"
+                        stroke="#000000"
+                        strokeWidth="4"
+                        strokeLinejoin="round"
+                      />
+                      <line x1="50" y1="26" x2="50" y2="44" stroke="#000000" strokeWidth="3.5" />
+                      <path d="M 27 26 C 33 24, 42 24, 46 29" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M 27 32 C 33 30, 42 30, 46 35" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M 73 26 C 67 24, 58 24, 54 29" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M 73 32 C 67 30, 58 30, 54 35" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+                    </g>
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                    {user.institute?.name || instituteName || 'IIT MADRAS'}
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 500, color: '#111827', marginTop: 4 }}>
+                    Batch of {user.institute?.year || instituteYear || '2029'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: SST with Campus Building Silhouette */}
+              <div
+                style={{
+                  backgroundColor: '#cdd5de',
+                  borderRadius: 28,
+                  padding: '24px 28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 24
+                }}
+              >
+                {/* University Campus Building Silhouette SVG */}
+                <div style={{ width: 80, height: 80, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="78" height="78" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Solid Black Silhouette */}
+                    <path d="M12 90 L12 55 L35 55 L35 32 L50 20 L65 32 L65 55 L88 55 L88 90 Z" fill="#000000" />
+                    {/* Arched Center Door cutout */}
+                    <path d="M42 90 L42 66 Q50 60 58 66 L58 90 Z" fill="#cdd5de" />
+                    {/* Left Wing Windows */}
+                    <rect x="18" y="60" width="10" height="12" rx="2" fill="#cdd5de" />
+                    <rect x="18" y="76" width="10" height="10" rx="2" fill="#cdd5de" />
+                    {/* Right Wing Windows */}
+                    <rect x="72" y="60" width="10" height="12" rx="2" fill="#cdd5de" />
+                    <rect x="72" y="76" width="10" height="10" rx="2" fill="#cdd5de" />
+                    {/* Center Tower Round Window */}
+                    <circle cx="50" cy="42" r="5" fill="#cdd5de" />
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                    {user.secondaryInstitute?.name || secondaryInstituteName || 'SST'}
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 500, color: '#111827', marginTop: 4 }}>
+                    Batch of {user.secondaryInstitute?.year || secondaryInstituteYear || '2029'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* EDIT PROFILE MODAL (Triggered by pill button) */}
+          {showEditProfile && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.55)',
+                backdropFilter: 'blur(3px)',
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16
+              }}
+              onClick={() => setShowEditProfile(false)}
             >
-              [{showSettings ? 'Hide Settings' : 'Settings ⚙️'}]
-            </button>
-          </div>
+              <div
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: 24,
+                  padding: 28,
+                  width: '100%',
+                  maxWidth: 540,
+                  maxHeight: '90vh',
+                  overflowY: 'auto',
+                  boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                  color: '#000000'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Edit Profile</h3>
+                  <button
+                    onClick={() => setShowEditProfile(false)}
+                    style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#6b7280' }}
+                  >
+                    ✕
+                  </button>
+                </div>
 
-          {/* Profile Card View */}
-          <div style={{ border: '1px solid black', padding: 12, marginBottom: 16 }}>
-            <div><strong>@{user.username}</strong> — {user.name}</div>
-            <div style={{ marginTop: 4 }}><strong>Bio:</strong> {user.bio || '(no bio set)'}</div>
-            <div style={{ marginTop: 4 }}><strong>Institute:</strong> {user.institute?.name ? `🎓 ${user.institute.name}` : '(none)'}</div>
-            <div style={{ marginTop: 4 }}>
-              <strong>Stats:</strong> {user.stats?.dishesCreated || 0} Dishes Created · {user.stats?.dishesJoined || 0} Joined · {user.stats?.peopleCookedWith || 0} People
-            </div>
-          </div>
+                <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Display Name:</label>
+                    <input
+                      type="text"
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                      placeholder="e.g. Sid G"
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: 10,
+                        border: '1px solid #d1d5db',
+                        fontSize: 14,
+                        color: '#000000'
+                      }}
+                    />
+                  </div>
 
-          {/* Profile Edit Form */}
-          <form onSubmit={handleSaveProfile} style={{ border: '1px solid black', padding: 12, marginBottom: 16, maxWidth: 500 }}>
-            <h4>Edit Profile:</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <label>Bio:</label>
-              <input
-                type="text"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="gym, code & bad coffee"
-              />
-              <label>Institute Name:</label>
-              <input
-                type="text"
-                value={instituteName}
-                onChange={(e) => setInstituteName(e.target.value)}
-                placeholder="e.g. IIT Delhi"
-              />
-              <button type="submit">[Save Profile]</button>
-            </div>
-          </form>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Pronouns:</label>
+                    <input
+                      type="text"
+                      value={pronouns}
+                      onChange={(e) => setPronouns(e.target.value)}
+                      placeholder="e.g. He/Him, She/Her, They/Them"
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: 10,
+                        border: '1px solid #d1d5db',
+                        fontSize: 14,
+                        color: '#000000'
+                      }}
+                    />
+                  </div>
 
-          {/* ACCESSIBLE FROM PROFILE: SETTINGS (PRODUCT.md Section 23) */}
-          {showSettings && (
-            <div style={{ border: '2px solid black', padding: 14, marginBottom: 16, maxWidth: 550, backgroundColor: '#fcfcfc' }}>
-              <h4>⚙️ Settings (Privacy & Visibility)</h4>
-              <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <label>Bio Visibility:</label>
-                <select value={bioVisibility} onChange={(e) => setBioVisibility(e.target.value)}>
-                  <option value="everyone">Everyone</option>
-                  <option value="institute">Institute</option>
-                  <option value="connections">Connections</option>
-                  <option value="nobody">Nobody</option>
-                </select>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Bio:</label>
+                    <textarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      rows={3}
+                      placeholder="Tell the community what you like to cook, your specialties, and what inspires you..."
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: 10,
+                        border: '1px solid #d1d5db',
+                        fontSize: 14,
+                        color: '#000000',
+                        resize: 'vertical'
+                      }}
+                    />
+                  </div>
 
-                <label>Institute Visibility:</label>
-                <select value={instituteVisibility} onChange={(e) => setInstituteVisibility(e.target.value)}>
-                  <option value="everyone">Everyone</option>
-                  <option value="institute">Institute</option>
-                  <option value="nobody">Nobody</option>
-                </select>
+                  {/* Tags Editor */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Tags / Interests:</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                      {interests.map((tag, i) => (
+                        <span
+                          key={i}
+                          style={{
+                            backgroundColor: '#cdd5de',
+                            color: '#000000',
+                            padding: '4px 12px',
+                            borderRadius: 9999,
+                            fontSize: 13,
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6
+                          }}
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => setInterests(interests.filter((_, idx) => idx !== i))}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#4b5563',
+                              cursor: 'pointer',
+                              padding: 0,
+                              fontSize: 14,
+                              fontWeight: 700
+                            }}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        type="text"
+                        value={newTagInput}
+                        onChange={(e) => setNewTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (newTagInput.trim() && !interests.includes(newTagInput.trim())) {
+                              setInterests([...interests, newTagInput.trim()]);
+                              setNewTagInput('');
+                            }
+                          }
+                        }}
+                        placeholder="Add new tag (e.g. Baking, Tacos, Vegan)..."
+                        style={{
+                          flex: 1,
+                          padding: '8px 12px',
+                          borderRadius: 8,
+                          border: '1px solid #d1d5db',
+                          fontSize: 13,
+                          color: '#000000'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (newTagInput.trim() && !interests.includes(newTagInput.trim())) {
+                            setInterests([...interests, newTagInput.trim()]);
+                            setNewTagInput('');
+                          }
+                        }}
+                        style={{
+                          backgroundColor: '#111827',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: 8,
+                          padding: '8px 14px',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        + Add
+                      </button>
+                    </div>
+                  </div>
 
-                <label>Avatar Visibility:</label>
-                <select value={avatarVisibility} onChange={(e) => setAvatarVisibility(e.target.value)}>
-                  <option value="everyone">Everyone</option>
-                  <option value="institute">Institute</option>
-                  <option value="connections">Connections</option>
-                  <option value="nobody">Nobody</option>
-                </select>
+                  {/* Institutes Editor */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Primary Institute:</label>
+                      <input
+                        type="text"
+                        value={instituteName}
+                        onChange={(e) => setInstituteName(e.target.value)}
+                        placeholder="e.g. IIT MADRAS"
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          borderRadius: 8,
+                          border: '1px solid #d1d5db',
+                          fontSize: 13,
+                          color: '#000000'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Primary Batch Year:</label>
+                      <input
+                        type="number"
+                        value={instituteYear}
+                        onChange={(e) => setInstituteYear(e.target.value)}
+                        placeholder="2029"
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          borderRadius: 8,
+                          border: '1px solid #d1d5db',
+                          fontSize: 13,
+                          color: '#000000'
+                        }}
+                      />
+                    </div>
+                  </div>
 
-                <label>Who Can Message:</label>
-                <select value={messagePermission} onChange={(e) => setMessagePermission(e.target.value)}>
-                  <option value="everyone">Everyone</option>
-                  <option value="institute">Institute</option>
-                  <option value="connections">Connections</option>
-                  <option value="nobody">Nobody</option>
-                </select>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Secondary Institute:</label>
+                      <input
+                        type="text"
+                        value={secondaryInstituteName}
+                        onChange={(e) => setSecondaryInstituteName(e.target.value)}
+                        placeholder="e.g. SST"
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          borderRadius: 8,
+                          border: '1px solid #d1d5db',
+                          fontSize: 13,
+                          color: '#000000'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Secondary Batch Year:</label>
+                      <input
+                        type="number"
+                        value={secondaryInstituteYear}
+                        onChange={(e) => setSecondaryInstituteYear(e.target.value)}
+                        placeholder="2029"
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          borderRadius: 8,
+                          border: '1px solid #d1d5db',
+                          fontSize: 13,
+                          color: '#000000'
+                        }}
+                      />
+                    </div>
+                  </div>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <input
-                    type="checkbox"
-                    checked={globalDiscovery}
-                    onChange={(e) => setGlobalDiscovery(e.target.checked)}
-                  />
-                  Participate in Global Discovery
-                </label>
-
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <input
-                    type="checkbox"
-                    checked={activityVisibility}
-                    onChange={(e) => setActivityVisibility(e.target.checked)}
-                  />
-                  Show Active Cooking on Profile
-                </label>
-
-                <button type="submit" style={{ marginTop: 6 }}>[Save Privacy Settings]</button>
-              </form>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowEditProfile(false)}
+                      style={{
+                        backgroundColor: '#f3f4f6',
+                        color: '#111827',
+                        border: 'none',
+                        borderRadius: 9999,
+                        padding: '10px 20px',
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      style={{
+                        backgroundColor: '#000000',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: 9999,
+                        padding: '10px 24px',
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Save Profile
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           )}
 
-          {/* Good Company / Connections (PRODUCT.md Section 19) */}
-          <div style={{ border: '1px solid black', padding: 12, marginBottom: 16 }}>
-            <h4>Connections & Good Company:</h4>
-            {connections.length === 0 ? (
-              <p>No connections yet.</p>
-            ) : (
-              <ul>
-                {connections.map((c) => (
-                  <li key={c.connectionId}>
-                    @{c.user?.username} ({c.user?.name}) — ID: {c.user?._id}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {/* SETTINGS MODAL (Triggered by Gear Icon ⚙) */}
+          {showSettings && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.55)',
+                backdropFilter: 'blur(3px)',
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16
+              }}
+              onClick={() => setShowSettings(false)}
+            >
+              <div
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: 24,
+                  padding: 28,
+                  width: '100%',
+                  maxWidth: 580,
+                  maxHeight: '90vh',
+                  overflowY: 'auto',
+                  boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                  color: '#000000'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 22 }}>⚙️</span>
+                    <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Settings & Privacy</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowSettings(false)}
+                    style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#6b7280' }}
+                  >
+                    ✕
+                  </button>
+                </div>
 
-          {/* Privacy Inspection Test */}
-          <form onSubmit={handleSearchProfile} style={{ border: '1px solid black', padding: 12 }}>
-            <h4>Inspect User Profile (Privacy Filter Test):</h4>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                type="text"
-                required
-                value={searchUsername}
-                onChange={(e) => setSearchUsername(e.target.value)}
-                placeholder="Username (e.g. chef_arjun)"
-              />
-              <button type="submit">[Lookup]</button>
-            </div>
+                {/* Privacy & Visibility Settings Form */}
+                <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Bio Visibility:</label>
+                      <select
+                        value={bioVisibility}
+                        onChange={(e) => setBioVisibility(e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
+                      >
+                        <option value="everyone">Everyone</option>
+                        <option value="institute">Institute Only</option>
+                        <option value="connections">Connections Only</option>
+                        <option value="nobody">Nobody (Hidden)</option>
+                      </select>
+                    </div>
 
-            {searchedProfile && (
-              <div style={{ marginTop: 10, borderTop: '1px dashed #777', paddingTop: 8 }}>
-                <div><strong>Username:</strong> @{searchedProfile.username}</div>
-                <div><strong>Name:</strong> {searchedProfile.name}</div>
-                <div><strong>Bio:</strong> {searchedProfile.bio || '— [Filtered by Privacy]'}</div>
-                <div><strong>Institute:</strong> {searchedProfile.institute?.name || '— [Filtered or Not Set]'}</div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Institute Visibility:</label>
+                      <select
+                        value={instituteVisibility}
+                        onChange={(e) => setInstituteVisibility(e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
+                      >
+                        <option value="everyone">Everyone</option>
+                        <option value="institute">Institute Only</option>
+                        <option value="nobody">Nobody (Hidden)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Avatar Visibility:</label>
+                      <select
+                        value={avatarVisibility}
+                        onChange={(e) => setAvatarVisibility(e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
+                      >
+                        <option value="everyone">Everyone</option>
+                        <option value="institute">Institute</option>
+                        <option value="connections">Connections</option>
+                        <option value="nobody">Nobody</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Who Can Message:</label>
+                      <select
+                        value={messagePermission}
+                        onChange={(e) => setMessagePermission(e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
+                      >
+                        <option value="everyone">Everyone</option>
+                        <option value="institute">Institute</option>
+                        <option value="connections">Connections</option>
+                        <option value="nobody">Nobody</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={globalDiscovery}
+                        onChange={(e) => setGlobalDiscovery(e.target.checked)}
+                        style={{ width: 16, height: 16, accentColor: '#000000' }}
+                      />
+                      <span>Participate in Global Discovery</span>
+                    </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={activityVisibility}
+                        onChange={(e) => setActivityVisibility(e.target.checked)}
+                        style={{ width: 16, height: 16, accentColor: '#000000' }}
+                      />
+                      <span>Show Active Cooking on Profile</span>
+                    </label>
+                  </div>
+
+                  <button
+                    type="submit"
+                    style={{
+                      backgroundColor: '#000000',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: 9999,
+                      padding: '10px 24px',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      marginTop: 8,
+                      alignSelf: 'flex-start'
+                    }}
+                  >
+                    Save Privacy Settings
+                  </button>
+                </form>
+
+                {/* Privacy Filter Inspector */}
+                <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid #e5e7eb' }}>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 8px 0' }}>Inspect Profile (Privacy Filter Test)</h4>
+                  <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 10px 0' }}>
+                    Verify how your privacy settings filter out info when another student looks up a user.
+                  </p>
+                  <form onSubmit={handleSearchProfile} style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      required
+                      value={searchUsername}
+                      onChange={(e) => setSearchUsername(e.target.value)}
+                      placeholder="Username (e.g. chef_arjun or mayachef)"
+                      style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        borderRadius: 8,
+                        border: '1px solid #d1d5db',
+                        fontSize: 13,
+                        color: '#000000'
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      style={{
+                        backgroundColor: '#cdd5de',
+                        color: '#000000',
+                        border: 'none',
+                        borderRadius: 8,
+                        padding: '8px 16px',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Lookup
+                    </button>
+                  </form>
+
+                  {searchedProfile && (
+                    <div style={{ marginTop: 12, backgroundColor: '#f9fafb', borderRadius: 12, padding: 12, border: '1px solid #e5e7eb', fontSize: 13 }}>
+                      <div><strong>Username:</strong> @{searchedProfile.username}</div>
+                      <div><strong>Name:</strong> {searchedProfile.name}</div>
+                      <div><strong>Pronouns:</strong> {searchedProfile.pronouns || '—'}</div>
+                      <div><strong>Bio:</strong> {searchedProfile.bio || '— [Filtered by Privacy]'}</div>
+                      <div><strong>Institute:</strong> {searchedProfile.institute?.name || '— [Filtered or Not Set]'}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Connections List */}
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 8px 0' }}>Your Connections ({connections.length})</h4>
+                  {connections.length === 0 ? (
+                    <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>No direct connections established yet.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {connections.map((c) => (
+                        <div key={c.connectionId} style={{ fontSize: 13, color: '#374151' }}>
+                          • @{c.user?.username} ({c.user?.name})
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          </form>
+            </div>
+          )}
+
         </section>
       )}
       </div>
