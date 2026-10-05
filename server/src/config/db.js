@@ -6,7 +6,7 @@ const connectDB = async () => {
     console.log(`[MongoDB] Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`[MongoDB] Connection error: ${error.message}`);
-    process.exit(1);
+    console.warn('[MongoDB] Server is running without active database connection. Check Atlas IP whitelist or MONGO_URI.');
   }
 };
 

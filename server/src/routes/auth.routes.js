@@ -7,7 +7,7 @@ const validate = require('../middleware/validator.middleware');
 const { authLimiter } = require('../middleware/rateLimit.middleware');
 const { registerValidator, loginValidator } = require('../utils/validators');
 
-router.post('/register', authLimiter, validate(registerValidator), authController.register);
+router.post('/register', validate(registerValidator), authController.register);
 router.post('/login', authLimiter, validate(loginValidator), authController.login);
 router.get('/me', authMiddleware, authController.getMe);
 

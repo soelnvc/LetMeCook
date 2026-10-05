@@ -18,6 +18,7 @@ export default function App() {
 
   // Auth states
   const [isLogin, setIsLogin] = useState(true);
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -174,8 +175,10 @@ export default function App() {
   // Auth Handlers
   const handleAuth = async (e) => {
     e.preventDefault();
+    if (isAuthSubmitting) return;
     setError('');
     setMessage('');
+    setIsAuthSubmitting(true);
     try {
       let res;
       if (isLogin) {
@@ -194,6 +197,8 @@ export default function App() {
       setMessage('Authenticated successfully');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsAuthSubmitting(false);
     }
   };
 
@@ -445,20 +450,56 @@ export default function App() {
                 <input
                   type="text"
                   required
+                  disabled={isAuthSubmitting}
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="chef_arjun or arjun@example.com"
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: 'rgba(255,255,255,0.7)' }}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Password:</label>
                 <input
                   type="password"
                   required
+                  disabled={isAuthSubmitting}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: 'rgba(255,255,255,0.7)' }}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
-                <button type="submit" style={{ marginTop: 10, padding: '10px 16px', borderRadius: 8, backgroundColor: '#000', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Submit Login</button>
+                <button
+                  type="submit"
+                  disabled={isAuthSubmitting}
+                  style={{
+                    marginTop: 10,
+                    padding: '10px 16px',
+                    borderRadius: 8,
+                    backgroundColor: '#000',
+                    color: '#fff',
+                    border: 'none',
+                    cursor: isAuthSubmitting ? 'not-allowed' : 'pointer',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    opacity: isAuthSubmitting ? 0.75 : 1,
+                    transition: 'opacity 0.2s ease'
+                  }}
+                >
+                  {isAuthSubmitting && (
+                    <span
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: '2px solid rgba(255,255,255,0.3)',
+                        borderTopColor: '#fff',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                        animation: 'spin 0.75s linear infinite'
+                      }}
+                    />
+                  )}
+                  <span>{isAuthSubmitting ? 'Signing in...' : 'Submit Login'}</span>
+                </button>
               </>
             ) : (
               <>
@@ -466,43 +507,82 @@ export default function App() {
                 <input
                   type="text"
                   required
+                  disabled={isAuthSubmitting}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: 'rgba(255,255,255,0.7)' }}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Display Name:</label>
                 <input
                   type="text"
                   required
+                  disabled={isAuthSubmitting}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: 'rgba(255,255,255,0.7)' }}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Email:</label>
                 <input
                   type="email"
                   required
+                  disabled={isAuthSubmitting}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: 'rgba(255,255,255,0.7)' }}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Mobile Number:</label>
                 <input
                   type="text"
                   required
+                  disabled={isAuthSubmitting}
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: 'rgba(255,255,255,0.7)' }}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Password (min 6 chars):</label>
                 <input
                   type="password"
                   required
+                  disabled={isAuthSubmitting}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: 'rgba(255,255,255,0.7)' }}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
-                <button type="submit" style={{ marginTop: 10, padding: '10px 16px', borderRadius: 8, backgroundColor: '#000', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Submit Register</button>
+                <button
+                  type="submit"
+                  disabled={isAuthSubmitting}
+                  style={{
+                    marginTop: 10,
+                    padding: '10px 16px',
+                    borderRadius: 8,
+                    backgroundColor: '#000',
+                    color: '#fff',
+                    border: 'none',
+                    cursor: isAuthSubmitting ? 'not-allowed' : 'pointer',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    opacity: isAuthSubmitting ? 0.75 : 1,
+                    transition: 'opacity 0.2s ease'
+                  }}
+                >
+                  {isAuthSubmitting && (
+                    <span
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: '2px solid rgba(255,255,255,0.3)',
+                        borderTopColor: '#fff',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                        animation: 'spin 0.75s linear infinite'
+                      }}
+                    />
+                  )}
+                  <span>{isAuthSubmitting ? 'Registering...' : 'Submit Register'}</span>
+                </button>
               </>
             )}
           </form>

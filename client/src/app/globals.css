@@ -33,6 +33,15 @@ html, body, button, input, select, textarea {
   }
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Fluid Glass Button */
 .btn-fluid {
   --border-radius: 9999px;
