@@ -42,6 +42,14 @@ html, body, button, input, select, textarea {
   }
 }
 
+/* Subtle Zoom-out effect on click */
+.btn-zoom-click {
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.18s ease;
+}
+.btn-zoom-click:active {
+  transform: scale(0.92) !important;
+}
+
 /* Fluid Glass Button */
 .btn-fluid {
   --border-radius: 9999px;

@@ -458,6 +458,22 @@ export default function KitchenModal({
     return 'Description';
   };
 
+  // Sub-step progress calculations
+  const getSubStepProgress = () => {
+    if (mainStep === 1 || mainStep === 2 || mainStep === 5) {
+      return 1; // 100%
+    }
+    if (mainStep === 3) {
+      // 3 sub-steps (1, 2, 3)
+      return subStep / 3;
+    }
+    if (mainStep === 4) {
+      // 4 sub-steps (1, 2, 3, 4)
+      return subStep / 4;
+    }
+    return 1;
+  };
+
   const canGoBack = !(mainStep === 1 && subStep === 1);
 
   return (
@@ -504,7 +520,7 @@ export default function KitchenModal({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: 12,
+            marginBottom: 8,
             flexShrink: 0
           }}
         >
@@ -528,28 +544,54 @@ export default function KitchenModal({
                 ←
               </button>
             )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.4px', textTransform: 'uppercase', color: '#6b7280' }}>
-                Step {mainStep} of {totalSteps}
-              </span>
-              <span style={{ fontSize: 12, color: '#9ca3af' }}>•</span>
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: '#101214' }}>
-                {getSubStepLabel()}
-              </span>
-              <div style={{ display: 'flex', gap: 4, marginLeft: 6 }}>
-                {Array.from({ length: totalSteps }).map((_, i) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.4px', textTransform: 'uppercase', color: '#6b7280' }}>
+                  Step {mainStep} of {totalSteps}
+                </span>
+                <span style={{ fontSize: 12, color: '#9ca3af' }}>•</span>
+                <span style={{ fontSize: 12.5, fontWeight: 500, color: '#101214' }}>
+                  {getSubStepLabel()}
+                </span>
+                <div style={{ display: 'flex', gap: 4, marginLeft: 6 }}>
+                  {Array.from({ length: totalSteps }).map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: i + 1 === mainStep ? 18 : 6,
+                        height: 5,
+                        borderRadius: 3,
+                        backgroundColor: i + 1 <= mainStep ? '#101214' : 'rgba(0, 0, 0, 0.15)',
+                        transition: 'all 0.25s ease'
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Sequential sub-step progress bar right beneath the step indicator */}
+              {(mainStep === 3 || mainStep === 4) && (
+                <div
+                  style={{
+                    width: 140,
+                    height: 2.5,
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(0, 0, 0, 0.12)',
+                    overflow: 'hidden',
+                    marginTop: 2
+                  }}
+                >
                   <div
-                    key={i}
                     style={{
-                      width: i + 1 === mainStep ? 18 : 6,
-                      height: 5,
-                      borderRadius: 3,
-                      backgroundColor: i + 1 <= mainStep ? '#101214' : 'rgba(0, 0, 0, 0.15)',
-                      transition: 'all 0.25s ease'
+                      height: '100%',
+                      width: `${getSubStepProgress() * 100}%`,
+                      backgroundColor: '#101214',
+                      borderRadius: 2,
+                      transition: 'width 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
                     }}
                   />
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -588,6 +630,7 @@ export default function KitchenModal({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24, alignItems: 'center' }}>
                   <button
                     type="button"
+                    className="btn-zoom-click"
                     onClick={() => handleSelectCustomization('regular')}
                     style={{
                       background: 'none',
@@ -602,11 +645,10 @@ export default function KitchenModal({
                     <span
                       style={{
                         fontSize: 18,
-                        fontWeight: dishType === 'regular' ? 700 : 500,
-                        color: '#101214',
-                        borderBottom: dishType === 'regular' ? '2px solid #101214' : '2px solid transparent',
-                        paddingBottom: 2,
-                        transition: 'all 0.15s ease'
+                        fontWeight: 450,
+                        color: dishType === 'regular' ? '#101214' : '#52525b',
+                        opacity: dishType === 'regular' ? 1 : 0.75,
+                        transition: 'opacity 0.15s ease'
                       }}
                     >
                       Regular
@@ -615,6 +657,7 @@ export default function KitchenModal({
 
                   <button
                     type="button"
+                    className="btn-zoom-click"
                     onClick={() => handleSelectCustomization('chefs_special')}
                     style={{
                       background: 'none',
@@ -629,16 +672,15 @@ export default function KitchenModal({
                     <span
                       style={{
                         fontSize: 18,
-                        fontWeight: dishType === 'chefs_special' ? 700 : 500,
-                        color: '#101214',
-                        borderBottom: dishType === 'chefs_special' ? '2px solid #101214' : '2px solid transparent',
-                        paddingBottom: 2,
-                        transition: 'all 0.15s ease'
+                        fontWeight: 450,
+                        color: dishType === 'chefs_special' ? '#101214' : '#52525b',
+                        opacity: dishType === 'chefs_special' ? 1 : 0.75,
+                        transition: 'opacity 0.15s ease'
                       }}
                     >
                       Chef's Special
                     </span>
-                    <span style={{ fontSize: 13, color: '#71717a', fontStyle: 'italic' }}>
+                    <span style={{ fontSize: 13, color: '#71717a', fontStyle: 'italic', fontWeight: 400 }}>
                       more customization
                     </span>
                   </button>
@@ -661,6 +703,7 @@ export default function KitchenModal({
                       <button
                         key={cat.id}
                         type="button"
+                        className="btn-zoom-click"
                         onClick={() => handleSelectCategory(cat.id)}
                         style={{
                           background: 'none',
@@ -672,7 +715,8 @@ export default function KitchenModal({
                           gap: 6,
                           padding: '8px 4px',
                           color: '#101214',
-                          transition: 'transform 0.15s ease'
+                          opacity: isSelected ? 1 : 0.65,
+                          transition: 'opacity 0.15s ease'
                         }}
                       >
                         <span style={{ color: '#101214' }}>
@@ -681,10 +725,8 @@ export default function KitchenModal({
                         <span
                           style={{
                             fontSize: 13.5,
-                            fontWeight: isSelected ? 700 : 500,
-                            color: '#101214',
-                            borderBottom: isSelected ? '2px solid #101214' : '2px solid transparent',
-                            paddingBottom: 2
+                            fontWeight: 450,
+                            color: '#101214'
                           }}
                         >
                           {cat.label}
@@ -711,6 +753,7 @@ export default function KitchenModal({
                       <div key={m.id} style={{ display: 'inline-flex', alignItems: 'center' }}>
                         <button
                           type="button"
+                          className="btn-zoom-click"
                           onClick={() => handleSelectJoinMode(m.id)}
                           style={{
                             background: 'none',
@@ -718,11 +761,10 @@ export default function KitchenModal({
                             cursor: 'pointer',
                             padding: 0,
                             fontSize: 16,
-                            fontWeight: isSelected ? 700 : 500,
+                            fontWeight: 450,
                             color: '#101214',
-                            borderBottom: isSelected ? '2px solid #101214' : '2px solid transparent',
-                            paddingBottom: 2,
-                            transition: 'all 0.15s ease'
+                            opacity: isSelected ? 1 : 0.65,
+                            transition: 'opacity 0.15s ease'
                           }}
                         >
                           {m.label}
@@ -756,6 +798,7 @@ export default function KitchenModal({
                 >
                   <button
                     type="button"
+                    className="btn-zoom-click"
                     onClick={() => setUnlimitedCapacity(false)}
                     style={{
                       background: !unlimitedCapacity ? '#ffffff' : 'transparent',
@@ -764,7 +807,7 @@ export default function KitchenModal({
                       borderRadius: 9999,
                       padding: '6px 18px',
                       fontSize: 13,
-                      fontWeight: !unlimitedCapacity ? 700 : 500,
+                      fontWeight: 500,
                       cursor: 'pointer',
                       boxShadow: !unlimitedCapacity ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                       transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
@@ -774,6 +817,7 @@ export default function KitchenModal({
                   </button>
                   <button
                     type="button"
+                    className="btn-zoom-click"
                     onClick={() => setUnlimitedCapacity(true)}
                     style={{
                       background: unlimitedCapacity ? '#ffffff' : 'transparent',
@@ -782,7 +826,7 @@ export default function KitchenModal({
                       borderRadius: 9999,
                       padding: '6px 18px',
                       fontSize: 13,
-                      fontWeight: unlimitedCapacity ? 700 : 500,
+                      fontWeight: 500,
                       cursor: 'pointer',
                       boxShadow: unlimitedCapacity ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                       transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
@@ -797,13 +841,14 @@ export default function KitchenModal({
                   <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                     <button
                       type="button"
+                      className="btn-zoom-click"
                       onClick={() => setCapacity((c) => Math.max(2, c - 1))}
                       style={{
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
                         fontSize: 24,
-                        fontWeight: 700,
+                        fontWeight: 600,
                         color: '#101214',
                         padding: '4px 12px',
                         lineHeight: 1
@@ -811,18 +856,19 @@ export default function KitchenModal({
                     >
                       −
                     </button>
-                    <span style={{ fontSize: 26, fontWeight: 700, minWidth: 44, textAlign: 'center', color: '#101214' }}>
+                    <span style={{ fontSize: 26, fontWeight: 550, minWidth: 44, textAlign: 'center', color: '#101214' }}>
                       {capacity}
                     </span>
                     <button
                       type="button"
+                      className="btn-zoom-click"
                       onClick={() => setCapacity((c) => Math.min(50, c + 1))}
                       style={{
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
                         fontSize: 24,
-                        fontWeight: 700,
+                        fontWeight: 600,
                         color: '#101214',
                         padding: '4px 12px',
                         lineHeight: 1
@@ -832,7 +878,7 @@ export default function KitchenModal({
                     </button>
                   </div>
                 ) : (
-                  <div style={{ fontSize: 16, fontWeight: 600, color: '#101214', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ fontSize: 16, fontWeight: 450, color: '#101214', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 20 }}>∞</span> Open to Any Number
                   </div>
                 )}
@@ -867,7 +913,7 @@ export default function KitchenModal({
                       backgroundColor: 'transparent',
                       padding: '0 0 2px 0',
                       fontSize: 18,
-                      fontWeight: 600,
+                      fontWeight: 500,
                       color: '#101214',
                       textAlign: 'center',
                       outline: 'none'
@@ -894,6 +940,7 @@ export default function KitchenModal({
                     <button
                       key={g.id}
                       type="button"
+                      className="btn-zoom-click"
                       onClick={() => handleSelectGender(g.id)}
                       style={{
                         background: 'none',
@@ -901,11 +948,10 @@ export default function KitchenModal({
                         cursor: 'pointer',
                         padding: 0,
                         fontSize: 16,
-                        fontWeight: gender === g.id ? 700 : 500,
+                        fontWeight: 450,
                         color: '#101214',
-                        borderBottom: gender === g.id ? '2px solid #101214' : '2px solid transparent',
-                        paddingBottom: 2,
-                        transition: 'all 0.15s ease'
+                        opacity: gender === g.id ? 1 : 0.65,
+                        transition: 'opacity 0.15s ease'
                       }}
                     >
                       {g.label}
@@ -915,47 +961,65 @@ export default function KitchenModal({
               </div>
             )}
 
-            {/* STEP 4.2: INSTITUTE RESTRICTION */}
+            {/* STEP 4.2: INSTITUTE RESTRICTION (YES / NO TEXT SELECTION) */}
             {mainStep === 4 && subStep === 2 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                  Institute Restriction
+                  Institute Verified only?
                   <InfoTooltip text="Limit dish joining to members of your verified institute." />
                 </h2>
 
-                {/* Better Custom Animated Tick Box */}
-                <div
-                  onClick={() => setInstituteOnly(!instituteOnly)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    cursor: 'pointer',
-                    userSelect: 'none'
-                  }}
-                >
-                  <div
+                {/* Yes and No clean text selection */}
+                <div style={{ display: 'flex', gap: 32, justifyContent: 'center', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    className="btn-zoom-click"
+                    onClick={() => {
+                      setInstituteOnly(true);
+                      if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
+                      nextTimerRef.current = setTimeout(() => {
+                        goToSubStep(4, 3, 'forward');
+                      }, 200);
+                    }}
                     style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 6,
-                      border: '1.5px solid #101214',
-                      backgroundColor: instituteOnly ? '#101214' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontSize: 18,
+                      fontWeight: 450,
+                      color: '#101214',
+                      opacity: instituteOnly ? 1 : 0.65,
+                      transition: 'opacity 0.15s ease'
                     }}
                   >
-                    {instituteOnly && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                  </div>
-                  <span style={{ fontSize: 16, fontWeight: 600, color: '#101214' }}>
-                    Institute Students Only
-                  </span>
+                    Yes
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn-zoom-click"
+                    onClick={() => {
+                      setInstituteOnly(false);
+                      if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
+                      nextTimerRef.current = setTimeout(() => {
+                        goToSubStep(4, 3, 'forward');
+                      }, 200);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontSize: 18,
+                      fontWeight: 450,
+                      color: '#101214',
+                      opacity: !instituteOnly ? 1 : 0.65,
+                      transition: 'opacity 0.15s ease'
+                    }}
+                  >
+                    No
+                  </button>
                 </div>
               </div>
             )}
@@ -973,6 +1037,7 @@ export default function KitchenModal({
                     <button
                       key={s}
                       type="button"
+                      className="btn-zoom-click"
                       onClick={() => handleSelectSkill(s)}
                       style={{
                         background: 'none',
@@ -980,11 +1045,10 @@ export default function KitchenModal({
                         cursor: 'pointer',
                         padding: 0,
                         fontSize: 16,
-                        fontWeight: skillLevel === s ? 700 : 500,
+                        fontWeight: 450,
                         color: '#101214',
-                        borderBottom: skillLevel === s ? '2px solid #101214' : '2px solid transparent',
-                        paddingBottom: 2,
-                        transition: 'all 0.15s ease'
+                        opacity: skillLevel === s ? 1 : 0.65,
+                        transition: 'opacity 0.15s ease'
                       }}
                     >
                       {s}
@@ -1013,6 +1077,7 @@ export default function KitchenModal({
                     <button
                       key={a.id}
                       type="button"
+                      className="btn-zoom-click"
                       onClick={() => handleSelectAgeMode(a.id)}
                       style={{
                         background: 'none',
@@ -1020,11 +1085,10 @@ export default function KitchenModal({
                         cursor: 'pointer',
                         padding: 0,
                         fontSize: 16,
-                        fontWeight: ageMode === a.id ? 700 : 500,
+                        fontWeight: 450,
                         color: '#101214',
-                        borderBottom: ageMode === a.id ? '2px solid #101214' : '2px solid transparent',
-                        paddingBottom: 2,
-                        transition: 'all 0.15s ease'
+                        opacity: ageMode === a.id ? 1 : 0.65,
+                        transition: 'opacity 0.15s ease'
                       }}
                     >
                       {a.label}
@@ -1049,13 +1113,13 @@ export default function KitchenModal({
                         backgroundColor: 'transparent',
                         padding: '0 0 2px 0',
                         fontSize: 16,
-                        fontWeight: 600,
+                        fontWeight: 500,
                         textAlign: 'center',
                         color: '#101214',
                         outline: 'none'
                       }}
                     />
-                    <span style={{ color: '#101214', fontWeight: 600 }}>—</span>
+                    <span style={{ color: '#101214', fontWeight: 500 }}>—</span>
                     <input
                       type="number"
                       placeholder="Max"
@@ -1070,7 +1134,7 @@ export default function KitchenModal({
                         backgroundColor: 'transparent',
                         padding: '0 0 2px 0',
                         fontSize: 16,
-                        fontWeight: 600,
+                        fontWeight: 500,
                         textAlign: 'center',
                         color: '#101214',
                         outline: 'none'
@@ -1081,20 +1145,20 @@ export default function KitchenModal({
               </div>
             )}
 
-            {/* STEP 5: DESCRIBE YOUR DISH */}
+            {/* STEP 5: DESCRIBE YOUR DISH (Same as Location with single line and horizontal scroll) */}
             {mainStep === 5 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 20px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Describe your Dish
                   <InfoTooltip text="Tell others what you're planning and what to expect." />
                 </h2>
 
-                <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 420 }}>
-                  {/* Single line sitting right on bottom border */}
-                  <textarea
+                <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 360 }}>
+                  {/* Single-line text input matching Location style with horizontal scroll */}
+                  <input
+                    type="text"
                     autoFocus
                     required
-                    rows={2}
                     maxLength={500}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -1105,16 +1169,13 @@ export default function KitchenModal({
                       borderBottom: '1.5px solid #101214',
                       backgroundColor: 'transparent',
                       padding: '0 0 2px 0',
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: 500,
                       color: '#101214',
-                      boxSizing: 'border-box',
-                      fontFamily: 'inherit',
-                      lineHeight: 1.45,
                       textAlign: 'center',
-                      resize: 'none',
                       outline: 'none',
-                      transition: 'border-color 0.15s ease'
+                      overflowX: 'auto',
+                      whiteSpace: 'nowrap'
                     }}
                   />
                   <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
