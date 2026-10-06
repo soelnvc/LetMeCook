@@ -117,6 +117,162 @@ const DEMO_PEER_PROFILES = {
     bio: 'Badminton doubles player & late evening tea circle host. #Badminton #Campus #Tea',
     interests: ['Badminton', 'Campus', 'Tea', 'Music'],
     stats: { dishesCreated: 13, dishesJoined: 19, connections: 77 }
+  },
+  amans: {
+    _id: 'demo-user-amans',
+    name: 'Aman Sharma',
+    username: 'amans',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
+    pronouns: 'They/Them',
+    institute: { name: 'IIT MADRAS', year: '2028' },
+    bio: "Campus peer active in live dish cooking, study sprints, and sports sessions. Let's cook! #Badminton #Study #Campus",
+    interests: ['Campus', 'DSA', 'Study', 'Badminton'],
+    stats: { dishesCreated: 17, dishesJoined: 19, connections: 84 },
+    dishes: {
+      active: {
+        _id: 'dish-amans-active',
+        description: 'Badminton doubles friendly rally & drills session at SAC indoor sports courts. Looking for 1 partner to join!',
+        category: 'sport',
+        status: 'cooking',
+        joinMode: 'auto',
+        capacity: { max: 4 },
+        participants: [{ user: { name: 'Aman Sharma', username: 'amans' } }, { user: { name: 'Alex Rivera', username: 'alex_cooks' } }, { user: { name: 'Priya Patel', username: 'priyap' } }],
+        timing: { cookStart: 'Today at 6:30 PM' },
+        creator: { name: 'Aman Sharma', username: 'amans', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80' }
+      },
+      previous: [
+        {
+          _id: 'dish-amans-prev-1',
+          description: 'Late night competitive programming sprint: Graph algorithms & DP problem solving in Central Library.',
+          category: 'study',
+          status: 'cooked',
+          capacity: { max: 4 },
+          participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }]
+        },
+        {
+          _id: 'dish-amans-prev-2',
+          description: 'Early morning 5km jog around campus stadium track followed by fresh fruit juice at the cafe.',
+          category: 'sport',
+          status: 'cooked',
+          capacity: { max: 5 },
+          participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }, { user: '5' }]
+        },
+        {
+          _id: 'dish-amans-prev-3',
+          description: 'Campus tea meet & casual discussion on machine learning project ideas near Himalaya Mess.',
+          category: 'social',
+          status: 'cooked',
+          capacity: { max: 3 },
+          participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
+        }
+      ],
+      activeJoined: {
+        _id: 'dish-amans-joined-active',
+        description: 'DSA Trees & Graphs mock interview sprint in Library Study Room 4. Hosted by Rohan Sen.',
+        category: 'study',
+        creator: { name: 'Rohan Sen', username: 'rohans' },
+        status: 'cooking',
+        joinMode: 'auto',
+        capacity: { max: 4 },
+        participants: [{ user: { name: 'Rohan Sen', username: 'rohans' } }, { user: { name: 'Aman Sharma', username: 'amans' } }],
+        timing: { cookStart: 'Tomorrow at 4:00 PM' }
+      },
+      previousJoined: [
+        {
+          _id: 'dish-amans-joined-prev-1',
+          description: 'Weekend FIFA & Mario Kart gaming tournament in student center common room.',
+          category: 'gaming',
+          creator: { name: 'Vikram Seth', username: 'vikram_s' },
+          status: 'cooked',
+          capacity: { max: 6 },
+          participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }, { user: '5' }, { user: '6' }]
+        },
+        {
+          _id: 'dish-amans-joined-prev-2',
+          description: 'Casual badminton mixed doubles rally at the campus indoor arena.',
+          category: 'sport',
+          creator: { name: 'Priya Patel', username: 'priyabakes' },
+          status: 'cooked',
+          capacity: { max: 4 },
+          participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }]
+        },
+        {
+          _id: 'dish-amans-joined-prev-3',
+          description: 'Sunset campus photography walk through deer park and lake trail.',
+          category: 'creative',
+          creator: { name: 'Ananya Verma', username: 'ananya_v' },
+          status: 'cooked',
+          capacity: { max: 5 },
+          participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }, { user: '5' }]
+        }
+      ]
+    }
+  },
+  priyap: {
+    _id: 'demo-user-priyap',
+    name: 'Priya Patel',
+    username: 'priyap',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80',
+    pronouns: 'She/Her',
+    institute: { name: 'IIT Madras', year: '2028' },
+    bio: 'Badminton enthusiast & campus foodie. Host of weekend morning rally sessions! #Badminton #Fitness #Campus',
+    interests: ['Badminton', 'Fitness', 'Campus', 'Music'],
+    stats: { dishesCreated: 13, dishesJoined: 21, connections: 79 }
+  },
+  rohanv: {
+    _id: 'demo-user-rohanv',
+    name: 'Rohan Verma',
+    username: 'rohanv',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80',
+    pronouns: 'He/Him',
+    institute: { name: 'IIT Madras', year: '2027' },
+    bio: 'Full stack builder & late-night code sprint organizer. Coffee & systems programming. #Tech #DSA #Coffee',
+    interests: ['Tech', 'DSA', 'Coffee', 'Gaming'],
+    stats: { dishesCreated: 15, dishesJoined: 18, connections: 68 }
+  },
+  vikramj: {
+    _id: 'demo-user-vikramj',
+    name: 'Vikram Joshi',
+    username: 'vikramj',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
+    pronouns: 'He/Him',
+    institute: { name: 'IIT Madras', year: '2028' },
+    bio: "Competitive coding sprinter & chess lover. Let's conquer algorithms together! #Study #DSA #Chess",
+    interests: ['Study', 'DSA', 'Chess', 'Tech'],
+    stats: { dishesCreated: 11, dishesJoined: 16, connections: 64 }
+  },
+  ananyar: {
+    _id: 'demo-user-ananyar',
+    name: 'Ananya Roy',
+    username: 'ananyar',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80',
+    pronouns: 'She/Her',
+    institute: { name: 'IIT Madras', year: '2028' },
+    bio: 'Badminton doubles player & weekend running enthusiast. #Badminton #Running #Campus',
+    interests: ['Badminton', 'Running', 'Campus', 'Music'],
+    stats: { dishesCreated: 14, dishesJoined: 22, connections: 88 }
+  },
+  karthikr: {
+    _id: 'demo-user-karthikr',
+    name: 'Karthik Ram',
+    username: 'karthikr',
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&auto=format&fit=crop&q=80',
+    pronouns: 'He/Him',
+    institute: { name: 'IIT Madras', year: '2027' },
+    bio: 'Robotics lab explorer and casual gamer. #Robotics #Gaming #AI',
+    interests: ['Robotics', 'Gaming', 'AI', 'Coffee'],
+    stats: { dishesCreated: 12, dishesJoined: 15, connections: 59 }
+  },
+  devs: {
+    _id: 'demo-user-devs',
+    name: 'Dev Sharma',
+    username: 'devs',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
+    pronouns: 'He/Him',
+    institute: { name: 'IIT Madras', year: '2029' },
+    bio: 'Late evening football & gym sessions. Coffee lover. #Football #Gym #Coffee',
+    interests: ['Football', 'Gym', 'Coffee', 'Sports'],
+    stats: { dishesCreated: 10, dishesJoined: 14, connections: 52 }
   }
 };
 
@@ -486,11 +642,19 @@ export default function App() {
     setError('');
     setMessage('');
     try {
+      if (String(dishId).startsWith('dish-') || String(dishId).startsWith('demo-') || String(dishId).startsWith('active-')) {
+        setMessage('Joined dish successfully!');
+        return;
+      }
       const res = await dishService.joinDish(dishId);
       setMessage(`Join status: ${res.data.status}`);
       fetchDishes();
     } catch (err) {
-      setError(err.message);
+      if (String(dishId).startsWith('dish-') || String(dishId).startsWith('demo-')) {
+        setMessage('Joined dish successfully!');
+      } else {
+        setError(err.message);
+      }
     }
   };
 
@@ -1181,31 +1345,23 @@ export default function App() {
                   width: '100%'
                 }}
               >
-                <button
-                  type="button"
+                <FluidButton
                   onClick={handleBackFromProfile}
                   style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: 14,
+                    padding: '7px 18px',
+                    fontSize: 13.5,
                     fontWeight: 600,
                     color: '#000000',
-                    padding: '6px 12px',
-                    borderRadius: 10,
-                    transition: 'background-color 0.15s ease'
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="15 18 9 12 15 6" />
                   </svg>
                   <span>Back to {getTabLabel(profilePreviousTab)}</span>
-                </button>
+                </FluidButton>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: '#000000' }}>
                   <span>@{activeProfile?.username || 'user'}</span>
@@ -1353,21 +1509,21 @@ export default function App() {
                       })
                     : dishes.filter(d => (d.creator?._id || d.creator) === user._id);
 
-                  const fallbackPeerActive = {
-                    _id: `dish-active-${activeProfile.username || 'peer'}`,
-                    description: `${activeProfile.name || 'Campus peer'} is hosting a live ${activeProfile.interests?.[0] || 'sports'} session on campus. Open to join!`,
-                    category: (activeProfile.interests?.[0] || 'sport').toLowerCase(),
+                  const fallbackPeerActive = activeProfile?.dishes?.active || {
+                    _id: `dish-active-${activeProfile?.username || 'peer'}`,
+                    description: `${activeProfile?.name || 'Campus peer'} is hosting a live ${activeProfile?.interests?.[0] || 'sports'} session on campus. Open to join!`,
+                    category: (activeProfile?.interests?.[0] || 'sport').toLowerCase(),
                     status: 'cooking',
                     joinMode: 'auto',
                     capacity: { max: 4 },
-                    participants: [{ user: activeProfile }, { user: { name: 'Alex R', username: 'alex_cooks' } }],
+                    participants: [{ user: activeProfile }, { user: { name: 'Alex Rivera', username: 'alex_cooks' } }],
                     timing: { cookStart: 'Today at 6:00 PM' },
                     creator: activeProfile
                   };
 
-                  const fallbackPeerPrevious = [
+                  const fallbackPeerPrevious = activeProfile?.dishes?.previous || [
                     {
-                      _id: `dish-prev-${activeProfile.username || 'peer'}-1`,
+                      _id: `dish-prev-${activeProfile?.username || 'peer'}-1`,
                       description: `Sprint workout & cardio session at the campus gym followed by protein smoothies.`,
                       category: 'sport',
                       status: 'cooked',
@@ -1376,13 +1532,22 @@ export default function App() {
                       participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }]
                     },
                     {
-                      _id: `dish-prev-${activeProfile.username || 'peer'}-2`,
+                      _id: `dish-prev-${activeProfile?.username || 'peer'}-2`,
                       description: `Campus library group study session for DSA Trees & Graphs review.`,
                       category: 'study',
                       status: 'cooked',
                       capacity: { max: 3 },
                       creator: activeProfile,
                       participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
+                    },
+                    {
+                      _id: `dish-prev-${activeProfile?.username || 'peer'}-3`,
+                      description: `Campus tea meet & casual discussion on weekend project ideas near Himalaya Mess.`,
+                      category: 'social',
+                      status: 'cooked',
+                      capacity: { max: 5 },
+                      creator: activeProfile,
+                      participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }, { user: '5' }]
                     }
                   ];
 
@@ -1393,8 +1558,9 @@ export default function App() {
                     status: 'cooking',
                     joinMode: 'auto',
                     capacity: { max: 4 },
-                    participants: [{ user: { name: user.name || 'Sid G', username: user.username || 'soelnvc' } }, { user: 'p1' }, { user: 'p2' }],
-                    timing: { cookStart: 'Today at 6:00 PM' }
+                    participants: [{ user: { name: user?.name || 'Sid G', username: user?.username || 'soelnvc' } }, { user: 'p1' }, { user: 'p2' }],
+                    timing: { cookStart: 'Today at 6:00 PM' },
+                    creator: user
                   };
 
                   const fallbackPreviousDishes = isViewingPeer ? fallbackPeerPrevious : [
@@ -1656,23 +1822,65 @@ export default function App() {
                       })
                     : dishes.filter(d => (d.creator?._id || d.creator) !== user._id && (d.participants || []).some(p => (p.user?._id || p.user) === user._id));
 
-                  const fallbackActiveJoined = {
-                    _id: 'active-joined-ticket',
+                  const fallbackPeerActiveJoined = activeProfile?.dishes?.activeJoined || {
+                    _id: `joined-active-${activeProfile?.username || 'peer'}`,
+                    description: `Weekend 5k morning run & core workout session around campus track. Hosted by Alex Rivera.`,
+                    category: 'sport',
+                    creator: { name: 'Alex Rivera', username: 'alex_cooks' },
+                    status: 'cooking',
+                    joinMode: 'auto',
+                    capacity: { max: 4 },
+                    participants: [{ user: { name: 'Alex Rivera', username: 'alex_cooks' } }, { user: activeProfile }, { user: { name: 'Meera Patel', username: 'meera' } }],
+                    timing: { cookStart: 'Tomorrow at 7:00 AM' }
+                  };
+
+                  const fallbackPeerPreviousJoined = activeProfile?.dishes?.previousJoined || [
+                    {
+                      _id: `joined-prev-${activeProfile?.username || 'peer'}-1`,
+                      description: `Deep work study session: preparing for System Design & distributed consensus algorithms in library.`,
+                      category: 'study',
+                      creator: { name: 'Maya Lin', username: 'mayachef' },
+                      status: 'cooked',
+                      capacity: { max: 3 },
+                      participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
+                    },
+                    {
+                      _id: `joined-prev-${activeProfile?.username || 'peer'}-2`,
+                      description: `Casual badminton doubles match followed by protein shakes at campus court.`,
+                      category: 'sport',
+                      creator: { name: 'Priya Patel', username: 'priyabakes' },
+                      status: 'cooked',
+                      capacity: { max: 4 },
+                      participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }]
+                    },
+                    {
+                      _id: `joined-prev-${activeProfile?.username || 'peer'}-3`,
+                      description: `Board games & casual chit-chat evening at student center lounge.`,
+                      category: 'social',
+                      creator: { name: 'Alex Rivera', username: 'alex_cooks' },
+                      status: 'cooked',
+                      capacity: { max: 5 },
+                      participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }]
+                    }
+                  ];
+
+                  const fallbackActiveJoined = isViewingPeer ? fallbackPeerActiveJoined : {
+                    _id: 'active-joined-ticket-own',
                     description: 'Weekend 5k morning run & core workout session around campus track. Join in!',
                     category: 'sport',
                     creator: { name: 'Alex Rivera', username: 'alex_cooks' },
                     status: 'cooking',
                     joinMode: 'auto',
                     capacity: { max: 4 },
-                    participants: [{ user: 'alex' }, { user: activeProfile._id }, { user: 'p3' }],
+                    participants: [{ user: { name: 'Alex Rivera', username: 'alex_cooks' } }, { user: user }, { user: { name: 'Meera Patel', username: 'meera' } }],
                     timing: { cookStart: 'Tomorrow at 7:00 AM' }
                   };
 
-                  const fallbackPreviousJoined = [
+                  const fallbackPreviousJoined = isViewingPeer ? fallbackPeerPreviousJoined : [
                     {
                       _id: 'prev-joined-1',
                       description: 'Deep work study session: preparing for System Design & distributed consensus algorithms in library.',
-                      category: 'learning',
+                      category: 'study',
                       creator: { name: 'Maya Lin', username: 'mayachef' },
                       status: 'cooked',
                       capacity: { max: 3 },
@@ -1892,7 +2100,7 @@ export default function App() {
             )}
 
             {/* TAB 3: AWARDS (Award Library based on PRODUCT.md Section 20 Achievements) */}
-            {profileActiveTab === 'awards' && <AwardsLibrary />}
+            {profileActiveTab === 'awards' && <AwardsLibrary user={activeProfile} isSelf={!isViewingPeer} />}
 
 
           {/* EDIT PROFILE MODAL (Triggered by pill button) */}

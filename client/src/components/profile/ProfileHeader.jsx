@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import FluidButton from '@/components/ui/FluidButton';
+import GlassContainer from '@/components/ui/GlassContainer';
 
 export default function ProfileHeader({
   user,
@@ -274,12 +275,10 @@ export default function ProfileHeader({
               <FluidButton
                 onClick={onToggleConnect}
                 style={{
-                  padding: '7px 20px',
+                  padding: '7px 22px',
                   fontSize: 13.5,
                   fontWeight: 600,
-                  color: isConnected ? '#18181b' : '#ffffff',
-                  backgroundColor: isConnected ? 'rgba(0, 0, 0, 0.08)' : '#09090b',
-                  border: isConnected ? '1px solid rgba(0, 0, 0, 0.12)' : 'none'
+                  color: '#000000'
                 }}
               >
                 {isConnected ? 'Following' : 'Connect'}
@@ -289,12 +288,10 @@ export default function ProfileHeader({
               <FluidButton
                 onClick={onMessage}
                 style={{
-                  padding: '7px 20px',
+                  padding: '7px 22px',
                   fontSize: 13.5,
                   fontWeight: 600,
-                  color: '#09090b',
-                  backgroundColor: 'rgba(255, 255, 255, 0.85)',
-                  border: '1px solid rgba(0, 0, 0, 0.12)'
+                  color: '#000000'
                 }}
               >
                 Message
@@ -325,114 +322,120 @@ export default function ProfileHeader({
                   <div
                     style={{
                       position: 'absolute',
-                      top: '115%',
+                      top: '120%',
                       right: 0,
-                      zIndex: 100,
-                      width: 190,
-                      borderRadius: 14,
-                      backgroundColor: '#ffffff',
-                      boxShadow: '0 12px 32px rgba(0, 0, 0, 0.16)',
-                      border: '1px solid rgba(0, 0, 0, 0.08)',
-                      padding: 6,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 2
+                      zIndex: 120,
+                      width: 200
                     }}
                   >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowOptionsMenu(false);
-                        if (onBlockUser) onBlockUser(user?.username);
-                      }}
-                      style={{
+                    <GlassContainer
+                      radius={18}
+                      borderWidth={1.5}
+                      style={{ width: '100%', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.16)' }}
+                      innerStyle={{
+                        padding: '8px 6px',
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '9px 12px',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: '#dc2626',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: 10,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'background 0.12s ease'
+                        flexDirection: 'column',
+                        gap: 3,
+                        color: '#000000'
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.08)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
-                      </svg>
-                      Block @{user?.username}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowOptionsMenu(false);
-                        if (onReportUser) onReportUser(user?.username);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '9px 12px',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: '#b91c1c',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: 10,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'background 0.12s ease'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(185, 28, 28, 0.08)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                        <line x1="4" y1="22" x2="4" y2="15" />
-                      </svg>
-                      Report @{user?.username}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowOptionsMenu(false);
-                        if (typeof navigator !== 'undefined' && navigator.clipboard) {
-                          navigator.clipboard.writeText(`${window.location.origin}/@${user?.username || 'user'}`);
-                          setLinkCopied(true);
-                          setTimeout(() => setLinkCopied(false), 2000);
-                        }
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '9px 12px',
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: '#09090b',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: 10,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'background 0.12s ease'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                      </svg>
-                      {linkCopied ? 'Link Copied!' : 'Copy Profile Link'}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowOptionsMenu(false);
+                          if (onBlockUser) onBlockUser(user?.username);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          padding: '9px 12px',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: '#dc2626',
+                          background: 'transparent',
+                          border: 'none',
+                          borderRadius: 10,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'background-color 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.08)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                        </svg>
+                        Block @{user?.username}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowOptionsMenu(false);
+                          if (onReportUser) onReportUser(user?.username);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          padding: '9px 12px',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: '#b91c1c',
+                          background: 'transparent',
+                          border: 'none',
+                          borderRadius: 10,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'background-color 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(185, 28, 28, 0.08)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                          <line x1="4" y1="22" x2="4" y2="15" />
+                        </svg>
+                        Report @{user?.username}
+                      </button>
+                      <div style={{ height: 1, backgroundColor: 'rgba(0, 0, 0, 0.08)', margin: '3px 6px' }} />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowOptionsMenu(false);
+                          if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                            navigator.clipboard.writeText(`${window.location.origin}/@${user?.username || 'user'}`);
+                            setLinkCopied(true);
+                            setTimeout(() => setLinkCopied(false), 2000);
+                          }
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          padding: '9px 12px',
+                          fontSize: 13,
+                          fontWeight: 500,
+                          color: '#09090b',
+                          background: 'transparent',
+                          border: 'none',
+                          borderRadius: 10,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'background-color 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                        {linkCopied ? 'Link Copied!' : 'Copy Profile Link'}
+                      </button>
+                    </GlassContainer>
                   </div>
                 )}
               </div>
