@@ -4,6 +4,193 @@ import React, { useState, useMemo } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 
+/**
+ * Custom Input wrapped in GlassContainer to avoid browser default styles
+ */
+function CustomInput({
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  icon = null,
+  style = {},
+  radius = 14,
+  height = 42,
+  maxLength,
+  ...props
+}) {
+  return (
+    <GlassContainer
+      radius={radius}
+      style={{ width: '100%', ...style }}
+      innerStyle={{
+        padding: '0 14px',
+        height,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        boxSizing: 'border-box'
+      }}
+    >
+      {icon && (
+        <span style={{ color: '#71717a', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          {icon}
+        </span>
+      )}
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        style={{
+          width: '100%',
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          fontSize: 13,
+          color: '#09090b',
+          fontFamily: 'inherit'
+        }}
+        {...props}
+      />
+    </GlassContainer>
+  );
+}
+
+/**
+ * Custom Select wrapped in GlassContainer with SVG arrow to eliminate browser default appearance
+ */
+function CustomSelect({ value, onChange, options, style = {} }) {
+  return (
+    <GlassContainer
+      radius={14}
+      style={{ width: '100%', ...style }}
+      innerStyle={{
+        padding: '0 14px',
+        height: 42,
+        display: 'flex',
+        alignItems: 'center',
+        position: 'relative',
+        boxSizing: 'border-box'
+      }}
+    >
+      <select
+        value={value}
+        onChange={onChange}
+        style={{
+          width: '100%',
+          height: '100%',
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          fontSize: 13,
+          fontWeight: 500,
+          color: '#09090b',
+          fontFamily: 'inherit',
+          cursor: 'pointer',
+          appearance: 'none',
+          WebkitAppearance: 'none',
+          paddingRight: 24
+        }}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value} style={{ background: '#ffffff', color: '#09090b' }}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <div
+        style={{
+          position: 'absolute',
+          right: 14,
+          pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          color: '#71717a'
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
+    </GlassContainer>
+  );
+}
+
+/**
+ * Custom Toggle Switch (eliminates native HTML checkboxes)
+ */
+function CustomToggle({ checked, onChange, id }) {
+  return (
+    <button
+      type="button"
+      id={id}
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      style={{
+        width: 38,
+        height: 22,
+        borderRadius: 9999,
+        background: checked ? '#09090b' : 'rgba(0, 0, 0, 0.12)',
+        border: 'none',
+        padding: 2,
+        cursor: 'pointer',
+        display: 'inline-flex',
+        alignItems: 'center',
+        position: 'relative',
+        transition: 'background 0.2s ease',
+        flexShrink: 0,
+        outline: 'none'
+      }}
+    >
+      <span
+        style={{
+          width: 18,
+          height: 18,
+          borderRadius: '50%',
+          background: '#ffffff',
+          transform: checked ? 'translateX(16px)' : 'translateX(0px)',
+          transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)'
+        }}
+      />
+    </button>
+  );
+}
+
+/**
+ * Selection Pills using FluidButton:
+ * When selected: container is bigger (larger padding) and text is bigger and bolder,
+ * with NO black borders or solid black box fills.
+ */
+function PrivacySelectionPills({ options, value, onChange }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+      {options.map((opt) => {
+        const isSelected = value === opt.value;
+        return (
+          <FluidButton
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            style={{
+              padding: isSelected ? '9px 18px' : '6px 13px',
+              fontSize: isSelected ? 13 : 12,
+              fontWeight: isSelected ? 800 : 500,
+              color: isSelected ? '#09090b' : '#52525b',
+              transition: 'all 0.18s ease'
+            }}
+          >
+            {opt.label}
+          </FluidButton>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function SettingsPage({
   user,
   onLogout,
@@ -13,7 +200,7 @@ export default function SettingsPage({
   onThemeChange
 }) {
   // Navigation active section
-  const [activeSection, setActiveSection] = useState('privacy'); // 'account' | 'privacy' | 'safety' | 'notifications' | 'appearance' | 'management'
+  const [activeSection, setActiveSection] = useState('privacy');
   const [searchQuery, setSearchQuery] = useState('');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
@@ -52,7 +239,7 @@ export default function SettingsPage({
   });
 
   // 4. Appearance Settings States
-  const [currentTheme, setCurrentTheme] = useState(themePreference || 'system'); // 'light' | 'dark' | 'system'
+  const [currentTheme, setCurrentTheme] = useState(themePreference || 'system');
 
   // 5. Credentials & Verification States
   const [mobileNumber, setMobileNumber] = useState(user?.mobile || '+91 98765 43210');
@@ -66,9 +253,20 @@ export default function SettingsPage({
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Feedback helper
+  // 2-Step Deactivation State
+  const [deactivateStep, setDeactivateStep] = useState(null); // null | 1 | 2
+  const [deactivatePassword, setDeactivatePassword] = useState('');
+  const [deactivateError, setDeactivateError] = useState('');
+
+  // 3-Step Deletion State
+  const [deleteStep, setDeleteStep] = useState(null); // null | 1 | 2 | 3
+  const [deleteIdentifier, setDeleteIdentifier] = useState('');
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteCode, setDeleteCode] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+
+  // Toast Feedback Helper
   const triggerSuccess = (msg) => {
     setSaveSuccessMsg(msg);
     setTimeout(() => {
@@ -288,16 +486,15 @@ export default function SettingsPage({
                 Settings
               </h2>
 
-              {/* Instagram-style Search */}
-              <div
-                style={{
+              {/* Instagram-style Search using GlassContainer */}
+              <GlassContainer
+                radius={9999}
+                innerStyle={{
+                  padding: '0 12px',
+                  height: 38,
                   display: 'flex',
                   alignItems: 'center',
-                  background: 'rgba(0, 0, 0, 0.04)',
-                  borderRadius: 9999,
-                  padding: '7px 12px',
-                  gap: 8,
-                  border: '1px solid rgba(0, 0, 0, 0.06)'
+                  gap: 8
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -315,13 +512,14 @@ export default function SettingsPage({
                     fontSize: 12.5,
                     color: '#09090b',
                     outline: 'none',
-                    width: '100%'
+                    width: '100%',
+                    fontFamily: 'inherit'
                   }}
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#71717a' }}
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#71717a', display: 'flex' }}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <line x1="18" y1="6" x2="6" y2="18" />
@@ -329,7 +527,7 @@ export default function SettingsPage({
                     </svg>
                   </button>
                 )}
-              </div>
+              </GlassContainer>
             </div>
 
             {/* Grouped Nav Items */}
@@ -416,154 +614,93 @@ export default function SettingsPage({
 
               <form onSubmit={handleSavePrivacy} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Visibility Controls Card */}
-                <GlassContainer radius={22} innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <GlassContainer radius={22} innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 18 }}>
                   <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
                     Visibility Controls
                   </h3>
 
                   {/* 1. Bio Visible to */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 8 }}>
+                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 8, color: '#09090b' }}>
                       Bio Visible to
                     </label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {['everyone', 'institute', 'connections', 'nobody'].map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setBioVisibility(opt)}
-                          style={{
-                            padding: '6px 14px',
-                            borderRadius: 9999,
-                            fontSize: 12,
-                            fontWeight: bioVisibility === opt ? 700 : 500,
-                            cursor: 'pointer',
-                            border: bioVisibility === opt ? '1.5px solid #09090b' : '1px solid rgba(0, 0, 0, 0.08)',
-                            background: bioVisibility === opt ? 'rgba(0, 0, 0, 0.07)' : 'transparent',
-                            color: '#09090b',
-                            textTransform: 'capitalize'
-                          }}
-                        >
-                          {opt === 'institute' ? 'Institute only' : opt}
-                        </button>
-                      ))}
-                    </div>
+                    <PrivacySelectionPills
+                      value={bioVisibility}
+                      onChange={setBioVisibility}
+                      options={[
+                        { value: 'everyone', label: 'Everyone' },
+                        { value: 'institute', label: 'Institute Only' },
+                        { value: 'connections', label: 'Connections' },
+                        { value: 'nobody', label: 'Nobody' }
+                      ]}
+                    />
                   </div>
 
                   {/* 2. Institute Visibility */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 8 }}>
+                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 8, color: '#09090b' }}>
                       Institute Visibility
                     </label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {['everyone', 'institute', 'nobody'].map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setInstituteVisibility(opt)}
-                          style={{
-                            padding: '6px 14px',
-                            borderRadius: 9999,
-                            fontSize: 12,
-                            fontWeight: instituteVisibility === opt ? 700 : 500,
-                            cursor: 'pointer',
-                            border: instituteVisibility === opt ? '1.5px solid #09090b' : '1px solid rgba(0, 0, 0, 0.08)',
-                            background: instituteVisibility === opt ? 'rgba(0, 0, 0, 0.07)' : 'transparent',
-                            color: '#09090b',
-                            textTransform: 'capitalize'
-                          }}
-                        >
-                          {opt === 'institute' ? 'Institute only' : opt}
-                        </button>
-                      ))}
-                    </div>
+                    <PrivacySelectionPills
+                      value={instituteVisibility}
+                      onChange={setInstituteVisibility}
+                      options={[
+                        { value: 'everyone', label: 'Everyone' },
+                        { value: 'institute', label: 'Institute Only' },
+                        { value: 'nobody', label: 'Nobody' }
+                      ]}
+                    />
                   </div>
 
                   {/* 3. DP (Avatar) Visibility */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 8 }}>
+                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 8, color: '#09090b' }}>
                       DP (Avatar) Visibility
                     </label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {['everyone', 'institute', 'connections', 'nobody'].map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setAvatarVisibility(opt)}
-                          style={{
-                            padding: '6px 14px',
-                            borderRadius: 9999,
-                            fontSize: 12,
-                            fontWeight: avatarVisibility === opt ? 700 : 500,
-                            cursor: 'pointer',
-                            border: avatarVisibility === opt ? '1.5px solid #09090b' : '1px solid rgba(0, 0, 0, 0.08)',
-                            background: avatarVisibility === opt ? 'rgba(0, 0, 0, 0.07)' : 'transparent',
-                            color: '#09090b',
-                            textTransform: 'capitalize'
-                          }}
-                        >
-                          {opt === 'institute' ? 'Institute only' : opt}
-                        </button>
-                      ))}
-                    </div>
+                    <PrivacySelectionPills
+                      value={avatarVisibility}
+                      onChange={setAvatarVisibility}
+                      options={[
+                        { value: 'everyone', label: 'Everyone' },
+                        { value: 'institute', label: 'Institute Only' },
+                        { value: 'connections', label: 'Connections' },
+                        { value: 'nobody', label: 'Nobody' }
+                      ]}
+                    />
                   </div>
 
                   {/* 4. Who Can Invite */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 8 }}>
+                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 8, color: '#09090b' }}>
                       Who Can Invite You to Dishes
                     </label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {['everyone', 'institute', 'connections', 'nobody'].map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setInvitePermission(opt)}
-                          style={{
-                            padding: '6px 14px',
-                            borderRadius: 9999,
-                            fontSize: 12,
-                            fontWeight: invitePermission === opt ? 700 : 500,
-                            cursor: 'pointer',
-                            border: invitePermission === opt ? '1.5px solid #09090b' : '1px solid rgba(0, 0, 0, 0.08)',
-                            background: invitePermission === opt ? 'rgba(0, 0, 0, 0.07)' : 'transparent',
-                            color: '#09090b',
-                            textTransform: 'capitalize'
-                          }}
-                        >
-                          {opt === 'institute' ? 'Institute only' : opt}
-                        </button>
-                      ))}
-                    </div>
+                    <PrivacySelectionPills
+                      value={invitePermission}
+                      onChange={setInvitePermission}
+                      options={[
+                        { value: 'everyone', label: 'Everyone' },
+                        { value: 'institute', label: 'Institute Only' },
+                        { value: 'connections', label: 'Connections' },
+                        { value: 'nobody', label: 'Nobody' }
+                      ]}
+                    />
                   </div>
 
                   {/* 5. Who Can Message */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 8 }}>
+                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 8, color: '#09090b' }}>
                       Who Can Message (DMs)
                     </label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {['everyone', 'institute', 'connections', 'nobody'].map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setMessagePermission(opt)}
-                          style={{
-                            padding: '6px 14px',
-                            borderRadius: 9999,
-                            fontSize: 12,
-                            fontWeight: messagePermission === opt ? 700 : 500,
-                            cursor: 'pointer',
-                            border: messagePermission === opt ? '1.5px solid #09090b' : '1px solid rgba(0, 0, 0, 0.08)',
-                            background: messagePermission === opt ? 'rgba(0, 0, 0, 0.07)' : 'transparent',
-                            color: '#09090b',
-                            textTransform: 'capitalize'
-                          }}
-                        >
-                          {opt === 'institute' ? 'Institute only' : opt}
-                        </button>
-                      ))}
-                    </div>
+                    <PrivacySelectionPills
+                      value={messagePermission}
+                      onChange={setMessagePermission}
+                      options={[
+                        { value: 'everyone', label: 'Everyone' },
+                        { value: 'institute', label: 'Institute Only' },
+                        { value: 'connections', label: 'Connections' },
+                        { value: 'nobody', label: 'Nobody' }
+                      ]}
+                    />
                   </div>
                 </GlassContainer>
 
@@ -574,40 +711,36 @@ export default function SettingsPage({
                   </h3>
 
                   {/* Profile Discovery Toggle */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: '#09090b' }}>
                         Global Profile Discovery
                       </div>
                       <div style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>
-                        Allow my profile to appear in Global discovery. Useful for students wanting wider coordination within 5km radius.
+                        Allow my profile to appear in Global discovery within 5km radius.
                       </div>
                     </div>
-                    <input
-                      type="checkbox"
+                    <CustomToggle
                       checked={globalDiscovery}
-                      onChange={(e) => setGlobalDiscovery(e.target.checked)}
-                      style={{ width: 18, height: 18, accentColor: '#09090b', cursor: 'pointer' }}
+                      onChange={setGlobalDiscovery}
                     />
                   </div>
 
                   <hr style={{ border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.06)', margin: '4px 0' }} />
 
                   {/* Activity Visibility Toggle */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: '#09090b' }}>
                         Activity Visibility
                       </div>
                       <div style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>
-                        Show my active Cooking on profile. (Defaults ON as it is core to activity coordination).
+                        Show my active Cooking on profile (Defaults ON for campus coordination).
                       </div>
                     </div>
-                    <input
-                      type="checkbox"
+                    <CustomToggle
                       checked={activityVisibility}
-                      onChange={(e) => setActivityVisibility(e.target.checked)}
-                      style={{ width: 18, height: 18, accentColor: '#09090b', cursor: 'pointer' }}
+                      onChange={setActivityVisibility}
                     />
                   </div>
                 </GlassContainer>
@@ -653,36 +786,51 @@ export default function SettingsPage({
                     { id: 'never', title: 'Never show exact location', desc: 'Only displays your registered institute name.' },
                     { id: 'approximate', title: 'Show approximate area/institute only', desc: 'Displays campus zone (~500m radius) without exact building.' },
                     { id: 'on_start', title: 'Share exact spot only when dish is accepted', desc: 'Exact spot is revealed only after mutual confirmation.' }
-                  ].map((item) => (
-                    <label
-                      key={item.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 10,
-                        padding: '10px 12px',
-                        borderRadius: 12,
-                        background: locationPrivacy === item.id ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
-                        border: '1px solid rgba(0, 0, 0, 0.06)',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name="locationPrivacy"
-                        checked={locationPrivacy === item.id}
-                        onChange={() => {
+                  ].map((item) => {
+                    const isSelected = locationPrivacy === item.id;
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => {
                           setLocationPrivacy(item.id);
                           triggerSuccess('Location privacy updated');
                         }}
-                        style={{ marginTop: 2, accentColor: '#09090b' }}
-                      />
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#09090b' }}>{item.title}</div>
-                        <div style={{ fontSize: 11.5, color: '#71717a', marginTop: 1 }}>{item.desc}</div>
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 12,
+                          padding: '12px 14px',
+                          borderRadius: 14,
+                          background: isSelected ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+                          border: '1px solid rgba(0, 0, 0, 0.06)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: '50%',
+                            border: isSelected ? '5px solid #09090b' : '1.5px solid rgba(0, 0, 0, 0.25)',
+                            background: '#ffffff',
+                            marginTop: 2,
+                            flexShrink: 0,
+                            boxSizing: 'border-box',
+                            transition: 'all 0.15s ease'
+                          }}
+                        />
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: isSelected ? 700 : 600, color: '#09090b' }}>
+                            {item.title}
+                          </div>
+                          <div style={{ fontSize: 11.5, color: '#71717a', marginTop: 2 }}>
+                            {item.desc}
+                          </div>
+                        </div>
                       </div>
-                    </label>
-                  ))}
+                    );
+                  })}
                 </div>
               </GlassContainer>
 
@@ -692,22 +840,13 @@ export default function SettingsPage({
                   Blocked & Restricted Accounts
                 </h3>
 
-                {/* Block a user form */}
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input
-                    type="text"
+                {/* Block a user form using custom input */}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <CustomInput
+                    placeholder="Enter @username to block..."
                     value={newBlockInput}
                     onChange={(e) => setNewBlockInput(e.target.value)}
-                    placeholder="Enter @username to block..."
-                    style={{
-                      flex: 1,
-                      padding: '8px 14px',
-                      borderRadius: 9999,
-                      border: '1px solid rgba(0, 0, 0, 0.1)',
-                      fontSize: 12.5,
-                      outline: 'none',
-                      background: 'rgba(255, 255, 255, 0.6)'
-                    }}
+                    style={{ flex: 1 }}
                   />
                   <FluidButton
                     onClick={() => {
@@ -717,7 +856,7 @@ export default function SettingsPage({
                         triggerSuccess('User blocked');
                       }
                     }}
-                    style={{ padding: '6px 16px', fontSize: 12, fontWeight: 600 }}
+                    style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}
                   >
                     Block
                   </FluidButton>
@@ -739,8 +878,8 @@ export default function SettingsPage({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            padding: '6px 12px',
-                            borderRadius: 10,
+                            padding: '8px 12px',
+                            borderRadius: 12,
                             background: 'rgba(0, 0, 0, 0.03)'
                           }}
                         >
@@ -780,8 +919,8 @@ export default function SettingsPage({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '6px 12px',
-                          borderRadius: 10,
+                          padding: '8px 12px',
+                          borderRadius: 12,
                           background: 'rgba(0, 0, 0, 0.03)'
                         }}
                       >
@@ -815,7 +954,7 @@ export default function SettingsPage({
                 </h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <div style={{ padding: '10px 14px', borderRadius: 12, background: 'rgba(0, 0, 0, 0.03)' }}>
+                  <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(0, 0, 0, 0.03)' }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b' }}>
                       Stranger-Safety & Public Campus Zones
                     </div>
@@ -824,7 +963,7 @@ export default function SettingsPage({
                     </div>
                   </div>
 
-                  <div style={{ padding: '10px 14px', borderRadius: 12, background: 'rgba(0, 0, 0, 0.03)' }}>
+                  <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(0, 0, 0, 0.03)' }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b' }}>
                       Reporting & Immediate Review
                     </div>
@@ -847,8 +986,8 @@ export default function SettingsPage({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '8px 12px',
-                          borderRadius: 10,
+                          padding: '10px 12px',
+                          borderRadius: 12,
                           background: 'rgba(0, 0, 0, 0.02)',
                           fontSize: 12
                         }}
@@ -891,11 +1030,9 @@ export default function SettingsPage({
                     <div style={{ fontSize: 13, fontWeight: 600 }}>Push Notifications</div>
                     <div style={{ fontSize: 12, color: '#71717a' }}>Real-time updates to your browser or device</div>
                   </div>
-                  <input
-                    type="checkbox"
+                  <CustomToggle
                     checked={pushEnabled}
-                    onChange={(e) => setPushEnabled(e.target.checked)}
-                    style={{ width: 18, height: 18, accentColor: '#09090b', cursor: 'pointer' }}
+                    onChange={setPushEnabled}
                   />
                 </div>
 
@@ -904,11 +1041,9 @@ export default function SettingsPage({
                     <div style={{ fontSize: 13, fontWeight: 600 }}>Email Digests</div>
                     <div style={{ fontSize: 12, color: '#71717a' }}>Weekly campus roundup & important verification notices</div>
                   </div>
-                  <input
-                    type="checkbox"
+                  <CustomToggle
                     checked={emailEnabled}
-                    onChange={(e) => setEmailEnabled(e.target.checked)}
-                    style={{ width: 18, height: 18, accentColor: '#09090b', cursor: 'pointer' }}
+                    onChange={setEmailEnabled}
                   />
                 </div>
               </GlassContainer>
@@ -936,7 +1071,7 @@ export default function SettingsPage({
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      padding: '6px 0',
+                      padding: '8px 0',
                       borderBottom: '1px solid rgba(0, 0, 0, 0.04)'
                     }}
                   >
@@ -944,14 +1079,11 @@ export default function SettingsPage({
                       <div style={{ fontSize: 13, fontWeight: 600, color: '#09090b' }}>{item.label}</div>
                       <div style={{ fontSize: 11.5, color: '#71717a' }}>{item.desc}</div>
                     </div>
-                    <input
-                      type="checkbox"
+                    <CustomToggle
                       checked={notifPreferences[item.key]}
-                      onChange={(e) => {
-                        const val = e.target.checked;
+                      onChange={(val) => {
                         setNotifPreferences((prev) => ({ ...prev, [item.key]: val }));
                       }}
-                      style={{ width: 17, height: 17, accentColor: '#09090b', cursor: 'pointer' }}
                     />
                   </div>
                 ))}
@@ -1113,92 +1245,55 @@ export default function SettingsPage({
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 4 }}>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 6 }}>
                         Mobile Number
                       </label>
-                      <input
+                      <CustomInput
                         type="text"
                         value={mobileNumber}
                         onChange={(e) => setMobileNumber(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '9px 12px',
-                          borderRadius: 10,
-                          border: '1px solid rgba(0, 0, 0, 0.1)',
-                          background: 'rgba(255, 255, 255, 0.7)',
-                          fontSize: 13,
-                          outline: 'none',
-                          boxSizing: 'border-box'
-                        }}
+                        placeholder="+91..."
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 4 }}>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 6 }}>
                         Institute Email
                       </label>
-                      <input
+                      <CustomInput
                         type="email"
                         value={emailAddress}
                         onChange={(e) => setEmailAddress(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '9px 12px',
-                          borderRadius: 10,
-                          border: '1px solid rgba(0, 0, 0, 0.1)',
-                          background: 'rgba(255, 255, 255, 0.7)',
-                          fontSize: 13,
-                          outline: 'none',
-                          boxSizing: 'border-box'
-                        }}
+                        placeholder="s.sharma@smail.iitm.ac.in"
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 4 }}>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 6 }}>
                         Age
                       </label>
-                      <input
+                      <CustomInput
                         type="number"
                         value={age}
                         onChange={(e) => setAge(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '9px 12px',
-                          borderRadius: 10,
-                          border: '1px solid rgba(0, 0, 0, 0.1)',
-                          background: 'rgba(255, 255, 255, 0.7)',
-                          fontSize: 13,
-                          outline: 'none',
-                          boxSizing: 'border-box'
-                        }}
+                        placeholder="21"
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 4 }}>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 6 }}>
                         Gender
                       </label>
-                      <select
+                      <CustomSelect
                         value={gender}
                         onChange={(e) => setGender(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '9px 12px',
-                          borderRadius: 10,
-                          border: '1px solid rgba(0, 0, 0, 0.1)',
-                          background: '#ffffff',
-                          fontSize: 13,
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                          color: '#09090b'
-                        }}
-                      >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Non-binary">Non-binary</option>
-                        <option value="Prefer not to say">Prefer not to say</option>
-                      </select>
+                        options={[
+                          { value: 'Male', label: 'Male' },
+                          { value: 'Female', label: 'Female' },
+                          { value: 'Non-binary', label: 'Non-binary' },
+                          { value: 'Prefer not to say', label: 'Prefer not to say' }
+                        ]}
+                      />
                     </div>
                   </div>
                 </GlassContainer>
@@ -1216,7 +1311,7 @@ export default function SettingsPage({
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '12px 14px',
-                      borderRadius: 12,
+                      borderRadius: 14,
                       background: 'rgba(22, 163, 74, 0.08)',
                       border: '1px solid rgba(22, 163, 74, 0.2)'
                     }}
@@ -1255,7 +1350,7 @@ export default function SettingsPage({
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '12px 14px',
-                      borderRadius: 12,
+                      borderRadius: 14,
                       background: 'rgba(0, 0, 0, 0.03)',
                       border: '1px solid rgba(0, 0, 0, 0.06)'
                     }}
@@ -1283,7 +1378,8 @@ export default function SettingsPage({
                         cursor: 'pointer',
                         border: '1px solid rgba(0, 0, 0, 0.15)',
                         background: idVerificationStatus === 'verified' ? '#09090b' : '#ffffff',
-                        color: idVerificationStatus === 'verified' ? '#ffffff' : '#09090b'
+                        color: idVerificationStatus === 'verified' ? '#ffffff' : '#09090b',
+                        transition: 'all 0.15s ease'
                       }}
                     >
                       {idVerificationStatus === 'verified' ? 'Verified ID' : 'Verify ID'}
@@ -1298,24 +1394,14 @@ export default function SettingsPage({
                   </h3>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 4 }}>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 6 }}>
                       Campus Hostel / Local Address
                     </label>
-                    <input
+                    <CustomInput
                       type="text"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder="e.g. Mandakini Hostel, Room 314"
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        borderRadius: 10,
-                        border: '1px solid rgba(0, 0, 0, 0.1)',
-                        background: 'rgba(255, 255, 255, 0.7)',
-                        fontSize: 13,
-                        outline: 'none',
-                        boxSizing: 'border-box'
-                      }}
                     />
                   </div>
                 </GlassContainer>
@@ -1349,53 +1435,29 @@ export default function SettingsPage({
                 </h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <input
+                  <CustomInput
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Current Password"
-                    style={{
-                      padding: '9px 12px',
-                      borderRadius: 10,
-                      border: '1px solid rgba(0, 0, 0, 0.1)',
-                      background: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 13,
-                      outline: 'none'
-                    }}
                   />
-                  <input
+                  <CustomInput
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="New Password (min 8 characters)"
-                    style={{
-                      padding: '9px 12px',
-                      borderRadius: 10,
-                      border: '1px solid rgba(0, 0, 0, 0.1)',
-                      background: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 13,
-                      outline: 'none'
-                    }}
                   />
-                  <input
+                  <CustomInput
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm New Password"
-                    style={{
-                      padding: '9px 12px',
-                      borderRadius: 10,
-                      border: '1px solid rgba(0, 0, 0, 0.1)',
-                      background: 'rgba(255, 255, 255, 0.7)',
-                      fontSize: 13,
-                      outline: 'none'
-                    }}
                   />
 
                   <FluidButton
                     onClick={() => {
                       if (!currentPassword || !newPassword) {
-                        alert('Please fill out password fields');
+                        triggerSuccess('Please enter password fields');
                         return;
                       }
                       setCurrentPassword('');
@@ -1435,15 +1497,14 @@ export default function SettingsPage({
                   <div>
                     <div style={{ fontSize: 13.5, fontWeight: 700 }}>Deactivate Account</div>
                     <div style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>
-                      Temporarily hide your profile and active dishes without permanently deleting history.
+                      Temporarily hide your profile and active dishes. Deactivation remains for 14 days.
                     </div>
                   </div>
                   <FluidButton
                     onClick={() => {
-                      if (confirm('Are you sure you want to temporarily deactivate your LetMeCook account?')) {
-                        triggerSuccess('Account deactivated. Logging out...');
-                        setTimeout(() => onLogout && onLogout(), 1500);
-                      }
+                      setDeactivatePassword('');
+                      setDeactivateError('');
+                      setDeactivateStep(1);
                     }}
                     style={{ padding: '7px 16px', fontSize: 12, fontWeight: 600 }}
                   >
@@ -1462,28 +1523,26 @@ export default function SettingsPage({
                   <div>
                     <div style={{ fontSize: 13.5, fontWeight: 700, color: '#dc2626' }}>Delete Account</div>
                     <div style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>
-                      Permanently remove your profile, connections, and activity tickets. This action cannot be undone.
+                      Permanently remove your profile, connections, and activity tickets with 3-step security verification.
                     </div>
                   </div>
-                  <button
+                  <FluidButton
                     onClick={() => {
-                      if (confirm('PERMANENT DELETION: Are you sure you want to permanently delete your account and all data?')) {
-                        onLogout && onLogout();
-                      }
+                      setDeleteIdentifier(user?.email || '');
+                      setDeletePassword('');
+                      setDeleteCode('');
+                      setDeleteError('');
+                      setDeleteStep(1);
                     }}
                     style={{
                       padding: '7px 16px',
-                      borderRadius: 9999,
-                      border: '1px solid rgba(220, 38, 38, 0.3)',
-                      background: 'rgba(220, 38, 38, 0.08)',
-                      color: '#dc2626',
                       fontSize: 12,
                       fontWeight: 700,
-                      cursor: 'pointer'
+                      color: '#dc2626'
                     }}
                   >
                     Delete Account
-                  </button>
+                  </FluidButton>
                 </div>
 
                 <hr style={{ border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.06)', margin: 0 }} />
@@ -1520,6 +1579,451 @@ export default function SettingsPage({
           )}
         </main>
       </div>
+
+      {/* ========================================================= */}
+      {/* 2-STEP DEACTIVATION MODAL                                 */}
+      {/* ========================================================= */}
+      {deactivateStep !== null && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: 16
+          }}
+        >
+          <GlassContainer
+            radius={24}
+            style={{
+              maxWidth: 440,
+              width: '100%',
+              boxShadow: 'none',
+              border: '1px solid rgba(0, 0, 0, 0.1)'
+            }}
+            innerStyle={{
+              padding: 24,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16
+            }}
+          >
+            {deactivateStep === 1 ? (
+              <>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.6px',
+                      color: '#71717a',
+                      marginBottom: 4
+                    }}
+                  >
+                    Step 1 of 2 • Deactivation Warning
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                    Deactivate Your Account
+                  </h3>
+                </div>
+
+                <p style={{ fontSize: 13, lineHeight: 1.55, color: '#52525b', margin: 0 }}>
+                  Deactivating your account will temporarily disable your profile and hide your active dishes and tickets from campus feeds. Your connections, verified institute status, and activity history will be safely preserved. Deactivation remains for 14 days. If you log back in within 14 days, your profile will be instantly restored.
+                </p>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 6 }}>
+                  <FluidButton
+                    type="button"
+                    onClick={() => setDeactivateStep(null)}
+                    style={{ padding: '8px 16px', fontSize: 12.5, fontWeight: 600 }}
+                  >
+                    Cancel
+                  </FluidButton>
+                  <FluidButton
+                    type="button"
+                    onClick={() => setDeactivateStep(2)}
+                    style={{
+                      padding: '8px 18px',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      color: '#09090b'
+                    }}
+                  >
+                    Continue
+                  </FluidButton>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.6px',
+                      color: '#71717a',
+                      marginBottom: 4
+                    }}
+                  >
+                    Step 2 of 2 • Password Confirmation
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                    Confirm Deactivation
+                  </h3>
+                  <p style={{ fontSize: 12.5, color: '#71717a', margin: '4px 0 0 0' }}>
+                    Enter your account password to confirm. Deactivation remains active for 14 days.
+                  </p>
+                </div>
+
+                {deactivateError && (
+                  <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 600 }}>
+                    {deactivateError}
+                  </div>
+                )}
+
+                <CustomInput
+                  type="password"
+                  placeholder="Enter account password"
+                  value={deactivatePassword}
+                  onChange={(e) => {
+                    setDeactivatePassword(e.target.value);
+                    setDeactivateError('');
+                  }}
+                />
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+                  <FluidButton
+                    type="button"
+                    onClick={() => {
+                      setDeactivateStep(1);
+                      setDeactivateError('');
+                    }}
+                    style={{ padding: '8px 16px', fontSize: 12.5, fontWeight: 600 }}
+                  >
+                    Back
+                  </FluidButton>
+
+                  <FluidButton
+                    type="button"
+                    onClick={() => {
+                      if (!deactivatePassword.trim()) {
+                        setDeactivateError('Please enter your password to deactivate');
+                        return;
+                      }
+                      setDeactivateStep(null);
+                      setDeactivatePassword('');
+                      triggerSuccess('Account deactivated for 14 days. Logging out...');
+                      setTimeout(() => onLogout && onLogout(), 1600);
+                    }}
+                    style={{
+                      padding: '8px 20px',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      color: '#09090b'
+                    }}
+                  >
+                    Deactivate Account (14 Days)
+                  </FluidButton>
+                </div>
+              </>
+            )}
+          </GlassContainer>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 3-STEP DELETION MODAL                                     */}
+      {/* ========================================================= */}
+      {deleteStep !== null && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: 16
+          }}
+        >
+          <GlassContainer
+            radius={24}
+            style={{
+              maxWidth: 440,
+              width: '100%',
+              boxShadow: 'none',
+              border: '1px solid rgba(0, 0, 0, 0.1)'
+            }}
+            innerStyle={{
+              padding: 24,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16
+            }}
+          >
+            {deleteStep === 1 && (
+              <>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.6px',
+                      color: '#71717a',
+                      marginBottom: 4
+                    }}
+                  >
+                    Step 1 of 3 • Permanent Deletion Warning
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                    Permanently Delete Account
+                  </h3>
+                </div>
+
+                <p style={{ fontSize: 13, lineHeight: 1.55, color: '#52525b', margin: 0 }}>
+                  Permanent Account Deletion Warning: This action cannot be undone. All your campus activities, hosted dishes, join tickets, chat history, connection records, and verification status will be permanently deleted from our servers.
+                </p>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 6 }}>
+                  <FluidButton
+                    type="button"
+                    onClick={() => setDeleteStep(null)}
+                    style={{ padding: '8px 16px', fontSize: 12.5, fontWeight: 600 }}
+                  >
+                    Cancel
+                  </FluidButton>
+                  <FluidButton
+                    type="button"
+                    onClick={() => setDeleteStep(2)}
+                    style={{
+                      padding: '8px 18px',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      color: '#dc2626'
+                    }}
+                  >
+                    Continue
+                  </FluidButton>
+                </div>
+              </>
+            )}
+
+            {deleteStep === 2 && (
+              <>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.6px',
+                      color: '#71717a',
+                      marginBottom: 4
+                    }}
+                  >
+                    Step 2 of 3 • Credentials Verification
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                    Enter Credentials
+                  </h3>
+                  <p style={{ fontSize: 12.5, color: '#71717a', margin: '4px 0 0 0' }}>
+                    Enter your registered email or mobile number and password to receive your security code.
+                  </p>
+                </div>
+
+                {deleteError && (
+                  <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 600 }}>
+                    {deleteError}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#71717a', marginBottom: 4 }}>
+                      Registered Email or Mobile No.
+                    </label>
+                    <CustomInput
+                      type="text"
+                      placeholder="e.g. s.sharma@smail.iitm.ac.in or +91..."
+                      value={deleteIdentifier}
+                      onChange={(e) => {
+                        setDeleteIdentifier(e.target.value);
+                        setDeleteError('');
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#71717a', marginBottom: 4 }}>
+                      Account Password
+                    </label>
+                    <CustomInput
+                      type="password"
+                      placeholder="Enter account password"
+                      value={deletePassword}
+                      onChange={(e) => {
+                        setDeletePassword(e.target.value);
+                        setDeleteError('');
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+                  <FluidButton
+                    type="button"
+                    onClick={() => {
+                      setDeleteStep(1);
+                      setDeleteError('');
+                    }}
+                    style={{ padding: '8px 16px', fontSize: 12.5, fontWeight: 600 }}
+                  >
+                    Back
+                  </FluidButton>
+
+                  <FluidButton
+                    type="button"
+                    onClick={() => {
+                      if (!deleteIdentifier.trim() || !deletePassword.trim()) {
+                        setDeleteError('Please enter both your registered email/mobile and password');
+                        return;
+                      }
+                      setDeleteStep(3);
+                      setDeleteError('');
+                      triggerSuccess('Verification code sent to your email and mobile SMS');
+                    }}
+                    style={{
+                      padding: '8px 20px',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      color: '#09090b'
+                    }}
+                  >
+                    Send Code
+                  </FluidButton>
+                </div>
+              </>
+            )}
+
+            {deleteStep === 3 && (
+              <>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.6px',
+                      color: '#71717a',
+                      marginBottom: 4
+                    }}
+                  >
+                    Step 3 of 3 • Security Code Verification
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                    Enter 6-Digit Code
+                  </h3>
+                  <p style={{ fontSize: 12.5, color: '#71717a', margin: '4px 0 0 0' }}>
+                    A code has been sent via SMS to your mobile and email. Verify it to delete your account.
+                  </p>
+                </div>
+
+                {deleteError && (
+                  <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 600 }}>
+                    {deleteError}
+                  </div>
+                )}
+
+                <div>
+                  <CustomInput
+                    type="text"
+                    maxLength={6}
+                    placeholder="Enter 6-digit code (e.g. 582914)"
+                    value={deleteCode}
+                    onChange={(e) => {
+                      setDeleteCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                      setDeleteError('');
+                    }}
+                    style={{ textAlign: 'center', letterSpacing: '4px', fontSize: 18, fontWeight: 700 }}
+                  />
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
+                    <button
+                      type="button"
+                      onClick={() => triggerSuccess('Code resent to your email and mobile SMS')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#71717a',
+                        fontSize: 11.5,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        padding: 0
+                      }}
+                    >
+                      Resend Code
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+                  <FluidButton
+                    type="button"
+                    onClick={() => {
+                      setDeleteStep(2);
+                      setDeleteError('');
+                    }}
+                    style={{ padding: '8px 16px', fontSize: 12.5, fontWeight: 600 }}
+                  >
+                    Back
+                  </FluidButton>
+
+                  <FluidButton
+                    type="button"
+                    onClick={() => {
+                      if (deleteCode.length < 6) {
+                        setDeleteError('Please enter the full 6-digit verification code');
+                        return;
+                      }
+                      setDeleteStep(null);
+                      setDeleteIdentifier('');
+                      setDeletePassword('');
+                      setDeleteCode('');
+                      triggerSuccess('Account permanently deleted. Signing out...');
+                      setTimeout(() => onLogout && onLogout(), 1600);
+                    }}
+                    style={{
+                      padding: '8px 20px',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      color: '#dc2626'
+                    }}
+                  >
+                    Verify & Delete Account
+                  </FluidButton>
+                </div>
+              </>
+            )}
+          </GlassContainer>
+        </div>
+      )}
     </div>
   );
 }
