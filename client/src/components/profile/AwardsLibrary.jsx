@@ -77,47 +77,14 @@ export default function AwardsLibrary() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <h3 style={{ fontSize: 19, fontWeight: 800, margin: '0 0 4px 0', color: '#000000', letterSpacing: '-0.3px' }}>
-            Award Library
-          </h3>
-          <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>
-            Earned through real-world community coordination and activities on campus.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 8, fontSize: 12, fontWeight: 700 }}>
-          <span style={{ padding: '4px 12px', borderRadius: 9999, backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#15803d', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-            3 Unlocked
-          </span>
-          <span style={{ padding: '4px 12px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)', color: '#4b5563', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
-            5 to Unlock
-          </span>
-        </div>
+      <div>
+        <h3 style={{ fontSize: 19, fontWeight: 800, margin: '0 0 16px 0', color: '#000000', letterSpacing: '-0.3px' }}>
+          Award Library
+        </h3>
       </div>
 
       {/* 1. UNLOCKED ACHIEVEMENTS (Top Section - Full Color) */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2" />
-            <path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" />
-            <path d="M4 3h16v7a8 8 0 0 1-16 0V3z" />
-            <path d="M12 17v4" />
-            <path d="M8 21h8" />
-          </svg>
-          <h4 style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#15803d', margin: 0 }}>
-            Unlocked Achievements
-          </h4>
-        </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
           {/* Chef */}
           <GlassContainer
@@ -224,18 +191,15 @@ export default function AwardsLibrary() {
 
       {/* 2. YET TO BE UNLOCKED (Down the line - Black & White Grayscale) */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
           <h4 style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
-            Yet to Unlock (Award Library)
+            Yet to unlock
           </h4>
         </div>
-        <p style={{ fontSize: 12, color: '#6b7280', margin: '0 0 14px 0' }}>
-          These badges remain in black & white until activity milestones are achieved.
-        </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
           {lockedAwards.map((locked) => (
