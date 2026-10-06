@@ -363,7 +363,7 @@ export default function Sidebar({
               {/* Settings */}
               <button
                 onClick={() => {
-                  if (setShowSettings) setShowSettings(true);
+                  if (setActiveTab) setActiveTab('settings');
                   setShowMoreMenu(false);
                 }}
                 style={{

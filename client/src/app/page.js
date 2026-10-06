@@ -14,6 +14,7 @@ import MessageArea from '@/components/messaging/MessageArea';
 import HomeDashboard from '@/components/home/HomeDashboard';
 import DineInFeed from '@/components/dinein/DineInFeed';
 import GlobalPage from '@/components/global/GlobalPage';
+import SettingsPage from '@/components/settings/SettingsPage';
 import { dishService } from '@/services/dish.service';
 import { authService } from '@/services/auth.service';
 
@@ -757,7 +758,7 @@ export default function App() {
             interests={interests}
             connectionsCount={connections.length > 0 ? connections.length : 72}
             onEditProfile={() => setShowEditProfile(true)}
-            onOpenSettings={() => setShowSettings(true)}
+            onOpenSettings={() => setActiveTab('settings')}
             onTabChange={(tab) => setProfileActiveTab(tab)}
             onTagClick={(tag) => {
               const cleaned = tag.startsWith('#') ? tag.slice(1).toLowerCase() : tag.toLowerCase();
@@ -1608,217 +1609,28 @@ export default function App() {
       )}
 
       {/* ========================================================= */}
-      {/* GLOBAL SETTINGS MODAL (Accessible from any screen & More menu) */}
+      {/* 6. APP SETTINGS SCREEN (Dedicated Instagram-Style Page)     */}
       {/* ========================================================= */}
-      {showSettings && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.55)',
-            backdropFilter: 'blur(3px)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16
+      {activeTab === 'settings' && (
+        <SettingsPage
+          user={user}
+          onLogout={handleLogout}
+          onUpdateUser={async (updatedFields) => {
+            try {
+              const res = await apiFetch('/users/me', {
+                method: 'PATCH',
+                body: JSON.stringify(updatedFields)
+              });
+              setUser(res.data);
+              setMessage('Settings saved successfully');
+            } catch (err) {
+              setError(err.message);
+            }
           }}
-          onClick={() => setShowSettings(false)}
-        >
-          <GlassContainer
-            radius={28}
-            style={{ width: '100%', maxWidth: 580 }}
-            innerStyle={{
-              padding: 28,
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              color: '#000000'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                </svg>
-                <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Settings & Privacy</h3>
-              </div>
-              <FluidButton
-                variant="icon"
-                onClick={() => setShowSettings(false)}
-                style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
-                title="Close"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </FluidButton>
-            </div>
-
-            {/* Privacy & Visibility Settings Form */}
-            <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Bio Visibility:</label>
-                  <select
-                    value={bioVisibility}
-                    onChange={(e) => setBioVisibility(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
-                  >
-                    <option value="everyone">Everyone</option>
-                    <option value="institute">Institute Only</option>
-                    <option value="connections">Connections Only</option>
-                    <option value="nobody">Nobody (Hidden)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Institute Visibility:</label>
-                  <select
-                    value={instituteVisibility}
-                    onChange={(e) => setInstituteVisibility(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
-                  >
-                    <option value="everyone">Everyone</option>
-                    <option value="institute">Institute Only</option>
-                    <option value="nobody">Nobody (Hidden)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Avatar Visibility:</label>
-                  <select
-                    value={avatarVisibility}
-                    onChange={(e) => setAvatarVisibility(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
-                  >
-                    <option value="everyone">Everyone</option>
-                    <option value="institute">Institute</option>
-                    <option value="connections">Connections</option>
-                    <option value="nobody">Nobody</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Who Can Message:</label>
-                  <select
-                    value={messagePermission}
-                    onChange={(e) => setMessagePermission(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
-                  >
-                    <option value="everyone">Everyone</option>
-                    <option value="institute">Institute</option>
-                    <option value="connections">Connections</option>
-                    <option value="nobody">Nobody</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={globalDiscovery}
-                    onChange={(e) => setGlobalDiscovery(e.target.checked)}
-                    style={{ width: 16, height: 16, accentColor: '#000000' }}
-                  />
-                  <span>Participate in Global Discovery</span>
-                </label>
-
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={activityVisibility}
-                    onChange={(e) => setActivityVisibility(e.target.checked)}
-                    style={{ width: 16, height: 16, accentColor: '#000000' }}
-                  />
-                  <span>Show Active Cooking on Profile</span>
-                </label>
-              </div>
-
-              <FluidButton
-                type="submit"
-                style={{
-                  padding: '8px 24px',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  marginTop: 8,
-                  alignSelf: 'flex-start'
-                }}
-              >
-                Save Privacy Settings
-              </FluidButton>
-            </form>
-
-            {/* Privacy Filter Inspector */}
-            <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid #e5e7eb' }}>
-              <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 8px 0' }}>Inspect Profile (Privacy Filter Test)</h4>
-              <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 10px 0' }}>
-                Verify how your privacy settings filter out info when another student looks up a user.
-              </p>
-              <form onSubmit={handleSearchProfile} style={{ display: 'flex', gap: 8 }}>
-                <input
-                  type="text"
-                  required
-                  value={searchUsername}
-                  onChange={(e) => setSearchUsername(e.target.value)}
-                  placeholder="Username (e.g. chef_arjun or mayachef)"
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    borderRadius: 8,
-                    border: '1px solid #d1d5db',
-                    fontSize: 13,
-                    color: '#000000'
-                  }}
-                />
-                <FluidButton
-                  type="submit"
-                  style={{
-                    padding: '8px 18px',
-                    fontSize: 13,
-                    fontWeight: 600
-                  }}
-                >
-                  Lookup
-                </FluidButton>
-              </form>
-
-              {searchedProfile && (
-                <div style={{ marginTop: 12, backgroundColor: '#f9fafb', borderRadius: 12, padding: 12, border: '1px solid #e5e7eb', fontSize: 13 }}>
-                  <div><strong>Username:</strong> @{searchedProfile.username}</div>
-                  <div><strong>Name:</strong> {searchedProfile.name}</div>
-                  <div><strong>Pronouns:</strong> {searchedProfile.pronouns || '—'}</div>
-                  <div><strong>Bio:</strong> {searchedProfile.bio || '— [Filtered by Privacy]'}</div>
-                  <div><strong>Institute:</strong> {searchedProfile.institute?.name || '— [Filtered or Not Set]'}</div>
-                </div>
-              )}
-            </div>
-
-            {/* Connections List */}
-            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
-              <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 8px 0' }}>Your Connections ({connections.length})</h4>
-              {connections.length === 0 ? (
-                <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>No direct connections established yet.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {connections.map((c) => (
-                    <div key={c.connectionId} style={{ fontSize: 13, color: '#374151' }}>
-                      • @{c.user?.username} ({c.user?.name})
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </GlassContainer>
-        </div>
+          onOpenEditProfile={() => setShowEditProfile(true)}
+          themePreference={themePreference}
+          onThemeChange={(newTheme) => setThemePreference(newTheme)}
+        />
       )}
 
       {/* ========================================================= */}
