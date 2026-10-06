@@ -258,7 +258,9 @@ export default function ConversationList({
                       marginTop: 2
                     }}
                   >
-                    {c.lastMessage || 'Hey there...'}
+                    {typeof c.lastMessage === 'object' && c.lastMessage !== null
+                      ? (c.lastMessage.content || 'Hey there...')
+                      : (c.lastMessage || 'Hey there...')}
                   </div>
 
                   {c.needsResponse && (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { apiFetch } from '@/lib/api';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
@@ -303,6 +303,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home'); 
   const [viewingProfileUser, setViewingProfileUser] = useState(null); 
   const [profilePreviousTab, setProfilePreviousTab] = useState('home'); 
+  const [profileHistory, setProfileHistory] = useState([]);
+  const [convMessagesMap, setConvMessagesMap] = useState({});
   const [showSettings, setShowSettings] = useState(false);
   const [showKitchenModal, setShowKitchenModal] = useState(false);
   const [message, setMessage] = useState('');
@@ -338,6 +340,10 @@ export default function App() {
   // Messages states
   const [conversations, setConversations] = useState([]);
   const [selectedConvId, setSelectedConvId] = useState(null);
+  const selectedConvIdRef = useRef(null);
+  useEffect(() => {
+    selectedConvIdRef.current = selectedConvId;
+  }, [selectedConvId]);
   const [convMessages, setConvMessages] = useState([]);
   const [msgReceiverId, setMsgReceiverId] = useState('');
   const [msgContent, setMsgContent] = useState('');
@@ -488,11 +494,32 @@ export default function App() {
             lastMessage: { content: 'Wanna join the cold brew table at Campus Square?', createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString() },
             unreadCount: 0,
             isRequest: false
+          },
+          {
+            conversationId: 'demo-req-1',
+            user: {
+              _id: 'demo-user-alex',
+              name: 'Alex Rivera',
+              username: 'alex_cooks',
+              avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+              institute: { name: 'IIT Madras' },
+              bio: 'Morning runners club organizer & campus sprint coordinator.'
+            },
+            lastMessage: { content: 'Hey! Are you down for the morning 5k track run tomorrow?', createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString() },
+            unreadCount: 1,
+            isRequest: true,
+            requestStatus: 'pending',
+            requestSender: 'alex_cooks'
           }
         ];
       }
-      setConversations(data);
-      const targetId = forceConvId || selectedConvId;
+      setConversations((prev) => {
+        const clientCreated = prev.filter(c => String(c.conversationId).startsWith('conv-'));
+        const existingIds = new Set(data.map(d => String(d.conversationId)));
+        const toKeep = clientCreated.filter(c => !existingIds.has(String(c.conversationId)));
+        return [...toKeep, ...data];
+      });
+      const targetId = forceConvId || selectedConvIdRef.current || selectedConvId;
       if (!targetId && data.length > 0) {
         const first = data.find(c => !c.isRequest) || data[0];
         if (first) {
@@ -713,14 +740,46 @@ export default function App() {
     setError('');
     setMessage('');
 
-    if (selectedConvId && String(selectedConvId).startsWith('demo-')) {
+    if (
+      selectedConvId &&
+      (String(selectedConvId).startsWith('demo-') || String(selectedConvId).startsWith('conv-'))
+    ) {
+      const activeConv = conversations.find((c) => c.conversationId === selectedConvId);
+      const isPending = activeConv?.requestStatus === 'pending';
+      const currentList = convMessagesMap[selectedConvId] || convMessages || [];
+      const mySent = currentList.filter(
+        (m) =>
+          (m.sender?._id || m.sender?.username || m.sender) ===
+          (user?._id || user?.username)
+      );
+
+      // If pending invitation, strictly allow only 1 message from sender
+      if (isPending && mySent.length >= 1) {
+        setMessage(`Wait till @${activeConv?.user?.username || 'user'} accepts your message.`);
+        return;
+      }
+
       const newMsg = {
         _id: `msg-${Date.now()}`,
         sender: user,
         content: msgContent,
         createdAt: new Date().toISOString()
       };
-      setConvMessages((prev) => [...prev, newMsg]);
+
+      const updated = [...currentList, newMsg];
+      setConvMessages(updated);
+      setConvMessagesMap((prev) => ({ ...prev, [selectedConvId]: updated }));
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.conversationId === selectedConvId
+            ? {
+                ...c,
+                lastMessage: { content: msgContent, createdAt: new Date().toISOString() },
+                updatedAt: new Date().toISOString()
+              }
+            : c
+        )
+      );
       setMsgContent('');
       return;
     }
@@ -754,7 +813,30 @@ export default function App() {
   };
 
   const handleOpenConversation = async (convId) => {
+    selectedConvIdRef.current = convId;
     setSelectedConvId(convId);
+    if (convMessagesMap[convId]) {
+      setConvMessages(convMessagesMap[convId]);
+      return;
+    }
+    if (String(convId).startsWith('conv-')) {
+      setConvMessages([]);
+      return;
+    }
+    if (String(convId).startsWith('demo-req-')) {
+      const conv = conversations.find((c) => c.conversationId === convId);
+      const reqMessages = [
+        {
+          _id: `${convId}-m1`,
+          sender: conv?.user,
+          content: conv?.lastMessage?.content || 'Hey! Are you down for the morning 5k track run tomorrow?',
+          createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+        }
+      ];
+      setConvMessages(reqMessages);
+      setConvMessagesMap((prev) => ({ ...prev, [convId]: reqMessages }));
+      return;
+    }
     if (String(convId).startsWith('demo-')) {
       const conv = conversations.find((c) => c.conversationId === convId);
       const demoUser = conv?.user || {
@@ -762,7 +844,7 @@ export default function App() {
         username: 'arjun',
         avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80'
       };
-      setConvMessages([
+      const initialDemo = [
         {
           _id: `${convId}-m1`,
           sender: demoUser,
@@ -775,7 +857,9 @@ export default function App() {
           content: 'Sounds great! I will be there on time.',
           createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString()
         }
-      ]);
+      ];
+      setConvMessages(initialDemo);
+      setConvMessagesMap((prev) => ({ ...prev, [convId]: initialDemo }));
       return;
     }
     try {
@@ -789,6 +873,17 @@ export default function App() {
   const handleRespondMessageRequest = async (convId, status) => {
     setError('');
     setMessage('');
+    if (String(convId).startsWith('demo-') || String(convId).startsWith('conv-')) {
+      if (status === 'accepted') {
+        handleAcceptMessageRequest(convId);
+      } else if (status === 'rejected') {
+        handleRejectMessageRequest(convId);
+      } else if (status === 'blocked') {
+        const conv = conversations.find((c) => c.conversationId === convId);
+        handleBlockMessageRequest(convId, conv?.user?.username);
+      }
+      return;
+    }
     try {
       const res = await apiFetch(`/messages/requests/${convId}/respond`, {
         method: 'POST',
@@ -797,8 +892,41 @@ export default function App() {
       setMessage(`Request response: ${res.data.requestStatus}`);
       fetchConversations();
     } catch (err) {
-      setError(err.message);
+      if (status === 'accepted') {
+        handleAcceptMessageRequest(convId);
+      } else {
+        handleRejectMessageRequest(convId);
+      }
     }
+  };
+
+  const handleAcceptMessageRequest = (convId) => {
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.conversationId === convId
+          ? { ...c, isRequest: false, requestStatus: 'accepted' }
+          : c
+      )
+    );
+    const conv = conversations.find((c) => c.conversationId === convId);
+    setMessage(`Accepted message request from @${conv?.user?.username || 'user'}. You can now chat freely!`);
+  };
+
+  const handleRejectMessageRequest = (convId) => {
+    const conv = conversations.find((c) => c.conversationId === convId);
+    setConversations((prev) => prev.filter((c) => c.conversationId !== convId));
+    setSelectedConvId(null);
+    setConvMessages([]);
+    setMessage(`Declined message request from @${conv?.user?.username || 'user'}.`);
+  };
+
+  const handleBlockMessageRequest = (convId, targetUsername) => {
+    if (targetUsername) {
+      handleBlockUser(targetUsername);
+    }
+    setConversations((prev) => prev.filter((c) => c.conversationId !== convId));
+    setSelectedConvId(null);
+    setConvMessages([]);
   };
 
   // Profile & Settings
@@ -861,7 +989,11 @@ export default function App() {
 
     if (isOwn) {
       setViewingProfileUser(null);
+      setProfileHistory([]);
     } else {
+      if (viewingProfileUser && viewingProfileUser.username && viewingProfileUser.username.toLowerCase() !== targetUsername) {
+        setProfileHistory((prev) => [...prev, viewingProfileUser]);
+      }
       const key = targetUsername ? Object.keys(DEMO_PEER_PROFILES).find(k => k.toLowerCase() === targetUsername) : null;
       const demoEnriched = key ? { ...DEMO_PEER_PROFILES[key], ...targetUser } : targetUser;
       setViewingProfileUser(demoEnriched);
@@ -876,37 +1008,59 @@ export default function App() {
           .catch(() => {});
       }
     }
+    setProfileActiveTab('dishes');
     setActiveTab('profile');
   };
 
   const handleBackFromProfile = () => {
+    if (profileHistory.length > 0) {
+      const prevPeer = profileHistory[profileHistory.length - 1];
+      setProfileHistory((prev) => prev.slice(0, -1));
+      setViewingProfileUser(prevPeer);
+      setProfileActiveTab('dishes');
+      return;
+    }
     const returnTab = profilePreviousTab || 'home';
     setViewingProfileUser(null);
+    setProfileHistory([]);
     setActiveTab(returnTab);
   };
 
   const handleMessageFromProfile = (targetUser) => {
-    setActiveTab('messages');
-    setViewingProfileUser(null);
+    if (!targetUser) return;
     const existing = conversations.find(
       (c) =>
         (c.user?._id && targetUser._id && String(c.user._id) === String(targetUser._id)) ||
         (c.user?.username && targetUser.username && c.user.username.toLowerCase() === targetUser.username.toLowerCase())
     );
+    setViewingProfileUser(null);
+    setProfileHistory([]);
+
     if (existing) {
+      selectedConvIdRef.current = existing.conversationId;
+      setSelectedConvId(existing.conversationId);
+      setMessagesTab(existing.isRequest ? 'requests' : 'message');
       handleOpenConversation(existing.conversationId);
     } else {
-      const newConvId = `conv-${targetUser.username || Date.now()}`;
+      const uname = targetUser.username || targetUser.name?.replace(/\s+/g, '_').toLowerCase() || 'user';
+      const newConvId = `conv-${uname}`;
       const newConv = {
         conversationId: newConvId,
         user: targetUser,
-        lastMessage: { content: 'Started conversation', createdAt: new Date().toISOString() },
+        lastMessage: { content: 'No messages yet', createdAt: new Date().toISOString() },
         unreadCount: 0,
-        isRequest: false
+        isRequest: false,
+        requestStatus: 'pending',
+        requestSender: user?.username || 'soelnvc'
       };
-      setConversations((prev) => [newConv, ...prev]);
-      handleOpenConversation(newConvId);
+      selectedConvIdRef.current = newConvId;
+      setConversations((prev) => [newConv, ...prev.filter(c => c.conversationId !== newConvId)]);
+      setSelectedConvId(newConvId);
+      setMessagesTab('message');
+      setConvMessages([]);
+      setConvMessagesMap((prev) => ({ ...prev, [newConvId]: [] }));
     }
+    setActiveTab('messages');
   };
 
   const handleToggleConnectPeer = async (targetUser) => {
@@ -1307,11 +1461,15 @@ export default function App() {
                 <MessageArea
                   currentUser={user}
                   activeUser={activeUser}
+                  conversation={activeConv}
                   messages={convMessages}
                   messageText={msgContent}
                   setMessageText={setMsgContent}
                   onSendMessage={handleSendMessage}
                   onViewProfile={(profile) => handleNavigateToProfile(profile, 'messages')}
+                  onAcceptRequest={handleAcceptMessageRequest}
+                  onRejectRequest={handleRejectMessageRequest}
+                  onBlockUser={(targetUsername) => handleBlockMessageRequest(activeConv?.conversationId, targetUsername)}
                 />
               );
             })()}
@@ -1360,7 +1518,7 @@ export default function App() {
                   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="15 18 9 12 15 6" />
                   </svg>
-                  <span>Back to {getTabLabel(profilePreviousTab)}</span>
+                  <span>Back to {profileHistory.length > 0 ? `@${profileHistory[profileHistory.length - 1].username}` : getTabLabel(profilePreviousTab)}</span>
                 </FluidButton>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: '#000000' }}>
@@ -1824,9 +1982,13 @@ export default function App() {
 
                   const fallbackPeerActiveJoined = activeProfile?.dishes?.activeJoined || {
                     _id: `joined-active-${activeProfile?.username || 'peer'}`,
-                    description: `Weekend 5k morning run & core workout session around campus track. Hosted by Alex Rivera.`,
+                    description: activeProfile?.username === 'alex_cooks'
+                      ? 'Late evening badminton friendly match at SAC indoor arena. Hosted by Priya Patel.'
+                      : 'Weekend 5k morning run & core workout session around campus track. Hosted by Alex Rivera.',
                     category: 'sport',
-                    creator: { name: 'Alex Rivera', username: 'alex_cooks' },
+                    creator: activeProfile?.username === 'alex_cooks'
+                      ? { name: 'Priya Patel', username: 'priyap', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80' }
+                      : { name: 'Alex Rivera', username: 'alex_cooks', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80' },
                     status: 'cooking',
                     joinMode: 'auto',
                     capacity: { max: 4 },
@@ -1957,24 +2119,42 @@ export default function App() {
                           {/* Right Card Content */}
                           <div style={{ flex: 1, minWidth: 0, color: '#000000' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <div
-                                  style={{
-                                    width: 36,
-                                    height: 36,
-                                    borderRadius: '50%',
-                                    backgroundColor: '#9353d3',
-                                    color: '#ffffff',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: 13,
-                                    fontWeight: 'bold',
-                                    flexShrink: 0
-                                  }}
-                                >
-                                  {(activeJoined.creator?.name || activeJoined.creator?.username || 'A')[0].toUpperCase()}
-                                </div>
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const targetCreator = activeJoined.creator || { name: 'Alex Rivera', username: 'alex_cooks' };
+                                  handleNavigateToProfile(targetCreator);
+                                }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'opacity 0.15s ease' }}
+                                title={`View @${activeJoined.creator?.username || 'alex_cooks'}'s profile`}
+                                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.75')}
+                                onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                              >
+                                {activeJoined.creator?.avatar || DEMO_PEER_PROFILES[activeJoined.creator?.username?.toLowerCase() || 'alex_cooks']?.avatar ? (
+                                  <img
+                                    src={activeJoined.creator?.avatar || DEMO_PEER_PROFILES[activeJoined.creator?.username?.toLowerCase() || 'alex_cooks']?.avatar}
+                                    alt={activeJoined.creator?.name || 'Alex Rivera'}
+                                    style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
+                                  />
+                                ) : (
+                                  <div
+                                    style={{
+                                      width: 36,
+                                      height: 36,
+                                      borderRadius: '50%',
+                                      backgroundColor: '#9353d3',
+                                      color: '#ffffff',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontSize: 13,
+                                      fontWeight: 'bold',
+                                      flexShrink: 0
+                                    }}
+                                  >
+                                    {(activeJoined.creator?.name || activeJoined.creator?.username || 'A')[0].toUpperCase()}
+                                  </div>
+                                )}
                                 <div style={{ minWidth: 0 }}>
                                   <div style={{ fontWeight: 'bold', fontSize: 14.5, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: 1.2 }}>
                                     {activeJoined.creator?.name || 'Alex Rivera'}
@@ -1991,7 +2171,24 @@ export default function App() {
 
                             <div style={{ fontSize: 13.5, color: '#000000', lineHeight: 1.45, marginBottom: 8, wordBreak: 'break-word' }}>
                               <span style={{ fontWeight: 600, color: '#000000' }}>Description: </span>
-                              {activeJoined.description}
+                              {activeJoined.description?.includes(activeJoined.creator?.name || 'Alex Rivera') ? (
+                                <>
+                                  {activeJoined.description.split(activeJoined.creator?.name || 'Alex Rivera')[0]}
+                                  <span
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleNavigateToProfile(activeJoined.creator || { name: 'Alex Rivera', username: 'alex_cooks' });
+                                    }}
+                                    title={`View @${activeJoined.creator?.username || 'alex_cooks'}'s profile`}
+                                    style={{ fontWeight: 700, color: '#000000', cursor: 'pointer', textDecoration: 'underline' }}
+                                  >
+                                    {activeJoined.creator?.name || 'Alex Rivera'}
+                                  </span>
+                                  {activeJoined.description.split(activeJoined.creator?.name || 'Alex Rivera')[1]}
+                                </>
+                              ) : (
+                                activeJoined.description
+                              )}
                             </div>
 
                             <div style={{ fontSize: 11.5, color: '#4b5563', display: 'flex', flexWrap: 'wrap', gap: 10, fontWeight: '500', alignItems: 'center' }}>
@@ -2077,7 +2274,26 @@ export default function App() {
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 11.5, color: '#666666' }}>
-                                  <span>Host: @{dish.creator?.username || 'chef'}</span>
+                                  <span
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const creatorObj = typeof dish.creator === 'string'
+                                        ? { username: dish.creator, name: dish.creator }
+                                        : (dish.creator || { username: 'alex_cooks', name: 'Alex Rivera' });
+                                      handleNavigateToProfile(creatorObj);
+                                    }}
+                                    title={`View @${dish.creator?.username || 'chef'}'s profile`}
+                                    style={{
+                                      cursor: 'pointer',
+                                      fontWeight: 600,
+                                      color: '#000000',
+                                      transition: 'opacity 0.15s ease'
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
+                                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                                  >
+                                    Host: @{dish.creator?.username || 'chef'}
+                                  </span>
                                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
