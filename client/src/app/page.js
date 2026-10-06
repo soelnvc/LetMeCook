@@ -63,7 +63,7 @@ export default function App() {
   const [newTagInput, setNewTagInput] = useState('');
   const [bioExpanded, setBioExpanded] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
-  const [profileActiveTab, setProfileActiveTab] = useState('dishes'); // 'dishes' | 'joined' | 'institutes'
+  const [profileActiveTab, setProfileActiveTab] = useState('dishes'); // 'dishes' | 'joined' | 'awards'
   const [searchUsername, setSearchUsername] = useState('');
   const [searchedProfile, setSearchedProfile] = useState(null);
   const [connections, setConnections] = useState([]);
@@ -176,7 +176,10 @@ export default function App() {
     if (!user) return;
     if (activeTab === 'home' || activeTab === 'dine-in') fetchDishes();
     if (activeTab === 'messages') fetchConversations();
-    if (activeTab === 'profile') fetchConnections();
+    if (activeTab === 'profile') {
+      fetchConnections();
+      fetchDishes();
+    }
   }, [user, activeTab, categoryFilter]);
 
   // Auth Handlers
@@ -1073,7 +1076,7 @@ export default function App() {
       </div>
 
       {/* Main App Container */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '100vh', padding: activeTab === 'profile' ? '30px 24px 60px' : '40px 32px', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '100vh', padding: activeTab === 'profile' ? '54px 24px 80px' : '40px 32px', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
         {/* Global Feedback */}
         {error && <div style={{ border: '1px solid red', padding: 10, marginBottom: 16, color: '#b91c1c', backgroundColor: '#fef2f2', borderRadius: 6 }}>Error: {error}</div>}
         {message && <div style={{ border: '1px solid green', padding: 10, marginBottom: 16, color: '#15803d', backgroundColor: '#f0fdf4', borderRadius: 6 }}>{message}</div>}
@@ -1845,11 +1848,8 @@ export default function App() {
       {/* ========================================================= */}
       {/* 5. PROFILE SCREEN & SETTINGS (PRODUCT.md Section 18 & 23) */}
       {/* ========================================================= */}
-      {/* ========================================================= */}
-      {/* 5. PROFILE SCREEN & SETTINGS (Matching Wireframe)        */}
-      {/* ========================================================= */}
       {activeTab === 'profile' && (
-        <section style={{ width: '100%', maxWidth: 935, margin: '0 auto', color: '#000000', fontFamily: "'Inter', sans-serif" }}>
+        <section style={{ width: '100%', maxWidth: 935, margin: '0 auto', color: '#000000', fontFamily: "'Inter', sans-serif", paddingTop: 16 }}>
           
           {/* ========================================================= */}
           {/* 1. TOP PROFILE HEADER (Instagram Profile Layout)          */}
@@ -1880,26 +1880,27 @@ export default function App() {
                 Note...
               </div>
 
-              {/* Large Circular Avatar */}
+              {/* Large Circular Avatar: Orange if no photo, no glow/shadow */}
               <div
                 style={{
                   width: 150,
                   height: 150,
                   borderRadius: '50%',
-                  backgroundColor: '#8257e5',
+                  backgroundColor: '#f97316',
                   overflow: 'hidden',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '2px solid rgba(255, 255, 255, 0.7)',
-                  boxShadow: '0 6px 20px rgba(130, 87, 229, 0.28)'
+                  boxShadow: 'none',
+                  border: 'none',
+                  position: 'relative'
                 }}
               >
                 {user.avatar ? (
                   <img src={user.avatar} alt={user.name || user.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <span style={{ fontSize: 46, color: '#ffffff', fontWeight: 800 }}>
-                    {(user.name || user.username || 'U')[0].toUpperCase()}
+                  <span style={{ fontSize: 52, color: '#ffffff', fontWeight: 800, userSelect: 'none' }}>
+                    {(user.name || user.username || 'S')[0].toUpperCase()}
                   </span>
                 )}
               </div>
@@ -1907,13 +1908,13 @@ export default function App() {
 
             {/* Right Column: Profile Info */}
             <div style={{ flex: 1, minWidth: 280, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Row 1: Username & Action Buttons */}
+              {/* Row 1: Username & Action Buttons (View Archive Removed) */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
                 <h1 style={{ fontSize: 21, fontWeight: 600, margin: 0, letterSpacing: '-0.3px', color: '#000000', lineHeight: 1.2 }}>
                   {user.username || 'username'}
                 </h1>
 
-                {/* Edit Profile Button (Instagram styled) */}
+                {/* Edit Profile Button */}
                 <button
                   onClick={() => setShowEditProfile(true)}
                   style={{
@@ -1931,26 +1932,6 @@ export default function App() {
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.08)'}
                 >
                   Edit Profile
-                </button>
-
-                {/* View Archive Button */}
-                <button
-                  onClick={() => setProfileActiveTab('joined')}
-                  style={{
-                    padding: '7px 18px',
-                    borderRadius: 8,
-                    fontSize: 14,
-                    fontWeight: 600,
-                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                    border: 'none',
-                    color: '#000000',
-                    cursor: 'pointer',
-                    transition: 'background 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.12)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.08)'}
-                >
-                  View archive
                 </button>
 
                 {/* Settings Gear Button */}
@@ -1980,7 +1961,7 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Row 2: Stats Row (Instagram style: 17 cooked • 19 joined • 72 connections) */}
+              {/* Row 2: Stats Row */}
               <div style={{ display: 'flex', gap: 36, fontSize: 15.5, color: '#000000' }}>
                 <span style={{ cursor: 'pointer' }} onClick={() => setProfileActiveTab('dishes')}>
                   <strong>{user.stats?.dishesCreated ?? 17}</strong> cooked
@@ -1993,8 +1974,8 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Row 3: Name, Pronouns, Institute Subtitle, Bio, Tags */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontSize: 14, lineHeight: 1.45 }}>
+              {/* Row 3: Name, Pronouns, Verified Institute, Bio with Blue Hashtags, Button Aesthetic Tags */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14, lineHeight: 1.45 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                   <span style={{ fontWeight: 700, fontSize: 15, color: '#000000' }}>
                     {user.name || 'Sid G'}
@@ -2004,20 +1985,62 @@ export default function App() {
                   </span>
                 </div>
 
-                {/* Institute & Batch subtitle */}
-                <div style={{ fontSize: 13.5, color: '#4b5563', fontWeight: 500 }}>
-                  🎓 {user.institute?.name || instituteName || 'IIT MADRAS'} • Batch of {user.institute?.year || instituteYear || '2029'}
+                {/* Institute with Verified Tick Badge */}
+                <div style={{ fontSize: 13.5, color: '#374151', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 600 }}>🎓 {user.institute?.name || instituteName || 'IIT MADRAS'}</span>
+                  {/* Verified Tick Mark */}
+                  <span
+                    title="Verified Institute Student"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#0095f6'
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="#0095f6">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                  </span>
+                  <span style={{ color: '#6b7280', fontWeight: 500 }}>
+                    • Batch of {user.institute?.year || instituteYear || '2029'}
+                  </span>
                 </div>
 
-                {/* Bio with read more toggle */}
-                <div style={{ color: '#111827', marginTop: 2, maxWidth: 540 }}>
+                {/* Bio with Blue Hashtags Inside */}
+                <div style={{ color: '#111827', marginTop: 4, maxWidth: 540 }}>
                   {(() => {
-                    const fullBio = user.bio || bio || 'Mastering sourdough fermentation, late night pasta experiments, and finding the best espresso roast in town. Always down to cook together!';
-                    const isLong = fullBio.length > 80;
-                    const displayBio = isLong && !bioExpanded ? fullBio.slice(0, 80) + '...' : fullBio;
+                    const rawBio = user.bio || bio || 'Mastering sourdough fermentation, late night pasta experiments, and finding the best espresso roast in town. Always down to cook together! #sourdough #pasta #espresso';
+                    const isLong = rawBio.length > 90;
+                    const displayBio = isLong && !bioExpanded ? rawBio.slice(0, 90) + '...' : rawBio;
+                    
+                    // Parse words to format hashtags in blue
+                    const bioParts = displayBio.split(/(#[a-zA-Z0-9_]+)/g);
+
                     return (
                       <div>
-                        <span>{displayBio}</span>
+                        <span>
+                          {bioParts.map((part, i) => {
+                            if (part.startsWith('#')) {
+                              return (
+                                <span
+                                  key={i}
+                                  style={{
+                                    color: '#0095f6',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'opacity 0.15s ease'
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.75'}
+                                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                                >
+                                  {part}
+                                </span>
+                              );
+                            }
+                            return part;
+                          })}
+                        </span>
                         {isLong && (
                           <button
                             onClick={() => setBioExpanded(!bioExpanded)}
@@ -2040,20 +2063,36 @@ export default function App() {
                   })()}
                 </div>
 
-                {/* Tags Row */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                {/* Tags using Button Aesthetics */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
                   {(interests && interests.length > 0 ? interests : ['music', 'Gym', 'Sports', 'Anime', 'Coffee']).map((tag, idx) => (
-                    <span
+                    <button
                       key={idx}
+                      type="button"
                       style={{
+                        padding: '6px 14px',
+                        borderRadius: 20,
                         fontSize: 12.5,
                         fontWeight: 600,
-                        color: '#1d4ed8',
-                        cursor: 'default'
+                        backgroundColor: 'rgba(0, 0, 0, 0.06)',
+                        border: '1px solid rgba(0, 0, 0, 0.06)',
+                        color: '#111827',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        transition: 'all 0.15s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)';
+                        e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
-                      #{tag}
-                    </span>
+                      {tag.startsWith('#') ? tag.slice(1) : tag}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -2061,153 +2100,7 @@ export default function App() {
           </div>
 
           {/* ========================================================= */}
-          {/* 2. STORY HIGHLIGHTS (Achievements & Institutes Row)       */}
-          {/* ========================================================= */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 28,
-              alignItems: 'center',
-              overflowX: 'auto',
-              padding: '10px 20px 24px',
-              marginBottom: 16
-            }}
-          >
-            {[
-              {
-                id: 'chef',
-                label: 'Master Chef',
-                icon: (
-                  <svg width="38" height="34" viewBox="0 0 64 64" fill="none">
-                    <path d="M18 36 C12 36 8 30 11 23 C13 18 19 16 23 18 C25 11 34 8 40 13 C46 9 55 12 56 19 C60 21 61 29 56 34 C54 36 51 36 49 36 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
-                    <path d="M25 21 C26 28 27 34 27 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
-                    <path d="M36 15 C36 24 36 32 36 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
-                    <path d="M46 19 C45 26 44 32 43 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
-                    <rect x="17" y="36" width="33" height="13" rx="3" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
-                  </svg>
-                ),
-                onClick: () => setProfileActiveTab('institutes')
-              },
-              {
-                id: 'coffee',
-                label: 'Coffee Roast',
-                icon: (
-                  <svg width="40" height="34" viewBox="0 0 68 56" fill="none">
-                    <path d="M22 13 C20 9 24 6 22 2" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                    <path d="M30 11 C28 7 32 4 30 1" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                    <ellipse cx="32" cy="49" rx="27" ry="5" fill="#fdfbf7" stroke="#78350f" strokeWidth="2" />
-                    <path d="M44 26 C53 26 55 38 43 41" stroke="#78350f" strokeWidth="3" fill="none" strokeLinecap="round" />
-                    <path d="M14 21 L18 43 C19 46 25 47 32 47 C39 47 45 46 46 43 L50 21 Z" fill="#6f4e37" stroke="#451a03" strokeWidth="2" />
-                    <ellipse cx="32" cy="21" rx="18" ry="4.5" fill="#3e2312" />
-                  </svg>
-                ),
-                onClick: () => setProfileActiveTab('institutes')
-              },
-              {
-                id: 'midnight',
-                label: 'Midnight Cook',
-                icon: (
-                  <svg width="40" height="34" viewBox="0 0 68 56" fill="none">
-                    <path d="M37 7 C32 12 32 20 37 25 C40 28 44 29 47 28 C43 35 33 37 26 32 C19 26 20 15 27 9 C30 7 33 6 37 7 Z" fill="#fde047" stroke="#ca8a04" strokeWidth="2" />
-                    <path d="M18 43 C13 43 9 39 10 34 C11 29 16 28 19 29 C22 23 30 22 35 26 C38 24 43 24 45 27 C50 26 55 30 54 35 C57 37 57 42 52 43 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="2" />
-                  </svg>
-                ),
-                onClick: () => setProfileActiveTab('institutes')
-              },
-              {
-                id: 'iitm',
-                label: 'IIT Madras',
-                icon: (
-                  <svg width="34" height="34" viewBox="0 0 100 100" fill="none">
-                    <circle cx="50" cy="50" r="44" stroke="#000000" strokeWidth="6" strokeDasharray="9 4" fill="none" />
-                    <circle cx="50" cy="56" r="24" stroke="#000000" strokeWidth="4" fill="none" />
-                    <line x1="26" y1="56" x2="74" y2="56" stroke="#000000" strokeWidth="4" />
-                    <line x1="50" y1="32" x2="50" y2="80" stroke="#000000" strokeWidth="4" />
-                  </svg>
-                ),
-                onClick: () => setProfileActiveTab('institutes')
-              },
-              {
-                id: 'sst',
-                label: 'SST Campus',
-                icon: (
-                  <svg width="34" height="34" viewBox="0 0 100 100" fill="none">
-                    <path d="M12 90 L12 55 L35 55 L35 32 L50 20 L65 32 L65 55 L88 55 L88 90 Z" fill="#000000" />
-                    <circle cx="50" cy="42" r="6" fill="#e6dfe4" />
-                  </svg>
-                ),
-                onClick: () => setProfileActiveTab('institutes')
-              },
-              {
-                id: 'new',
-                label: 'New',
-                icon: (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                ),
-                onClick: () => setShowEditProfile(true)
-              }
-            ].map((h) => (
-              <div
-                key={h.id}
-                onClick={h.onClick}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 8,
-                  cursor: 'pointer',
-                  flexShrink: 0
-                }}
-              >
-                <div
-                  style={{
-                    width: 76,
-                    height: 76,
-                    borderRadius: '50%',
-                    padding: 3,
-                    border: '1.5px solid rgba(0, 0, 0, 0.16)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxSizing: 'border-box',
-                    transition: 'transform 0.16s ease, border-color 0.16s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.05)';
-                    e.currentTarget.style.borderColor = '#000000';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.16)';
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(255, 255, 255, 0.65)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {h.icon}
-                  </div>
-                </div>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#000000', whiteSpace: 'nowrap' }}>
-                  {h.label}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* ========================================================= */}
-          {/* 3. INSTAGRAM TAB BAR (Dishes, Joined, Institutes & Awards) */}
+          {/* 2. TAB BAR (DISHES, JOINED, AWARDS)                        */}
           {/* ========================================================= */}
           <div
             style={{
@@ -2215,7 +2108,7 @@ export default function App() {
               display: 'flex',
               justifyContent: 'center',
               gap: 56,
-              marginBottom: 24
+              marginBottom: 28
             }}
           >
             {[
@@ -2241,12 +2134,12 @@ export default function App() {
                 )
               },
               {
-                id: 'institutes',
-                label: 'INSTITUTES & AWARDS',
+                id: 'awards',
+                label: 'AWARDS',
                 icon: (isActive) => (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isActive ? '2.4' : '2'} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
+                    <circle cx="12" cy="8" r="6" />
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
                   </svg>
                 )
               }
@@ -2283,302 +2176,649 @@ export default function App() {
           </div>
 
           {/* ========================================================= */}
-          {/* 4. TAB VIEWS CONTENT                                      */}
+          {/* 3. TAB VIEWS CONTENT                                      */}
           {/* ========================================================= */}
 
-          {/* TAB 1: DISHES (Instagram 3-Column Square Grid) */}
+          {/* TAB 1: DISHES (Own Active Dish on top, Previous Dishes down the line) */}
           {profileActiveTab === 'dishes' && (
             <div>
               {(() => {
-                const userDishes = dishes.filter(d => (d.creator?._id || d.creator) === user._id || (d.participants || []).some(p => (p.user?._id || p.user) === user._id));
-                if (userDishes.length === 0) {
-                  return (
-                    <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666666' }}>
-                      <div style={{ width: 64, height: 64, borderRadius: '50%', border: '2px solid #000000', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 26 }}>
-                        🍲
-                      </div>
-                      <h3 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 8px 0', color: '#000000' }}>Share Your Cooking Sessions</h3>
-                      <p style={{ fontSize: 14, color: '#666666', margin: '0 0 20px 0' }}>
-                        When you create or join dishes, they will appear in your profile grid.
-                      </p>
-                      <FluidButton
-                        onClick={() => setShowKitchenModal(true)}
-                        style={{ padding: '8px 24px', fontSize: 14, fontWeight: 600 }}
-                      >
-                        Cook a Dish
-                      </FluidButton>
-                    </div>
-                  );
-                }
+                const userOwnedDishes = dishes.filter(d => (d.creator?._id || d.creator) === user._id);
+                
+                // Fallbacks so demo is always rich and structured
+                const fallbackActiveDish = {
+                  _id: 'active-dish-demo',
+                  title: 'Truffle Tagliatelle & Burrata',
+                  cuisine: 'Italian Handmade Pasta',
+                  description: 'Slow-simmered winter black truffle sauce paired with artisan hand-rolled tagliatelle and fresh imported burrata. Cooking together live tonight!',
+                  status: 'cooking',
+                  capacity: 4,
+                  participants: [{ user: { name: user.name || 'Sid G' } }, { user: { name: 'Elena R' } }, { user: { name: 'Lucas M' } }],
+                  location: { landmark: 'Host Kitchen - Block 4' },
+                  timing: { cookStart: 'Tonight at 8:00 PM' }
+                };
+
+                const fallbackPreviousDishes = [
+                  {
+                    _id: 'prev-dish-1',
+                    title: 'Sourdough Neapolitan Pizza',
+                    cuisine: 'Wood-fired Pizza',
+                    description: '48-hour cold fermented sourdough dough with San Marzano tomatoes, fresh basil, and fior di latte.',
+                    status: 'cooked',
+                    capacity: 5,
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }, { user: '5' }],
+                    location: { landmark: 'Common Kitchen' }
+                  },
+                  {
+                    _id: 'prev-dish-2',
+                    title: 'Smoked Shakshuka Brunch',
+                    cuisine: 'Middle Eastern',
+                    description: 'Poached farm eggs in spiced tomato, roasted pepper sauce with cumin and zaatar flatbread.',
+                    status: 'cooked',
+                    capacity: 4,
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }],
+                    location: { landmark: 'North Wing Terrace' }
+                  },
+                  {
+                    _id: 'prev-dish-3',
+                    title: 'Artisan Espresso Pour-over Tasting',
+                    cuisine: 'Coffee & Dessert',
+                    description: 'Single-origin Ethiopian Yirgacheffe pairing with homemade citrus biscotti and extraction demo.',
+                    status: 'cooked',
+                    capacity: 6,
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }],
+                    location: { landmark: 'Brew Lab' }
+                  }
+                ];
+
+                const realActive = userOwnedDishes.filter(d => d.status !== 'cooked');
+                const realPrevious = userOwnedDishes.filter(d => d.status === 'cooked');
+
+                const activeDish = realActive.length > 0 ? realActive[0] : (userOwnedDishes.length === 0 ? fallbackActiveDish : null);
+                const previousDishes = realPrevious.length > 0 ? realPrevious : (userOwnedDishes.length === 0 ? fallbackPreviousDishes : []);
 
                 return (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-                    {userDishes.map((dish) => (
-                      <GlassContainer
-                        key={dish._id}
-                        radius={18}
-                        style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
-                        innerStyle={{
-                          padding: 20,
-                          height: '100%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          boxSizing: 'border-box'
-                        }}
-                      >
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
-                              {dish.cuisine || 'Home Cooking'}
-                            </span>
-                            <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)' }}>
-                              {dish.status === 'cooked' ? '✓ Cooked' : '🔥 Active'}
-                            </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+                    {/* SECTION A: OWN ACTIVE DISH ON TOP */}
+                    {activeDish && (
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block', boxShadow: '0 0 0 3px rgba(34, 197, 94, 0.2)' }} />
+                            <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#15803d', margin: 0 }}>
+                              Own Active Dish
+                            </h4>
                           </div>
-                          <h4 style={{ fontSize: 17, fontWeight: 800, margin: '0 0 6px 0', color: '#000000', lineHeight: 1.3 }}>
-                            {dish.title}
-                          </h4>
-                          <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                            {dish.description || 'Delicious culinary creation cooked together.'}
-                          </p>
+                          <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>
+                            🔥 Live Session
+                          </span>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#666666' }}>
-                          <span>👥 {dish.participants?.length || 1}/{dish.capacity || 4}</span>
-                          <span>📍 {dish.location?.landmark || dish.location?.room || 'Host kitchen'}</span>
+                        {/* Prominent Active Dish Card */}
+                        <GlassContainer
+                          radius={22}
+                          style={{ width: '100%' }}
+                          innerStyle={{
+                            padding: '24px 28px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                                <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.1)', padding: '3px 10px', borderRadius: 9999 }}>
+                                  {activeDish.cuisine || activeDish.category || 'Specialty'}
+                                </span>
+                                <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>
+                                  {activeDish.timing?.cookStart || 'Cooking Tonight'}
+                                </span>
+                              </div>
+                              <h3 style={{ fontSize: 21, fontWeight: 800, margin: '0 0 6px 0', color: '#000000', letterSpacing: '-0.3px' }}>
+                                {activeDish.title || activeDish.description}
+                              </h3>
+                              <p style={{ fontSize: 14, color: '#4b5563', margin: 0, maxWidth: 680, lineHeight: 1.5 }}>
+                                {activeDish.description || 'Join in the active cooking session to prepare delicious food together.'}
+                              </p>
+                            </div>
+
+                            <FluidButton
+                              onClick={() => setShowKitchenModal(true)}
+                              style={{ padding: '8px 20px', fontSize: 13, fontWeight: 600, flexShrink: 0 }}
+                            >
+                              Open Kitchen
+                            </FluidButton>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: 14, fontSize: 13, color: '#4b5563', flexWrap: 'wrap', gap: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                              <span>👥 <strong>{activeDish.participants?.length || 3}</strong>/{activeDish.capacity?.max || activeDish.capacity || 4} spots filled</span>
+                              <span>📍 {activeDish.location?.landmark || activeDish.location?.areaName || 'Host kitchen'}</span>
+                            </div>
+                            <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600 }}>
+                              ✓ In Progress
+                            </span>
+                          </div>
+                        </GlassContainer>
+                      </div>
+                    )}
+
+                    {/* SECTION B: PREVIOUS DISHES DOWN THE LINE */}
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                        <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
+                          Previous Dishes ({previousDishes.length})
+                        </h4>
+                        <span style={{ fontSize: 12, color: '#9ca3af' }}>
+                          Completed Sessions
+                        </span>
+                      </div>
+
+                      {previousDishes.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666666' }}>
+                          <p style={{ fontSize: 14, margin: 0 }}>No previous dishes yet. Your completed dishes will appear here.</p>
                         </div>
-                      </GlassContainer>
-                    ))}
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                          {previousDishes.map((dish) => (
+                            <GlassContainer
+                              key={dish._id}
+                              radius={18}
+                              style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
+                              innerStyle={{
+                                padding: 20,
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
+                                    {dish.cuisine || dish.category || 'Home Cooking'}
+                                  </span>
+                                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)', color: '#4b5563' }}>
+                                    ✓ Cooked
+                                  </span>
+                                </div>
+                                <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 6px 0', color: '#000000', lineHeight: 1.3 }}>
+                                  {dish.title || (dish.description ? (dish.description.length > 35 ? dish.description.slice(0, 35) + '...' : dish.description) : 'Culinary Dish')}
+                                </h4>
+                                <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                  {dish.description || 'Delicious culinary creation cooked together.'}
+                                </p>
+                              </div>
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#666666' }}>
+                                <span>👥 {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4}</span>
+                                <span>📍 {dish.location?.landmark || dish.location?.areaName || 'Campus'}</span>
+                              </div>
+                            </GlassContainer>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })()}
             </div>
           )}
 
-          {/* TAB 2: JOINED (Dishes Joined) */}
+          {/* TAB 2: JOINED (Active Joined on top, Previous Joined down the line) */}
           {profileActiveTab === 'joined' && (
             <div>
               {(() => {
-                const joinedDishes = dishes.filter(d => (d.participants || []).some(p => (p.user?._id || p.user) === user._id && (d.creator?._id || d.creator) !== user._id));
-                if (joinedDishes.length === 0) {
-                  return (
-                    <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666666' }}>
-                      <div style={{ width: 64, height: 64, borderRadius: '50%', border: '2px solid #000000', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 26 }}>
-                        🔖
-                      </div>
-                      <h3 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 8px 0', color: '#000000' }}>Save Dishes You Love</h3>
-                      <p style={{ fontSize: 14, color: '#666666', margin: '0 0 20px 0' }}>
-                        When you join or participate in dishes around campus, they appear here.
-                      </p>
-                      <FluidButton
-                        onClick={() => setActiveTab('dine-in')}
-                        style={{ padding: '8px 24px', fontSize: 14, fontWeight: 600 }}
-                      >
-                        Explore Dine-in
-                      </FluidButton>
-                    </div>
-                  );
-                }
+                const userJoinedDishes = dishes.filter(d => (d.creator?._id || d.creator) !== user._id && (d.participants || []).some(p => (p.user?._id || p.user) === user._id));
+
+                const fallbackActiveJoined = {
+                  _id: 'active-joined-demo',
+                  title: 'Tokyo Shoyu Ramen & Chashu Pork',
+                  cuisine: 'Japanese Ramen',
+                  creator: { name: 'Kenji Sato', username: 'kenji_chef' },
+                  description: '12-hour simmered dashi pork bone broth with spring noodles, seasoned ajitsuke tamago, and melted chashu. Gathering to cook and feast together!',
+                  status: 'cooking',
+                  capacity: 4,
+                  participants: [{ user: 'kenji' }, { user: user._id }, { user: 'p3' }],
+                  location: { landmark: 'East Dorm Kitchen 2B' },
+                  timing: { cookStart: 'Tonight at 7:30 PM' }
+                };
+
+                const fallbackPreviousJoined = [
+                  {
+                    _id: 'prev-joined-1',
+                    title: 'Spanish Paella Valenciana',
+                    cuisine: 'Spanish Cuisine',
+                    creator: { name: 'Maria Santos', username: 'maria_cooks' },
+                    description: 'Saffron bomba rice with rosemary, butter beans, chicken, and socarrat crisp crust.',
+                    status: 'cooked',
+                    capacity: 6,
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }],
+                    location: { landmark: 'Courtyard Dining Table' }
+                  },
+                  {
+                    _id: 'prev-joined-2',
+                    title: 'Handcrafted Xiao Long Bao',
+                    cuisine: 'Dim Sum',
+                    creator: { name: 'Chen Wei', username: 'chef_chen' },
+                    description: 'Delicate soup dumplings filled with savory ginger pork and rich gelatin broth.',
+                    status: 'cooked',
+                    capacity: 4,
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }],
+                    location: { landmark: 'West Quad Hall' }
+                  },
+                  {
+                    _id: 'prev-joined-3',
+                    title: 'Matcha Mille Crêpe Cake',
+                    cuisine: 'French-Japanese Bakery',
+                    creator: { name: 'Aoi Tanaka', username: 'aoi_pastry' },
+                    description: 'Twenty paper-thin green tea crêpes layered with light Uji matcha chantilly cream.',
+                    status: 'cooked',
+                    capacity: 5,
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }],
+                    location: { landmark: 'Bakery Studio' }
+                  }
+                ];
+
+                const realActiveJoined = userJoinedDishes.filter(d => d.status !== 'cooked');
+                const realPreviousJoined = userJoinedDishes.filter(d => d.status === 'cooked');
+
+                const activeJoined = realActiveJoined.length > 0 ? realActiveJoined[0] : (userJoinedDishes.length === 0 ? fallbackActiveJoined : null);
+                const previousJoined = realPreviousJoined.length > 0 ? realPreviousJoined : (userJoinedDishes.length === 0 ? fallbackPreviousJoined : []);
 
                 return (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-                    {joinedDishes.map((dish) => (
-                      <GlassContainer
-                        key={dish._id}
-                        radius={18}
-                        style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
-                        innerStyle={{
-                          padding: 20,
-                          height: '100%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          boxSizing: 'border-box'
-                        }}
-                      >
-                        <div>
-                          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#555555' }}>
-                            {dish.cuisine || 'Dine-in'}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+                    {/* SECTION A: ACTIVE JOINED DISH ON TOP */}
+                    {activeJoined && (
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#0284c7', display: 'inline-block', boxShadow: '0 0 0 3px rgba(2, 132, 199, 0.2)' }} />
+                            <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#0369a1', margin: 0 }}>
+                              Active Joined Dish
+                            </h4>
+                          </div>
+                          <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>
+                            🔥 Joined Session
                           </span>
-                          <h4 style={{ fontSize: 17, fontWeight: 800, margin: '6px 0', color: '#000000' }}>
-                            {dish.title}
-                          </h4>
-                          <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                            {dish.description}
-                          </p>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666666' }}>
-                          <span>Host: @{dish.creator?.username || 'chef'}</span>
-                          <span>👥 {dish.participants?.length || 1}/{dish.capacity || 4}</span>
+
+                        <GlassContainer
+                          radius={22}
+                          style={{ width: '100%' }}
+                          innerStyle={{
+                            padding: '24px 28px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                                <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#0284c7', backgroundColor: 'rgba(2, 132, 199, 0.1)', padding: '3px 10px', borderRadius: 9999 }}>
+                                  {activeJoined.cuisine || activeJoined.category || 'Dine-In'}
+                                </span>
+                                <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>
+                                  Host: @{activeJoined.creator?.username || 'chef'}
+                                </span>
+                              </div>
+                              <h3 style={{ fontSize: 21, fontWeight: 800, margin: '0 0 6px 0', color: '#000000', letterSpacing: '-0.3px' }}>
+                                {activeJoined.title || activeJoined.description}
+                              </h3>
+                              <p style={{ fontSize: 14, color: '#4b5563', margin: 0, maxWidth: 680, lineHeight: 1.5 }}>
+                                {activeJoined.description || 'You are participating in this dish with the host chef.'}
+                              </p>
+                            </div>
+
+                            <FluidButton
+                              onClick={() => setActiveTab('messages')}
+                              style={{ padding: '8px 20px', fontSize: 13, fontWeight: 600, flexShrink: 0 }}
+                            >
+                              Message Host
+                            </FluidButton>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: 14, fontSize: 13, color: '#4b5563', flexWrap: 'wrap', gap: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                              <span>👥 <strong>{activeJoined.participants?.length || 3}</strong>/{activeJoined.capacity?.max || activeJoined.capacity || 4} participants</span>
+                              <span>📍 {activeJoined.location?.landmark || activeJoined.location?.areaName || 'Campus kitchen'}</span>
+                            </div>
+                            <span style={{ fontSize: 12, color: '#0284c7', fontWeight: 600 }}>
+                              ✓ Confirmed Spot
+                            </span>
+                          </div>
+                        </GlassContainer>
+                      </div>
+                    )}
+
+                    {/* SECTION B: PREVIOUS JOINED DISHES DOWN THE LINE */}
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                        <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
+                          Past Joined Sessions ({previousJoined.length})
+                        </h4>
+                        <span style={{ fontSize: 12, color: '#9ca3af' }}>
+                          History
+                        </span>
+                      </div>
+
+                      {previousJoined.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666666' }}>
+                          <p style={{ fontSize: 14, margin: 0 }}>No past joined dishes yet.</p>
                         </div>
-                      </GlassContainer>
-                    ))}
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                          {previousJoined.map((dish) => (
+                            <GlassContainer
+                              key={dish._id}
+                              radius={18}
+                              style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
+                              innerStyle={{
+                                padding: 20,
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
+                                    {dish.cuisine || dish.category || 'Dine-In'}
+                                  </span>
+                                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)', color: '#4b5563' }}>
+                                    ✓ Joined
+                                  </span>
+                                </div>
+                                <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 6px 0', color: '#000000', lineHeight: 1.3 }}>
+                                  {dish.title || (dish.description ? (dish.description.length > 35 ? dish.description.slice(0, 35) + '...' : dish.description) : 'Dish Session')}
+                                </h4>
+                                <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                  {dish.description}
+                                </p>
+                              </div>
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#666666' }}>
+                                <span>Host: @{dish.creator?.username || 'chef'}</span>
+                                <span>👥 {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4}</span>
+                              </div>
+                            </GlassContainer>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })()}
             </div>
           )}
 
-          {/* TAB 3: INSTITUTES & AWARDS */}
-          {profileActiveTab === 'institutes' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-              {/* Institutes Section */}
+          {/* TAB 3: AWARDS (Award Library - Owned on top, Locked in B&W down the line) */}
+          {profileActiveTab === 'awards' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+              {/* Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
+                <div>
+                  <h3 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px 0', color: '#000000', letterSpacing: '-0.3px' }}>
+                    Award Library
+                  </h3>
+                  <p style={{ fontSize: 13.5, color: '#6b7280', margin: 0 }}>
+                    Badges unlocked through campus cooking, hosting sessions, and culinary exploration.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: 8, fontSize: 12, fontWeight: 700 }}>
+                  <span style={{ padding: '5px 12px', borderRadius: 9999, backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#15803d' }}>
+                    ✓ 3 Unlocked
+                  </span>
+                  <span style={{ padding: '5px 12px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)', color: '#4b5563' }}>
+                    🔒 5 to Unlock
+                  </span>
+                </div>
+              </div>
+
+              {/* 1. OWNED / UNLOCKED AWARDS (Top Section - Full Color) */}
               <div>
-                <h4 style={{ fontSize: 16, fontWeight: 700, color: '#000000', margin: '0 0 16px 0' }}>
-                  Educational Institutes
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, width: '100%' }}>
-                  {/* Card 1: IIT MADRAS with Academic Crest */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <span style={{ fontSize: 14 }}>🏆</span>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#15803d', margin: 0 }}>
+                    Owned Awards
+                  </h4>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                  {/* Owned 1: Master Chef */}
                   <GlassContainer
-                    radius={24}
-                    style={{ width: '100%' }}
+                    radius={22}
                     innerStyle={{
-                      padding: '24px 28px',
+                      padding: '24px 20px',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      gap: 22,
+                      textAlign: 'center',
+                      gap: 12,
                       boxSizing: 'border-box'
                     }}
                   >
-                    <div style={{ width: 78, height: 78, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg width="76" height="76" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="50" cy="50" r="44" stroke="#000000" strokeWidth="5" strokeDasharray="9 4" fill="none" />
-                        <g transform="translate(0, 8)">
-                          <circle cx="50" cy="54" r="28" stroke="#000000" strokeWidth="4" fill="none" />
-                          <ellipse cx="50" cy="54" rx="14" ry="28" stroke="#000000" strokeWidth="3" fill="none" />
-                          <line x1="22" y1="54" x2="78" y2="54" stroke="#000000" strokeWidth="3.5" />
-                          <path d="M 26 43 Q 50 48 74 43" stroke="#000000" strokeWidth="2.5" fill="none" />
-                          <path d="M 26 65 Q 50 60 74 65" stroke="#000000" strokeWidth="2.5" fill="none" />
-                          <line x1="50" y1="26" x2="50" y2="82" stroke="#000000" strokeWidth="3" />
-                        </g>
-                        <g transform="translate(0, -7)">
-                          <path
-                            d="M 50 26 C 42 16, 28 17, 20 20 L 20 40 C 28 37, 42 36, 50 44 C 58 36, 72 37, 80 40 L 80 20 C 72 17, 58 16, 50 26 Z"
-                            fill="#ffffff"
-                            stroke="#000000"
-                            strokeWidth="4"
-                            strokeLinejoin="round"
-                          />
-                          <line x1="50" y1="26" x2="50" y2="44" stroke="#000000" strokeWidth="3.5" />
-                          <path d="M 27 26 C 33 24, 42 24, 46 29" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M 27 32 C 33 30, 42 30, 46 35" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M 73 26 C 67 24, 58 24, 54 29" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M 73 32 C 67 30, 58 30, 54 35" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                        </g>
+                    <div style={{ width: 84, height: 84, borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(0, 0, 0, 0.08)' }}>
+                      <svg width="52" height="46" viewBox="0 0 64 64" fill="none">
+                        <path d="M18 36 C12 36 8 30 11 23 C13 18 19 16 23 18 C25 11 34 8 40 13 C46 9 55 12 56 19 C60 21 61 29 56 34 C54 36 51 36 49 36 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
+                        <path d="M25 21 C26 28 27 34 27 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
+                        <path d="M36 15 C36 24 36 32 36 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
+                        <path d="M46 19 C45 26 44 32 43 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
+                        <rect x="17" y="36" width="33" height="13" rx="3" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
                       </svg>
                     </div>
                     <div>
-                      <div style={{ fontSize: 22, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                        {user.institute?.name || instituteName || 'IIT MADRAS'}
+                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#15803d', backgroundColor: 'rgba(34, 197, 94, 0.1)', padding: '2px 8px', borderRadius: 9999, marginBottom: 6 }}>
+                        ✓ Unlocked
                       </div>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: '#111827', marginTop: 4 }}>
-                        Batch of {user.institute?.year || instituteYear || '2029'}
-                      </div>
+                      <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 4px 0', color: '#000000' }}>Master Chef</h4>
+                      <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
+                        Hosted and executed 10+ culinary sessions on campus.
+                      </p>
                     </div>
                   </GlassContainer>
 
-                  {/* Card 2: SST with Campus Silhouette */}
+                  {/* Owned 2: Coffee Roast */}
                   <GlassContainer
-                    radius={24}
-                    style={{ width: '100%' }}
+                    radius={22}
                     innerStyle={{
-                      padding: '24px 28px',
+                      padding: '24px 20px',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      gap: 22,
+                      textAlign: 'center',
+                      gap: 12,
                       boxSizing: 'border-box'
                     }}
                   >
-                    <div style={{ width: 78, height: 78, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg width="76" height="76" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 90 L12 55 L35 55 L35 32 L50 20 L65 32 L65 55 L88 55 L88 90 Z" fill="#000000" />
-                        <path d="M42 90 L42 66 Q50 60 58 66 L58 90 Z" fill="#e6dfe4" />
-                        <rect x="18" y="60" width="10" height="12" rx="2" fill="#e6dfe4" />
-                        <rect x="18" y="76" width="10" height="10" rx="2" fill="#e6dfe4" />
-                        <rect x="72" y="60" width="10" height="12" rx="2" fill="#e6dfe4" />
-                        <rect x="72" y="76" width="10" height="10" rx="2" fill="#e6dfe4" />
-                        <circle cx="50" cy="42" r="5" fill="#e6dfe4" />
+                    <div style={{ width: 84, height: 84, borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(0, 0, 0, 0.08)' }}>
+                      <svg width="54" height="46" viewBox="0 0 68 56" fill="none">
+                        <path d="M22 13 C20 9 24 6 22 2" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                        <path d="M30 11 C28 7 32 4 30 1" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                        <ellipse cx="32" cy="49" rx="27" ry="5" fill="#fdfbf7" stroke="#78350f" strokeWidth="2" />
+                        <path d="M44 26 C53 26 55 38 43 41" stroke="#78350f" strokeWidth="3" fill="none" strokeLinecap="round" />
+                        <path d="M14 21 L18 43 C19 46 25 47 32 47 C39 47 45 46 46 43 L50 21 Z" fill="#6f4e37" stroke="#451a03" strokeWidth="2" />
+                        <ellipse cx="32" cy="21" rx="18" ry="4.5" fill="#3e2312" />
                       </svg>
                     </div>
                     <div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                        {user.secondaryInstitute?.name || secondaryInstituteName || 'SST'}
+                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#b45309', backgroundColor: 'rgba(245, 158, 11, 0.12)', padding: '2px 8px', borderRadius: 9999, marginBottom: 6 }}>
+                        ✓ Unlocked
                       </div>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: '#111827', marginTop: 4 }}>
-                        Batch of {user.secondaryInstitute?.year || secondaryInstituteYear || '2029'}
+                      <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 4px 0', color: '#000000' }}>Coffee Roast</h4>
+                      <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
+                        Campus specialty coffee artisan • 20+ pour-overs brewed.
+                      </p>
+                    </div>
+                  </GlassContainer>
+
+                  {/* Owned 3: Midnight Kitchen */}
+                  <GlassContainer
+                    radius={22}
+                    innerStyle={{
+                      padding: '24px 20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                      gap: 12,
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <div style={{ width: 84, height: 84, borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(0, 0, 0, 0.08)' }}>
+                      <svg width="54" height="46" viewBox="0 0 68 56" fill="none">
+                        <path d="M37 7 C32 12 32 20 37 25 C40 28 44 29 47 28 C43 35 33 37 26 32 C19 26 20 15 27 9 C30 7 33 6 37 7 Z" fill="#fde047" stroke="#ca8a04" strokeWidth="2" />
+                        <path d="M18 43 C13 43 9 39 10 34 C11 29 16 28 19 29 C22 23 30 22 35 26 C38 24 43 24 45 27 C50 26 55 30 54 35 C57 37 57 42 52 43 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="2" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#ca8a04', backgroundColor: 'rgba(234, 179, 8, 0.12)', padding: '2px 8px', borderRadius: 9999, marginBottom: 6 }}>
+                        ✓ Unlocked
                       </div>
+                      <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 4px 0', color: '#000000' }}>Midnight Kitchen</h4>
+                      <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
+                        Late-night cooking champion • Prepared dishes after 11:00 PM.
+                      </p>
                     </div>
                   </GlassContainer>
                 </div>
               </div>
 
-              {/* Achievements Showcase Section */}
+              {/* 2. YET TO BE UNLOCKED (Down the line - Black & White Grayscale) */}
               <div>
-                <h4 style={{ fontSize: 16, fontWeight: 700, color: '#000000', margin: '0 0 16px 0' }}>
-                  Culinary Achievements & Badges
-                </h4>
-                <GlassContainer
-                  radius={24}
-                  style={{ width: '100%' }}
-                  innerStyle={{
-                    height: 120,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-around',
-                    padding: '12px 28px',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  {/* 1. Chef's Hat Badge */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }} title="Master Chef">
-                    <svg width="60" height="54" viewBox="0 0 64 64" fill="none">
-                      <path
-                        d="M18 36 C12 36 8 30 11 23 C13 18 19 16 23 18 C25 11 34 8 40 13 C46 9 55 12 56 19 C60 21 61 29 56 34 C54 36 51 36 49 36 Z"
-                        fill="#ffffff"
-                        stroke="#cbd5e1"
-                        strokeWidth="1.8"
-                      />
-                      <path d="M25 21 C26 28 27 34 27 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
-                      <path d="M36 15 C36 24 36 32 36 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
-                      <path d="M46 19 C45 26 44 32 43 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
-                      <rect x="17" y="36" width="33" height="13" rx="3" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
-                    </svg>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: '#000000' }}>Master Chef</span>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 14 }}>🔒</span>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
+                    Yet to Unlock (Award Library)
+                  </h4>
+                </div>
+                <p style={{ fontSize: 12.5, color: '#6b7280', margin: '0 0 16px 0' }}>
+                  These badges remain in black & white until unlock requirements are satisfied.
+                </p>
 
-                  {/* 2. Steaming Coffee Cup Badge */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }} title="Coffee Connoisseur">
-                    <svg width="66" height="54" viewBox="0 0 68 56" fill="none">
-                      <path d="M22 13 C20 9 24 6 22 2" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                      <path d="M30 11 C28 7 32 4 30 1" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                      <ellipse cx="32" cy="49" rx="27" ry="5" fill="#fdfbf7" stroke="#78350f" strokeWidth="2" />
-                      <path d="M44 26 C53 26 55 38 43 41" stroke="#78350f" strokeWidth="3.2" fill="none" strokeLinecap="round" />
-                      <path d="M14 21 L18 43 C19 46 25 47 32 47 C39 47 45 46 46 43 L50 21 Z" fill="#6f4e37" stroke="#451a03" strokeWidth="2" />
-                      <ellipse cx="32" cy="21" rx="18" ry="4.5" fill="#3e2312" />
-                    </svg>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: '#000000' }}>Coffee Roast</span>
-                  </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                  {[
+                    {
+                      id: 'table-host',
+                      title: 'Campus Table Host',
+                      desc: 'Host dishes with 20 distinct students across campus.',
+                      progress: '14 / 20 students',
+                      progressPercent: 70,
+                      icon: (
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 20h18" />
+                          <path d="M5 20v-8a7 7 0 0 1 14 0v8" />
+                          <path d="M12 4v1" />
+                          <circle cx="12" cy="4" r="1" />
+                        </svg>
+                      )
+                    },
+                    {
+                      id: 'flavor-explorer',
+                      title: 'Flavor Explorer',
+                      desc: 'Cook recipes across 5 distinct international cuisines.',
+                      progress: '3 / 5 cuisines',
+                      progressPercent: 60,
+                      icon: (
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="2" y1="12" x2="22" y2="12" />
+                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                      )
+                    },
+                    {
+                      id: 'golden-apron',
+                      title: 'Golden Apron',
+                      desc: 'Achieve 5-star ratings on 10 completed cooking sessions.',
+                      progress: '6 / 10 sessions',
+                      progressPercent: 60,
+                      icon: (
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      )
+                    },
+                    {
+                      id: 'early-riser',
+                      title: 'Early Riser Baker',
+                      desc: 'Host an early morning breakfast session before 8:30 AM.',
+                      progress: '0 / 1 hosted',
+                      progressPercent: 0,
+                      icon: (
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2v4" />
+                          <path d="M4.93 10.93l2.83 2.83" />
+                          <path d="M2 18h20" />
+                          <path d="M20 18a8 8 0 0 0-16 0" />
+                          <path d="M19.07 10.93l-2.83 2.83" />
+                        </svg>
+                      )
+                    },
+                    {
+                      id: 'iron-pan',
+                      title: 'Iron Pan Master',
+                      desc: 'Lead a high-heat wok or cast-iron cooking session.',
+                      progress: '0 / 1 completed',
+                      progressPercent: 0,
+                      icon: (
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                        </svg>
+                      )
+                    }
+                  ].map((locked) => (
+                    <GlassContainer
+                      key={locked.id}
+                      radius={22}
+                      style={{
+                        filter: 'grayscale(100%)',
+                        opacity: 0.72,
+                        transition: 'opacity 0.2s ease'
+                      }}
+                      innerStyle={{
+                        padding: '24px 20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        gap: 12,
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <div style={{ width: 84, height: 84, borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px dashed rgba(0, 0, 0, 0.2)' }}>
+                        {locked.icon}
+                      </div>
 
-                  {/* 3. Crescent Moon on Cloud Badge */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }} title="Midnight Kitchen">
-                    <svg width="66" height="54" viewBox="0 0 68 56" fill="none">
-                      <path
-                        d="M37 7 C32 12 32 20 37 25 C40 28 44 29 47 28 C43 35 33 37 26 32 C19 26 20 15 27 9 C30 7 33 6 37 7 Z"
-                        fill="#fde047"
-                        stroke="#ca8a04"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M18 43 C13 43 9 39 10 34 C11 29 16 28 19 29 C22 23 30 22 35 26 C38 24 43 24 45 27 C50 26 55 30 54 35 C57 37 57 42 52 43 Z"
-                        fill="#ffffff"
-                        stroke="#cbd5e1"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: '#000000' }}>Midnight Kitchen</span>
-                  </div>
-                </GlassContainer>
+                      <div style={{ width: '100%' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#4b5563', backgroundColor: 'rgba(0, 0, 0, 0.08)', padding: '2px 8px', borderRadius: 9999, marginBottom: 6 }}>
+                          <span>🔒</span> Locked
+                        </div>
+                        <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 4px 0', color: '#000000' }}>
+                          {locked.title}
+                        </h4>
+                        <p style={{ fontSize: 12.5, color: '#4b5563', margin: '0 0 12px 0', lineHeight: 1.4 }}>
+                          {locked.desc}
+                        </p>
+
+                        {/* Progress Bar in B&W */}
+                        <div style={{ width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.08)', borderRadius: 9999, height: 6, overflow: 'hidden', marginBottom: 6 }}>
+                          <div style={{ width: `${locked.progressPercent}%`, height: '100%', backgroundColor: '#4b5563', borderRadius: 9999 }} />
+                        </div>
+                        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#4b5563' }}>
+                          {locked.progress}
+                        </span>
+                      </div>
+                    </GlassContainer>
+                  ))}
+                </div>
               </div>
             </div>
           )}
