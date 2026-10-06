@@ -32,6 +32,12 @@ export default function App() {
   const [dineInTab, setDineInTab] = useState('join_to_cook'); // 'join_to_cook', 'cooking', 'global', 'my_dishes'
   const [expandedDishes, setExpandedDishes] = useState({});
   const [navHovered, setNavHovered] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showAppearanceModal, setShowAppearanceModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportDescription, setReportDescription] = useState('');
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+  const [themePreference, setThemePreference] = useState('light');
 
   // Kitchen states
   const [isSubmittingDish, setIsSubmittingDish] = useState(false);
@@ -606,11 +612,11 @@ export default function App() {
       >
         <aside
           style={{
-            width: navHovered ? 210 : 54,
+            width: navHovered ? 210 : 64,
             transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
             backgroundColor: '#e6dfe4',
-            borderRight: '1.5px solid rgba(255, 255, 255, 0.7)',
-            boxShadow: 'inset -6px 0 16px rgba(0, 0, 0, 0.025)',
+            borderRight: '1px solid rgba(0, 0, 0, 0.08)',
+            boxShadow: 'inset -4px 0 16px rgba(0, 0, 0, 0.02)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -623,105 +629,383 @@ export default function App() {
             overflow: 'hidden'
           }}
         >
-          {/* Top brand icon */}
-          <div style={{ padding: '18px 14px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #e5e7eb' }}>
-            <span style={{ fontSize: 22, flexShrink: 0 }}>🍳</span>
-            {navHovered && <strong style={{ whiteSpace: 'nowrap', fontSize: 16, color: '#000000' }}>LetMeCook</strong>}
-          </div>
-
-          {/* Middle Navigation Links or Rotated Wireframe Annotation */}
-          {navHovered ? (
-            <div style={{ padding: '16px 10px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-              {[
-                { id: 'home', label: 'Home', icon: '🏠' },
-                { id: 'dine-in', label: 'Dine in', icon: '🍽️' },
-                { id: 'kitchen', label: 'Kitchen', icon: '🍳' },
-                { id: 'messages', label: 'Messages', icon: '💬' },
-                { id: 'profile', label: 'Profile', icon: '👤' }
-              ].map((item) => {
-                const isActive = item.id === 'kitchen' ? showKitchenModal : activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      if (item.id === 'kitchen') {
-                        setShowKitchenModal(true);
-                      } else {
-                        setActiveTab(item.id);
-                        setShowSettings(false);
-                      }
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '10px 14px',
-                      borderRadius: 10,
-                      background: isActive ? '#000000' : 'transparent',
-                      color: isActive ? '#ffffff' : '#000000',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: 14,
-                      textAlign: 'left',
-                      fontWeight: isActive ? 'bold' : '600',
-                      width: '100%',
-                      transition: 'background 0.15s ease'
-                    }}
-                  >
-                    <span style={{ fontSize: 16 }}>{item.icon}</span>
-                    <span style={{ whiteSpace: 'nowrap', color: isActive ? '#ffffff' : '#000000' }}>{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <div
-                style={{
-                  writingMode: 'vertical-rl',
-                  transform: 'rotate(180deg)',
-                  whiteSpace: 'nowrap',
-                  fontSize: 11,
-                  letterSpacing: 2.5,
-                  fontWeight: 'bold',
-                  color: '#000000',
-                  textTransform: 'uppercase',
-                  userSelect: 'none',
-                  padding: '20px 0'
-                }}
-              >
-                NAVIGATION (on HOVER STATE expanded)
-              </div>
-            </div>
-          )}
-
-          {/* Bottom User Area */}
-          <div style={{ padding: '14px 12px', borderTop: '1px solid #e5e7eb' }}>
-            {navHovered ? (
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 'bold', color: '#000000', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  @{user.username}
-                </div>
-                <div style={{ fontSize: 11, color: '#333333', marginBottom: 8 }}>
-                  {user.name}
-                </div>
-                <FluidButton
-                  onClick={handleLogout}
-                  style={{
-                    width: '100%',
-                    padding: '6px 12px',
-                    fontSize: 12,
-                    fontWeight: 600
-                  }}
-                >
-                  Logout
-                </FluidButton>
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', fontSize: 18 }}>👤</div>
+          {/* Top Brand / Logo */}
+          <div
+            style={{
+              padding: navHovered ? '24px 18px 20px' : '24px 0 20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: navHovered ? 'flex-start' : 'center',
+              gap: 14,
+              height: 72,
+              boxSizing: 'border-box'
+            }}
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, flexShrink: 0, color: '#000000' }}>
+              {/* Sleek Cook / Pot Logo SVG */}
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 12h20" />
+                <path d="M4 12v6a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6" />
+                <path d="M8 8a4 4 0 0 1 8 0" />
+                <path d="M12 2v2" />
+              </svg>
+            </span>
+            {navHovered && (
+              <strong style={{ whiteSpace: 'nowrap', fontSize: 17, fontWeight: 800, letterSpacing: '-0.4px', color: '#000000' }}>
+                LetMeCook
+              </strong>
             )}
           </div>
+
+          {/* Navigation Links — Centered vertically, Instagram inspired */}
+          <div
+            style={{
+              padding: '12px 10px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: navHovered ? 'stretch' : 'center',
+              justifyContent: 'center',
+              gap: 8,
+              flex: 1
+            }}
+          >
+            {[
+              {
+                id: 'home',
+                label: 'Home',
+                icon: (isActive) => (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill={isActive ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={isActive ? '2' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                )
+              },
+              {
+                id: 'dine-in',
+                label: 'Dine in',
+                icon: (isActive) => (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isActive ? '2.3' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                    <line x1="6" y1="1" x2="6" y2="4" />
+                    <line x1="10" y1="1" x2="10" y2="4" />
+                    <line x1="14" y1="1" x2="14" y2="4" />
+                  </svg>
+                )
+              },
+              {
+                id: 'kitchen',
+                label: 'Cook',
+                icon: (isActive) => (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isActive ? '2.4' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                  </svg>
+                )
+              },
+              {
+                id: 'messages',
+                label: 'Messages',
+                icon: (isActive) => (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill={isActive ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={isActive ? '2' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                  </svg>
+                )
+              },
+              {
+                id: 'profile',
+                label: 'Profile',
+                icon: (isActive) => {
+                  const hasProfilePhoto = Boolean(user && (user.avatar || user.profilePhoto || user.profilePicture || user.avatarUrl));
+                  const profilePhotoUrl = user ? (user.avatar || user.profilePhoto || user.profilePicture || user.avatarUrl) : null;
+                  if (hasProfilePhoto) {
+                    return (
+                      <img
+                        src={profilePhotoUrl}
+                        alt={user?.name || user?.username || 'Profile'}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          display: 'block',
+                          boxShadow: isActive ? '0 0 0 2px #000000' : 'none'
+                        }}
+                      />
+                    );
+                  }
+                  return (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill={isActive ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={isActive ? '2' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  );
+                }
+              }
+            ].map((item) => {
+              const isActive = item.id === 'kitchen' ? showKitchenModal : activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    if (item.id === 'kitchen') {
+                      setShowKitchenModal(true);
+                    } else {
+                      setActiveTab(item.id);
+                      setShowSettings(false);
+                    }
+                  }}
+                  title={item.label}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: navHovered ? 'flex-start' : 'center',
+                    gap: navHovered ? 14 : 0,
+                    padding: navHovered ? '0 12px' : 0,
+                    width: navHovered ? '100%' : 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: isActive ? 'rgba(0, 0, 0, 0.08)' : 'transparent',
+                    color: '#000000',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: 14.5,
+                    textAlign: 'left',
+                    fontWeight: isActive ? 700 : 500,
+                    transition: 'all 0.16s ease',
+                    boxSizing: 'border-box'
+                  }}
+                  className="btn-zoom-click"
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, flexShrink: 0, color: '#000000' }}>
+                    {item.icon(isActive)}
+                  </span>
+                  {navHovered && (
+                    <span style={{ whiteSpace: 'nowrap', color: '#000000', fontSize: 14.5, letterSpacing: '-0.1px' }}>
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Bottom Area: Instagram style "More" button */}
+          <div style={{ padding: '14px 10px', display: 'flex', justifyContent: 'center', borderTop: '1px solid rgba(0, 0, 0, 0.08)' }}>
+            <button
+              onClick={() => setShowMoreMenu(prev => !prev)}
+              title="More"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: navHovered ? 'flex-start' : 'center',
+                gap: navHovered ? 14 : 0,
+                padding: navHovered ? '0 12px' : 0,
+                width: navHovered ? '100%' : 44,
+                height: 44,
+                borderRadius: 12,
+                background: showMoreMenu ? 'rgba(0, 0, 0, 0.08)' : 'transparent',
+                color: '#000000',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 14.5,
+                textAlign: 'left',
+                fontWeight: showMoreMenu ? 700 : 500,
+                transition: 'all 0.16s ease',
+                boxSizing: 'border-box'
+              }}
+              className="btn-zoom-click"
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, flexShrink: 0, color: '#000000' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={showMoreMenu ? '2.5' : '2'} strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <line x1="4" y1="12" x2="20" y2="12" />
+                  <line x1="4" y1="18" x2="20" y2="18" />
+                </svg>
+              </span>
+              {navHovered && (
+                <span style={{ whiteSpace: 'nowrap', color: '#000000', fontSize: 14.5, letterSpacing: '-0.1px' }}>
+                  More
+                </span>
+              )}
+            </button>
+          </div>
         </aside>
+
+        {/* MORE POPUP MENU (Instagram inspired, built with GlassContainer) */}
+        {showMoreMenu && (
+          <>
+            {/* Backdrop click dismiss */}
+            <div
+              onClick={() => setShowMoreMenu(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 90
+              }}
+            />
+
+            {/* Popup above More button */}
+            <div
+              style={{
+                position: 'fixed',
+                bottom: 68,
+                left: 12,
+                width: 220,
+                zIndex: 100,
+                animation: 'fadeSlideUp 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
+            >
+              <GlassContainer
+                radius={18}
+                borderWidth={1.5}
+                style={{
+                  boxShadow: '0 16px 40px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06)'
+                }}
+                innerStyle={{
+                  padding: '8px 6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2
+                }}
+              >
+                {/* 1. Settings */}
+                <button
+                  onClick={() => {
+                    setShowSettings(true);
+                    setShowMoreMenu(false);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#000000',
+                    textAlign: 'left',
+                    width: '100%',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  </svg>
+                  Settings
+                </button>
+
+                {/* 2. Appearance */}
+                <button
+                  onClick={() => {
+                    setShowAppearanceModal(true);
+                    setShowMoreMenu(false);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#000000',
+                    textAlign: 'left',
+                    width: '100%',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                  Appearance
+                </button>
+
+                {/* 3. Report a Problem */}
+                <button
+                  onClick={() => {
+                    setShowReportModal(true);
+                    setShowMoreMenu(false);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#000000',
+                    textAlign: 'left',
+                    width: '100%',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  Report a Problem
+                </button>
+
+                {/* Divider */}
+                <div style={{ height: 1, backgroundColor: 'rgba(0, 0, 0, 0.08)', margin: '4px 6px' }} />
+
+                {/* 4. Logout */}
+                <button
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    handleLogout();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: '#dc2626',
+                    textAlign: 'left',
+                    width: '100%',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.08)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  Logout
+                </button>
+              </GlassContainer>
+            </div>
+          </>
+        )}
+
       </div>
 
       {/* Main App Container */}
@@ -2090,213 +2374,443 @@ export default function App() {
             </div>
           )}
 
-          {/* SETTINGS MODAL (Triggered by Gear Icon ⚙) */}
-          {showSettings && (
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.55)',
-                backdropFilter: 'blur(3px)',
-                zIndex: 1000,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 16
-              }}
-              onClick={() => setShowSettings(false)}
-            >
-              <GlassContainer
-                radius={28}
-                style={{ width: '100%', maxWidth: 580 }}
-                innerStyle={{
-                  padding: 28,
-                  maxHeight: '90vh',
-                  overflowY: 'auto',
-                  color: '#000000'
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 22 }}>⚙️</span>
-                    <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Settings & Privacy</h3>
-                  </div>
-                  <FluidButton
-                    variant="icon"
-                    onClick={() => setShowSettings(false)}
-                    style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
-                  >
-                    ✕
-                  </FluidButton>
-                </div>
-
-                {/* Privacy & Visibility Settings Form */}
-                <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Bio Visibility:</label>
-                      <select
-                        value={bioVisibility}
-                        onChange={(e) => setBioVisibility(e.target.value)}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
-                      >
-                        <option value="everyone">Everyone</option>
-                        <option value="institute">Institute Only</option>
-                        <option value="connections">Connections Only</option>
-                        <option value="nobody">Nobody (Hidden)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Institute Visibility:</label>
-                      <select
-                        value={instituteVisibility}
-                        onChange={(e) => setInstituteVisibility(e.target.value)}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
-                      >
-                        <option value="everyone">Everyone</option>
-                        <option value="institute">Institute Only</option>
-                        <option value="nobody">Nobody (Hidden)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Avatar Visibility:</label>
-                      <select
-                        value={avatarVisibility}
-                        onChange={(e) => setAvatarVisibility(e.target.value)}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
-                      >
-                        <option value="everyone">Everyone</option>
-                        <option value="institute">Institute</option>
-                        <option value="connections">Connections</option>
-                        <option value="nobody">Nobody</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Who Can Message:</label>
-                      <select
-                        value={messagePermission}
-                        onChange={(e) => setMessagePermission(e.target.value)}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
-                      >
-                        <option value="everyone">Everyone</option>
-                        <option value="institute">Institute</option>
-                        <option value="connections">Connections</option>
-                        <option value="nobody">Nobody</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={globalDiscovery}
-                        onChange={(e) => setGlobalDiscovery(e.target.checked)}
-                        style={{ width: 16, height: 16, accentColor: '#000000' }}
-                      />
-                      <span>Participate in Global Discovery</span>
-                    </label>
-
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={activityVisibility}
-                        onChange={(e) => setActivityVisibility(e.target.checked)}
-                        style={{ width: 16, height: 16, accentColor: '#000000' }}
-                      />
-                      <span>Show Active Cooking on Profile</span>
-                    </label>
-                  </div>
-
-                  <FluidButton
-                    type="submit"
-                    style={{
-                      padding: '8px 24px',
-                      fontSize: 14,
-                      fontWeight: 600,
-                      marginTop: 8,
-                      alignSelf: 'flex-start'
-                    }}
-                  >
-                    Save Privacy Settings
-                  </FluidButton>
-                </form>
-
-                {/* Privacy Filter Inspector */}
-                <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid #e5e7eb' }}>
-                  <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 8px 0' }}>Inspect Profile (Privacy Filter Test)</h4>
-                  <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 10px 0' }}>
-                    Verify how your privacy settings filter out info when another student looks up a user.
-                  </p>
-                  <form onSubmit={handleSearchProfile} style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="text"
-                      required
-                      value={searchUsername}
-                      onChange={(e) => setSearchUsername(e.target.value)}
-                      placeholder="Username (e.g. chef_arjun or mayachef)"
-                      style={{
-                        flex: 1,
-                        padding: '8px 12px',
-                        borderRadius: 8,
-                        border: '1px solid #d1d5db',
-                        fontSize: 13,
-                        color: '#000000'
-                      }}
-                    />
-                    <FluidButton
-                      type="submit"
-                      style={{
-                        padding: '8px 18px',
-                        fontSize: 13,
-                        fontWeight: 600
-                      }}
-                    >
-                      Lookup
-                    </FluidButton>
-                  </form>
-
-                  {searchedProfile && (
-                    <div style={{ marginTop: 12, backgroundColor: '#f9fafb', borderRadius: 12, padding: 12, border: '1px solid #e5e7eb', fontSize: 13 }}>
-                      <div><strong>Username:</strong> @{searchedProfile.username}</div>
-                      <div><strong>Name:</strong> {searchedProfile.name}</div>
-                      <div><strong>Pronouns:</strong> {searchedProfile.pronouns || '—'}</div>
-                      <div><strong>Bio:</strong> {searchedProfile.bio || '— [Filtered by Privacy]'}</div>
-                      <div><strong>Institute:</strong> {searchedProfile.institute?.name || '— [Filtered or Not Set]'}</div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Connections List */}
-                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
-                  <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 8px 0' }}>Your Connections ({connections.length})</h4>
-                  {connections.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>No direct connections established yet.</p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {connections.map((c) => (
-                        <div key={c.connectionId} style={{ fontSize: 13, color: '#374151' }}>
-                          • @{c.user?.username} ({c.user?.name})
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </GlassContainer>
-            </div>
-          )}
-
         </section>
       )}
+
+      {/* ========================================================= */}
+      {/* GLOBAL SETTINGS MODAL (Accessible from any screen & More menu) */}
+      {/* ========================================================= */}
+      {showSettings && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16
+          }}
+          onClick={() => setShowSettings(false)}
+        >
+          <GlassContainer
+            radius={28}
+            style={{ width: '100%', maxWidth: 580 }}
+            innerStyle={{
+              padding: 28,
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              color: '#000000'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 22 }}>⚙️</span>
+                <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Settings & Privacy</h3>
+              </div>
+              <FluidButton
+                variant="icon"
+                onClick={() => setShowSettings(false)}
+                style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
+              >
+                ✕
+              </FluidButton>
+            </div>
+
+            {/* Privacy & Visibility Settings Form */}
+            <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Bio Visibility:</label>
+                  <select
+                    value={bioVisibility}
+                    onChange={(e) => setBioVisibility(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
+                  >
+                    <option value="everyone">Everyone</option>
+                    <option value="institute">Institute Only</option>
+                    <option value="connections">Connections Only</option>
+                    <option value="nobody">Nobody (Hidden)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Institute Visibility:</label>
+                  <select
+                    value={instituteVisibility}
+                    onChange={(e) => setInstituteVisibility(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
+                  >
+                    <option value="everyone">Everyone</option>
+                    <option value="institute">Institute Only</option>
+                    <option value="nobody">Nobody (Hidden)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Avatar Visibility:</label>
+                  <select
+                    value={avatarVisibility}
+                    onChange={(e) => setAvatarVisibility(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
+                  >
+                    <option value="everyone">Everyone</option>
+                    <option value="institute">Institute</option>
+                    <option value="connections">Connections</option>
+                    <option value="nobody">Nobody</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Who Can Message:</label>
+                  <select
+                    value={messagePermission}
+                    onChange={(e) => setMessagePermission(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: '#000000' }}
+                  >
+                    <option value="everyone">Everyone</option>
+                    <option value="institute">Institute</option>
+                    <option value="connections">Connections</option>
+                    <option value="nobody">Nobody</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={globalDiscovery}
+                    onChange={(e) => setGlobalDiscovery(e.target.checked)}
+                    style={{ width: 16, height: 16, accentColor: '#000000' }}
+                  />
+                  <span>Participate in Global Discovery</span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={activityVisibility}
+                    onChange={(e) => setActivityVisibility(e.target.checked)}
+                    style={{ width: 16, height: 16, accentColor: '#000000' }}
+                  />
+                  <span>Show Active Cooking on Profile</span>
+                </label>
+              </div>
+
+              <FluidButton
+                type="submit"
+                style={{
+                  padding: '8px 24px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  marginTop: 8,
+                  alignSelf: 'flex-start'
+                }}
+              >
+                Save Privacy Settings
+              </FluidButton>
+            </form>
+
+            {/* Privacy Filter Inspector */}
+            <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid #e5e7eb' }}>
+              <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 8px 0' }}>Inspect Profile (Privacy Filter Test)</h4>
+              <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 10px 0' }}>
+                Verify how your privacy settings filter out info when another student looks up a user.
+              </p>
+              <form onSubmit={handleSearchProfile} style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="text"
+                  required
+                  value={searchUsername}
+                  onChange={(e) => setSearchUsername(e.target.value)}
+                  placeholder="Username (e.g. chef_arjun or mayachef)"
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    border: '1px solid #d1d5db',
+                    fontSize: 13,
+                    color: '#000000'
+                  }}
+                />
+                <FluidButton
+                  type="submit"
+                  style={{
+                    padding: '8px 18px',
+                    fontSize: 13,
+                    fontWeight: 600
+                  }}
+                >
+                  Lookup
+                </FluidButton>
+              </form>
+
+              {searchedProfile && (
+                <div style={{ marginTop: 12, backgroundColor: '#f9fafb', borderRadius: 12, padding: 12, border: '1px solid #e5e7eb', fontSize: 13 }}>
+                  <div><strong>Username:</strong> @{searchedProfile.username}</div>
+                  <div><strong>Name:</strong> {searchedProfile.name}</div>
+                  <div><strong>Pronouns:</strong> {searchedProfile.pronouns || '—'}</div>
+                  <div><strong>Bio:</strong> {searchedProfile.bio || '— [Filtered by Privacy]'}</div>
+                  <div><strong>Institute:</strong> {searchedProfile.institute?.name || '— [Filtered or Not Set]'}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Connections List */}
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
+              <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 8px 0' }}>Your Connections ({connections.length})</h4>
+              {connections.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>No direct connections established yet.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {connections.map((c) => (
+                    <div key={c.connectionId} style={{ fontSize: 13, color: '#374151' }}>
+                      • @{c.user?.username} ({c.user?.name})
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </GlassContainer>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* APPEARANCE MODAL (Built with GlassContainer) */}
+      {/* ========================================================= */}
+      {showAppearanceModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16
+          }}
+          onClick={() => setShowAppearanceModal(false)}
+        >
+          <GlassContainer
+            radius={24}
+            style={{ width: '100%', maxWidth: 430 }}
+            innerStyle={{ padding: 26, color: '#000000' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: '50%', backgroundColor: 'rgba(0, 0, 0, 0.06)' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                </span>
+                <h3 style={{ margin: 0, fontSize: 19, fontWeight: 700 }}>Appearance</h3>
+              </div>
+              <FluidButton
+                variant="icon"
+                onClick={() => setShowAppearanceModal(false)}
+                style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
+              >
+                ✕
+              </FluidButton>
+            </div>
+
+            <p style={{ fontSize: 13.5, color: '#52525b', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+              Choose your display appearance for LetMeCook:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+              {[
+                { id: 'light', label: 'Light Mode', desc: 'Soft frosted daylight tone (Default)' },
+                { id: 'dark', label: 'Dark Mode', desc: 'Deep obsidian night theme (Coming soon)' },
+                { id: 'system', label: 'System Default', desc: 'Match your operating system appearance' }
+              ].map((theme) => {
+                const isSelected = themePreference === theme.id;
+                return (
+                  <button
+                    key={theme.id}
+                    onClick={() => setThemePreference(theme.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 14px',
+                      borderRadius: 12,
+                      border: isSelected ? '1.5px solid #000000' : '1px solid rgba(0, 0, 0, 0.08)',
+                      background: isSelected ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.4)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#000000' }}>{theme.label}</div>
+                      <div style={{ fontSize: 12, color: '#666' }}>{theme.desc}</div>
+                    </div>
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: '50%',
+                        border: isSelected ? '5px solid #000000' : '2px solid #ccc',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            <FluidButton
+              onClick={() => setShowAppearanceModal(false)}
+              style={{ width: '100%', padding: '10px 0', fontSize: 13.5, fontWeight: 600 }}
+            >
+              Done
+            </FluidButton>
+          </GlassContainer>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* REPORT A PROBLEM MODAL (Built with GlassContainer) */}
+      {/* ========================================================= */}
+      {showReportModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16
+          }}
+          onClick={() => {
+            setShowReportModal(false);
+            setReportSubmitted(false);
+          }}
+        >
+          <GlassContainer
+            radius={24}
+            style={{ width: '100%', maxWidth: 470 }}
+            innerStyle={{ padding: 26, color: '#000000' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: '50%', backgroundColor: 'rgba(0, 0, 0, 0.06)' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </span>
+                <h3 style={{ margin: 0, fontSize: 19, fontWeight: 700 }}>Report a Problem</h3>
+              </div>
+              <FluidButton
+                variant="icon"
+                onClick={() => {
+                  setShowReportModal(false);
+                  setReportSubmitted(false);
+                }}
+                style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
+              >
+                ✕
+              </FluidButton>
+            </div>
+
+            {reportSubmitted ? (
+              <div style={{ textAlign: 'center', padding: '24px 8px' }}>
+                <div style={{ fontSize: 36, marginBottom: 12 }}>✓</div>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: 17, fontWeight: 700 }}>Thank you for your report!</h4>
+                <p style={{ margin: 0, fontSize: 13.5, color: '#52525b', lineHeight: 1.5 }}>
+                  Our team has received your feedback and will look into it promptly.
+                </p>
+                <FluidButton
+                  onClick={() => {
+                    setShowReportModal(false);
+                    setReportSubmitted(false);
+                    setReportDescription('');
+                  }}
+                  style={{ marginTop: 20, width: '100%', padding: '9px 0', fontSize: 13.5, fontWeight: 600 }}
+                >
+                  Close
+                </FluidButton>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!reportDescription.trim()) return;
+                  setReportSubmitted(true);
+                }}
+              >
+                <p style={{ fontSize: 13.5, color: '#52525b', margin: '0 0 14px 0', lineHeight: 1.5 }}>
+                  Please describe what went wrong or feature improvements you'd like to see:
+                </p>
+                <textarea
+                  value={reportDescription}
+                  onChange={(e) => setReportDescription(e.target.value)}
+                  placeholder="Explain what happened or what's broken..."
+                  rows={4}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '11px 13px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(0, 0, 0, 0.14)',
+                    fontSize: 13.5,
+                    fontFamily: 'inherit',
+                    boxSizing: 'border-box',
+                    resize: 'none',
+                    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+                    marginBottom: 16,
+                    outline: 'none',
+                    color: '#000000'
+                  }}
+                />
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <FluidButton
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setShowReportModal(false)}
+                    style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500 }}
+                  >
+                    Cancel
+                  </FluidButton>
+                  <FluidButton
+                    type="submit"
+                    disabled={!reportDescription.trim()}
+                    style={{ padding: '8px 20px', fontSize: 13, fontWeight: 600 }}
+                  >
+                    Send Report
+                  </FluidButton>
+                </div>
+              </form>
+            )}
+          </GlassContainer>
+        </div>
+      )}
+
 
       {/* ========================================================= */}
       {/* KITCHEN POPUP MODAL (Guided Sequential Creation Flow) */}
