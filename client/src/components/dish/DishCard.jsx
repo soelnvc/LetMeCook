@@ -76,7 +76,7 @@ export default function DishCard({
               width: 38,
               height: 38,
               borderRadius: '50%',
-              backgroundColor: '#9353d3',
+              backgroundColor: '#f97316',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',

@@ -12,6 +12,7 @@ import AwardsLibrary from '@/components/profile/AwardsLibrary';
 import ConversationList from '@/components/messaging/ConversationList';
 import MessageArea from '@/components/messaging/MessageArea';
 import HomeDashboard from '@/components/home/HomeDashboard';
+import DineInFeed from '@/components/dinein/DineInFeed';
 import GlobalPage from '@/components/global/GlobalPage';
 import { dishService } from '@/services/dish.service';
 import { authService } from '@/services/auth.service';
@@ -644,128 +645,26 @@ export default function App() {
       )}
 
       {/* ========================================================= */}
-      {/* 2. DINE-IN SCREEN (Proposed Design) */}
+      {/* 2. DINE-IN SCREEN (Redesigned with Modern Real-App UI/UX) */}
       {/* ========================================================= */}
       {activeTab === 'dine-in' && (
-        <section style={{ width: '100%', maxWidth: 860, margin: '0 auto', color: '#000000' }}>
-          {/* Header Title */}
-          <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <h1 style={{ fontSize: 40, fontFamily: '"Georgia", "Playfair Display", "Times New Roman", serif', fontWeight: 'bold', margin: '0 0 20px 0', letterSpacing: '-0.5px', color: '#000000' }}>
-              Dine in
-            </h1>
-            
-            {/* Top Sub-Navigation Tabs */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2.5px solid #000000', paddingBottom: 0, fontSize: 16 }}>
-              {[
-                { key: 'join_to_cook', label: 'Join to Cook' },
-                { key: 'cooking', label: 'Cooking' },
-                { key: 'my_dishes', label: 'My Dishes' }
-              ].map((tab) => {
-                const isActive = dineInTab === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    onClick={() => setDineInTab(tab.key)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: 17,
-                      fontFamily: 'inherit',
-                      cursor: 'pointer',
-                      fontWeight: isActive ? 'bold' : 'normal',
-                      color: '#000000',
-                      borderBottom: isActive ? '3.5px solid #000000' : '3.5px solid transparent',
-                      padding: '6px 12px 10px 12px',
-                      marginBottom: -2.5,
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Category Filter Bar */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginBottom: 20, color: '#000000' }}>
-            <span style={{ fontSize: 12, color: '#000000', fontWeight: 'bold' }}>Filter Category:</span>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              style={{ padding: '3px 8px', fontSize: 12, color: '#000000', backgroundColor: '#ffffff', border: '1px solid #000000', borderRadius: 4 }}
-            >
-              <option value="">All</option>
-              <option value="sport">Sport</option>
-              <option value="study">Study</option>
-              <option value="travel">Travel</option>
-              <option value="food">Food</option>
-              <option value="gaming">Gaming</option>
-              <option value="social">Social</option>
-              <option value="help">Help</option>
-              <option value="learning">Learning</option>
-              <option value="other">Other</option>
-            </select>
-            <FluidButton
-              onClick={fetchDishes}
-              style={{ padding: '4px 14px', fontSize: 12, fontWeight: 600 }}
-            >
-              Refresh
-            </FluidButton>
-          </div>
-
-          {/* Filtered Dishes based on Sub-Tab */}
-          {(() => {
-            const filteredDishes = dishes.filter((dish) => {
-              if (dineInTab === 'join_to_cook') {
-                return dish.status === 'lets_cook';
-              }
-              if (dineInTab === 'cooking') {
-                return dish.status === 'cooking';
-              }
-              if (dineInTab === 'my_dishes') {
-                const isCreator = (dish.creator?._id || dish.creator) === user._id;
-                const isParticipant = dish.participants?.some((p) => (p.user?._id || p.user) === user._id);
-                return isCreator || isParticipant;
-              }
-              return true;
-            });
-
-            if (filteredDishes.length === 0) {
-              return (
-                <GlassContainer radius={24} style={{ width: '100%' }} innerStyle={{ textAlign: 'center', padding: '40px 20px', color: '#555' }}>
-                  No dishes found in <strong>{dineInTab.replace('_', ' ')}</strong>.
-                </GlassContainer>
-              );
-            }
-
-            return (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                  gap: 20,
-                  alignItems: 'start',
-                  width: '100%'
-                }}
-              >
-                {filteredDishes.map((dish) => (
-                  <DishCard
-                    key={dish._id}
-                    dish={dish}
-                    currentUser={user}
-                    onJoin={handleJoinDish}
-                    onLeave={handleLeaveDish}
-                    onStartCooking={(id) => handleUpdateStatus(id, 'cooking')}
-                    onMarkCooked={(id) => handleUpdateStatus(id, 'cooked')}
-                    onApproveRequest={handleApproveRequest}
-                    onRejectRequest={handleRejectRequest}
-                  />
-                ))}
-              </div>
-            );
-          })()}
-        </section>
+        <DineInFeed
+          user={user}
+          dishes={dishes}
+          fetchDishes={fetchDishes}
+          onJoinDish={handleJoinDish}
+          onLeaveDish={handleLeaveDish}
+          onStartCooking={(id) => handleUpdateStatus(id, 'cooking')}
+          onMarkCooked={(id) => handleUpdateStatus(id, 'cooked')}
+          onApproveRequest={handleApproveRequest}
+          onRejectRequest={handleRejectRequest}
+          onOpenKitchenModal={(category) => {
+            if (category) setCategoryFilter(category);
+            setShowKitchenModal(true);
+          }}
+          initialTab={dineInTab}
+          initialCategory={categoryFilter}
+        />
       )}
 
       {/* ========================================================= */}
