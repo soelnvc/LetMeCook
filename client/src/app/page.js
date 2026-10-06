@@ -632,16 +632,25 @@ export default function App() {
           {/* Top Brand / Logo */}
           <div
             style={{
-              padding: navHovered ? '24px 18px 20px' : '24px 0 20px',
+              padding: '16px 10px 14px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: navHovered ? 'flex-start' : 'center',
-              gap: 14,
               height: 72,
               boxSizing: 'border-box'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, flexShrink: 0, color: '#000000' }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 44,
+                height: 44,
+                minWidth: 44,
+                flexShrink: 0,
+                color: '#000000'
+              }}
+            >
               {/* Sleek Cook / Pot Logo SVG */}
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M2 12h20" />
@@ -650,20 +659,32 @@ export default function App() {
                 <path d="M12 2v2" />
               </svg>
             </span>
-            {navHovered && (
-              <strong style={{ whiteSpace: 'nowrap', fontSize: 17, fontWeight: 800, letterSpacing: '-0.4px', color: '#000000' }}>
-                LetMeCook
-              </strong>
-            )}
+            <span
+              style={{
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                fontSize: 17,
+                fontWeight: 800,
+                letterSpacing: '-0.4px',
+                color: '#000000',
+                maxWidth: navHovered ? 140 : 0,
+                opacity: navHovered ? 1 : 0,
+                transform: navHovered ? 'translateX(0)' : 'translateX(-6px)',
+                transition: 'max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+                display: 'inline-block',
+                marginLeft: 6
+              }}
+            >
+              LetMeCook
+            </span>
           </div>
 
-          {/* Navigation Links — Centered vertically, Instagram inspired */}
+          {/* Navigation Links — Centered vertically, Icons 100% static, text drawer animated */}
           <div
             style={{
               padding: '12px 10px',
               display: 'flex',
               flexDirection: 'column',
-              alignItems: navHovered ? 'stretch' : 'center',
               justifyContent: 'center',
               gap: 8,
               flex: 1
@@ -760,75 +781,117 @@ export default function App() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: navHovered ? 'flex-start' : 'center',
-                    gap: navHovered ? 14 : 0,
-                    padding: navHovered ? '0 12px' : 0,
-                    width: navHovered ? '100%' : 44,
+                    width: '100%',
                     height: 44,
+                    padding: 0,
                     borderRadius: 12,
                     background: isActive ? 'rgba(0, 0, 0, 0.08)' : 'transparent',
                     color: '#000000',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: 14.5,
                     textAlign: 'left',
-                    fontWeight: isActive ? 700 : 500,
-                    transition: 'all 0.16s ease',
-                    boxSizing: 'border-box'
+                    transition: 'background 0.16s ease',
+                    boxSizing: 'border-box',
+                    overflow: 'hidden'
                   }}
                   className="btn-zoom-click"
                 >
-                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, flexShrink: 0, color: '#000000' }}>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 44,
+                      height: 44,
+                      minWidth: 44,
+                      flexShrink: 0,
+                      color: '#000000'
+                    }}
+                  >
                     {item.icon(isActive)}
                   </span>
-                  {navHovered && (
-                    <span style={{ whiteSpace: 'nowrap', color: '#000000', fontSize: 14.5, letterSpacing: '-0.1px' }}>
-                      {item.label}
-                    </span>
-                  )}
+                  <span
+                    style={{
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      color: '#000000',
+                      fontSize: 14.5,
+                      letterSpacing: '-0.1px',
+                      fontWeight: isActive ? 700 : 500,
+                      maxWidth: navHovered ? 130 : 0,
+                      opacity: navHovered ? 1 : 0,
+                      transform: navHovered ? 'translateX(0)' : 'translateX(-6px)',
+                      transition: 'max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+                      display: 'inline-block',
+                      marginLeft: 6
+                    }}
+                  >
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
           </div>
 
           {/* Bottom Area: Instagram style "More" button */}
-          <div style={{ padding: '14px 10px', display: 'flex', justifyContent: 'center', borderTop: '1px solid rgba(0, 0, 0, 0.08)' }}>
+          <div style={{ padding: '14px 10px', display: 'flex', borderTop: '1px solid rgba(0, 0, 0, 0.08)' }}>
             <button
               onClick={() => setShowMoreMenu(prev => !prev)}
               title="More"
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: navHovered ? 'flex-start' : 'center',
-                gap: navHovered ? 14 : 0,
-                padding: navHovered ? '0 12px' : 0,
-                width: navHovered ? '100%' : 44,
+                width: '100%',
                 height: 44,
+                padding: 0,
                 borderRadius: 12,
                 background: showMoreMenu ? 'rgba(0, 0, 0, 0.08)' : 'transparent',
                 color: '#000000',
                 border: 'none',
                 cursor: 'pointer',
-                fontSize: 14.5,
                 textAlign: 'left',
-                fontWeight: showMoreMenu ? 700 : 500,
-                transition: 'all 0.16s ease',
-                boxSizing: 'border-box'
+                transition: 'background 0.16s ease',
+                boxSizing: 'border-box',
+                overflow: 'hidden'
               }}
               className="btn-zoom-click"
             >
-              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, flexShrink: 0, color: '#000000' }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 44,
+                  height: 44,
+                  minWidth: 44,
+                  flexShrink: 0,
+                  color: '#000000'
+                }}
+              >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={showMoreMenu ? '2.5' : '2'} strokeLinecap="round" strokeLinejoin="round">
                   <line x1="4" y1="6" x2="20" y2="6" />
                   <line x1="4" y1="12" x2="20" y2="12" />
                   <line x1="4" y1="18" x2="20" y2="18" />
                 </svg>
               </span>
-              {navHovered && (
-                <span style={{ whiteSpace: 'nowrap', color: '#000000', fontSize: 14.5, letterSpacing: '-0.1px' }}>
-                  More
-                </span>
-              )}
+              <span
+                style={{
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  color: '#000000',
+                  fontSize: 14.5,
+                  letterSpacing: '-0.1px',
+                  fontWeight: showMoreMenu ? 700 : 500,
+                  maxWidth: navHovered ? 130 : 0,
+                  opacity: navHovered ? 1 : 0,
+                  transform: navHovered ? 'translateX(0)' : 'translateX(-6px)',
+                  transition: 'max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+                  display: 'inline-block',
+                  marginLeft: 6
+                }}
+              >
+                More
+              </span>
             </button>
           </div>
         </aside>
