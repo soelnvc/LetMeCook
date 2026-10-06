@@ -2,9 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api';
-import GlassContainer from '@/components/GlassContainer';
-import FluidButton from '@/components/FluidButton';
-import KitchenModal from '@/components/KitchenModal';
+import GlassContainer from '@/components/ui/GlassContainer';
+import FluidButton from '@/components/ui/FluidButton';
+import KitchenModal from '@/components/kitchen/KitchenModal';
+import Sidebar from '@/components/layout/Sidebar';
+import DishCard from '@/components/dish/DishCard';
+import ProfileHeader from '@/components/profile/ProfileHeader';
+import AwardsLibrary from '@/components/profile/AwardsLibrary';
+import ConversationList from '@/components/messaging/ConversationList';
+import MessageArea from '@/components/messaging/MessageArea';
+import { dishService } from '@/services/dish.service';
+import { authService } from '@/services/auth.service';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -122,8 +130,7 @@ export default function App() {
 
   const fetchDishes = async () => {
     try {
-      const query = categoryFilter ? `?category=${categoryFilter}` : '';
-      const res = await apiFetch(`/dishes${query}`);
+      const res = await dishService.getDishes({ category: categoryFilter });
       setDishes(res.data || []);
     } catch (err) {
       setError(err.message);
@@ -224,10 +231,7 @@ export default function App() {
     setMessage('');
     setIsSubmittingDish(true);
     try {
-      const res = await apiFetch('/dishes', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
+      const res = await dishService.createDish(payload);
       setMessage(`Dish published: ${res.data._id}`);
       setShowKitchenModal(false);
       fetchDishes();
@@ -243,7 +247,7 @@ export default function App() {
     setError('');
     setMessage('');
     try {
-      const res = await apiFetch(`/dishes/${dishId}/join`, { method: 'POST' });
+      const res = await dishService.joinDish(dishId);
       setMessage(`Join status: ${res.data.status}`);
       fetchDishes();
     } catch (err) {
@@ -255,7 +259,7 @@ export default function App() {
     setError('');
     setMessage('');
     try {
-      const res = await apiFetch(`/dishes/${dishId}/leave`, { method: 'POST' });
+      const res = await dishService.leaveDish(dishId);
       setMessage(res.data.message);
       fetchDishes();
     } catch (err) {
@@ -267,10 +271,7 @@ export default function App() {
     setError('');
     setMessage('');
     try {
-      const res = await apiFetch(`/dishes/${dishId}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status })
-      });
+      const res = await dishService.updateStatus(dishId, status);
       setMessage(`Dish status: ${res.data.status}`);
       fetchDishes();
     } catch (err) {
@@ -282,7 +283,7 @@ export default function App() {
     setError('');
     setMessage('');
     try {
-      const res = await apiFetch(`/dishes/${dishId}/requests/${requestId}/approve`, { method: 'POST' });
+      const res = await dishService.approveRequest(dishId, requestId);
       setMessage(`Approved join request: ${res.data.status}`);
       fetchDishes();
     } catch (err) {
@@ -294,8 +295,8 @@ export default function App() {
     setError('');
     setMessage('');
     try {
-      const res = await apiFetch(`/dishes/${dishId}/requests/${requestId}/reject`, { method: 'POST' });
-      setMessage(`Rejected join request: ${res.data.status}`);
+      await dishService.rejectRequest(dishId, requestId);
+      setMessage(`Rejected join request`);
       fetchDishes();
     } catch (err) {
       setError(err.message);
@@ -604,476 +605,18 @@ export default function App() {
   // Authenticated View
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#e6dfe4', fontFamily: "'Inter', sans-serif", color: '#000000' }}>
-      {/* Reserved Navigation Space (blank space reserved so hovering nav never shifts content) */}
-      <div
-        onMouseEnter={() => setNavHovered(true)}
-        onMouseLeave={() => setNavHovered(false)}
-        style={{
-          width: 220,
-          flexShrink: 0,
-          position: 'relative'
-        }}
-      >
-        <aside
-          style={{
-            width: navHovered ? 210 : 64,
-            transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
-            backgroundColor: '#e6dfe4',
-            borderRight: '1px solid rgba(0, 0, 0, 0.08)',
-            boxShadow: 'inset -4px 0 16px rgba(0, 0, 0, 0.02)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            height: '100vh',
-            zIndex: 50,
-            overflow: 'hidden'
-          }}
-        >
-          {/* Top Brand / Logo */}
-          <div
-            style={{
-              padding: '16px 10px 14px',
-              display: 'flex',
-              alignItems: 'center',
-              height: 72,
-              boxSizing: 'border-box'
-            }}
-          >
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 44,
-                height: 44,
-                minWidth: 44,
-                flexShrink: 0,
-                color: '#000000'
-              }}
-            >
-              {/* Sleek Cook / Pot Logo SVG */}
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 12h20" />
-                <path d="M4 12v6a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6" />
-                <path d="M8 8a4 4 0 0 1 8 0" />
-                <path d="M12 2v2" />
-              </svg>
-            </span>
-            <span
-              style={{
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                fontSize: 17,
-                fontWeight: 800,
-                letterSpacing: '-0.4px',
-                color: '#000000',
-                maxWidth: navHovered ? 140 : 0,
-                opacity: navHovered ? 1 : 0,
-                transform: navHovered ? 'translateX(0)' : 'translateX(-6px)',
-                transition: 'max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
-                display: 'inline-block',
-                marginLeft: 6
-              }}
-            >
-              LetMeCook
-            </span>
-          </div>
-
-          {/* Navigation Links — Centered vertically, Icons 100% static, text drawer animated */}
-          <div
-            style={{
-              padding: '12px 10px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              gap: 8,
-              flex: 1
-            }}
-          >
-            {[
-              {
-                id: 'home',
-                label: 'Home',
-                icon: (isActive) => (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill={isActive ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={isActive ? '2' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                )
-              },
-              {
-                id: 'dine-in',
-                label: 'Dine in',
-                icon: (isActive) => (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isActive ? '2.3' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-                    <line x1="6" y1="1" x2="6" y2="4" />
-                    <line x1="10" y1="1" x2="10" y2="4" />
-                    <line x1="14" y1="1" x2="14" y2="4" />
-                  </svg>
-                )
-              },
-              {
-                id: 'kitchen',
-                label: 'Cook',
-                icon: (isActive) => (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isActive ? '2.4' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="9" />
-                    <line x1="12" y1="8" x2="12" y2="16" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                  </svg>
-                )
-              },
-              {
-                id: 'messages',
-                label: 'Messages',
-                icon: (isActive) => (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill={isActive ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={isActive ? '2' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                  </svg>
-                )
-              },
-              {
-                id: 'profile',
-                label: 'Profile',
-                icon: (isActive) => {
-                  const hasProfilePhoto = Boolean(user && (user.avatar || user.profilePhoto || user.profilePicture || user.avatarUrl));
-                  const profilePhotoUrl = user ? (user.avatar || user.profilePhoto || user.profilePicture || user.avatarUrl) : null;
-                  if (hasProfilePhoto) {
-                    return (
-                      <img
-                        src={profilePhotoUrl}
-                        alt={user?.name || user?.username || 'Profile'}
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: '50%',
-                          objectFit: 'cover',
-                          display: 'block',
-                          boxShadow: isActive ? '0 0 0 2px #000000' : 'none'
-                        }}
-                      />
-                    );
-                  }
-                  return (
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill={isActive ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={isActive ? '2' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  );
-                }
-              }
-            ].map((item) => {
-              const isActive = item.id === 'kitchen' ? showKitchenModal : activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    if (item.id === 'kitchen') {
-                      setShowKitchenModal(true);
-                    } else {
-                      setActiveTab(item.id);
-                      setShowSettings(false);
-                    }
-                  }}
-                  title={item.label}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '100%',
-                    height: 44,
-                    padding: 0,
-                    borderRadius: 12,
-                    background: isActive ? 'rgba(0, 0, 0, 0.08)' : 'transparent',
-                    color: '#000000',
-                    border: 'none',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'background 0.16s ease',
-                    boxSizing: 'border-box',
-                    overflow: 'hidden'
-                  }}
-                  className="btn-zoom-click"
-                >
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 44,
-                      height: 44,
-                      minWidth: 44,
-                      flexShrink: 0,
-                      color: '#000000'
-                    }}
-                  >
-                    {item.icon(isActive)}
-                  </span>
-                  <span
-                    style={{
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      color: '#000000',
-                      fontSize: 14.5,
-                      letterSpacing: '-0.1px',
-                      fontWeight: isActive ? 700 : 500,
-                      maxWidth: navHovered ? 130 : 0,
-                      opacity: navHovered ? 1 : 0,
-                      transform: navHovered ? 'translateX(0)' : 'translateX(-6px)',
-                      transition: 'max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
-                      display: 'inline-block',
-                      marginLeft: 6
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Bottom Area: Instagram style "More" button */}
-          <div style={{ padding: '14px 10px', display: 'flex', borderTop: '1px solid rgba(0, 0, 0, 0.08)' }}>
-            <button
-              onClick={() => setShowMoreMenu(prev => !prev)}
-              title="More"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                width: '100%',
-                height: 44,
-                padding: 0,
-                borderRadius: 12,
-                background: showMoreMenu ? 'rgba(0, 0, 0, 0.08)' : 'transparent',
-                color: '#000000',
-                border: 'none',
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'background 0.16s ease',
-                boxSizing: 'border-box',
-                overflow: 'hidden'
-              }}
-              className="btn-zoom-click"
-            >
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 44,
-                  height: 44,
-                  minWidth: 44,
-                  flexShrink: 0,
-                  color: '#000000'
-                }}
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={showMoreMenu ? '2.5' : '2'} strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="4" y1="6" x2="20" y2="6" />
-                  <line x1="4" y1="12" x2="20" y2="12" />
-                  <line x1="4" y1="18" x2="20" y2="18" />
-                </svg>
-              </span>
-              <span
-                style={{
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  color: '#000000',
-                  fontSize: 14.5,
-                  letterSpacing: '-0.1px',
-                  fontWeight: showMoreMenu ? 700 : 500,
-                  maxWidth: navHovered ? 130 : 0,
-                  opacity: navHovered ? 1 : 0,
-                  transform: navHovered ? 'translateX(0)' : 'translateX(-6px)',
-                  transition: 'max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
-                  display: 'inline-block',
-                  marginLeft: 6
-                }}
-              >
-                More
-              </span>
-            </button>
-          </div>
-        </aside>
-
-        {/* MORE POPUP MENU (Instagram inspired, built with GlassContainer) */}
-        {showMoreMenu && (
-          <>
-            {/* Backdrop click dismiss */}
-            <div
-              onClick={() => setShowMoreMenu(false)}
-              style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 90
-              }}
-            />
-
-            {/* Popup above More button */}
-            <div
-              style={{
-                position: 'fixed',
-                bottom: 68,
-                left: 12,
-                width: 220,
-                zIndex: 100,
-                animation: 'fadeSlideUp 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
-              }}
-            >
-              <GlassContainer
-                radius={18}
-                borderWidth={1.5}
-                style={{
-                  boxShadow: '0 16px 40px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06)'
-                }}
-                innerStyle={{
-                  padding: '8px 6px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2
-                }}
-              >
-                {/* 1. Settings */}
-                <button
-                  onClick={() => {
-                    setShowSettings(true);
-                    setShowMoreMenu(false);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: '#000000',
-                    textAlign: 'left',
-                    width: '100%',
-                    transition: 'background 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="3" />
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                  </svg>
-                  Settings
-                </button>
-
-                {/* 2. Appearance */}
-                <button
-                  onClick={() => {
-                    setShowAppearanceModal(true);
-                    setShowMoreMenu(false);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: '#000000',
-                    textAlign: 'left',
-                    width: '100%',
-                    transition: 'background 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                  </svg>
-                  Appearance
-                </button>
-
-                {/* 3. Report a Problem */}
-                <button
-                  onClick={() => {
-                    setShowReportModal(true);
-                    setShowMoreMenu(false);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: '#000000',
-                    textAlign: 'left',
-                    width: '100%',
-                    transition: 'background 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  Report a Problem
-                </button>
-
-                {/* Divider */}
-                <div style={{ height: 1, backgroundColor: 'rgba(0, 0, 0, 0.08)', margin: '4px 6px' }} />
-
-                {/* 4. Logout */}
-                <button
-                  onClick={() => {
-                    setShowMoreMenu(false);
-                    handleLogout();
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: '#dc2626',
-                    textAlign: 'left',
-                    width: '100%',
-                    transition: 'background 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.08)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                  Logout
-                </button>
-              </GlassContainer>
-            </div>
-          </>
-        )}
-
-      </div>
+      {/* Sidebar Navigation */}
+      <Sidebar
+        user={user}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        showKitchenModal={showKitchenModal}
+        setShowKitchenModal={setShowKitchenModal}
+        setShowSettings={setShowSettings}
+        setShowAppearanceModal={setShowAppearanceModal}
+        setShowReportModal={setShowReportModal}
+        onLogout={handleLogout}
+      />
 
       {/* Main App Container */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '100vh', padding: activeTab === 'profile' ? '54px 24px 80px' : '40px 32px', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
@@ -1272,190 +815,19 @@ export default function App() {
                   width: '100%'
                 }}
               >
-                {filteredDishes.map((dish) => {
-                  const creatorObj = dish.creator || {};
-                  const creatorName = creatorObj.name || 'Unknown Chef';
-                  const creatorUsername = creatorObj.username || 'user';
-                  const isCreator = (creatorObj._id || creatorObj) === user._id;
-                  const isParticipant = dish.participants?.some((p) => (p.user?._id || p.user) === user._id);
-                  const hasPendingReq = dish.requests?.some(
-                    (r) => (r.user?._id || r.user) === user._id && r.status === 'pending'
-                  );
-                  const isExpanded = !!expandedDishes[dish._id];
-                  const spotsLeft = dish.capacity?.unlimited ? '∞' : Math.max(0, (dish.capacity?.max || 4) - (dish.participants?.length || 0));
-
-                  return (
-                    <GlassContainer
-                      key={dish._id}
-                      radius={28}
-                      style={{ width: '100%' }}
-                      innerStyle={{
-                        padding: '20px 22px',
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 16,
-                        position: 'relative',
-                        color: '#000000',
-                        boxSizing: 'border-box',
-                        width: '100%'
-                      }}
-                    >
-                      {/* Left Icon: Wireframe Shopping Cart SVG */}
-                      <div style={{ paddingTop: 4, flexShrink: 0 }}>
-                        <svg
-                          width="44"
-                          height="44"
-                          viewBox="0 0 40 40"
-                          fill="none"
-                          stroke="#000000"
-                          strokeWidth="2.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M4 6h5l3.5 17h18l3.5-12H11" />
-                          <line x1="14" y1="15" x2="31.5" y2="15" />
-                          <line x1="15.5" y1="19" x2="28" y2="19" />
-                          <line x1="19" y1="11" x2="18" y2="23" />
-                          <line x1="25" y1="11" x2="24" y2="23" />
-                          <circle cx="16" cy="29" r="2.8" fill="#000000" />
-                          <circle cx="28" cy="29" r="2.8" fill="#000000" />
-                        </svg>
-                      </div>
-
-                      {/* Right Card Content */}
-                      <div style={{ flex: 1, minWidth: 0, color: '#000000' }}>
-                        {/* Header: DP + Name + Username */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                          <div
-                            style={{
-                              width: 38,
-                              height: 38,
-                              borderRadius: '50%',
-                              backgroundColor: '#9353d3',
-                              color: '#ffffff',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: 13,
-                              fontWeight: 'bold',
-                              flexShrink: 0
-                            }}
-                          >
-                            dp
-                          </div>
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ fontWeight: 'bold', fontSize: 15, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.5px', lineHeight: 1.2 }}>
-                              {creatorName}
-                            </div>
-                            <div style={{ fontSize: 11, color: '#111111', marginTop: 1 }}>
-                              @{creatorUsername} • <span style={{ textTransform: 'capitalize' }}>{dish.category}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Description with read more */}
-                        <div style={{ fontSize: 13, color: '#000000', lineHeight: 1.4, marginBottom: 4, wordBreak: 'break-word' }}>
-                          <span style={{ fontWeight: 600, color: '#000000' }}>Description: </span>
-                          {isExpanded || dish.description.length <= 80
-                            ? dish.description
-                            : `${dish.description.slice(0, 80)}...`}
-                        </div>
-
-                        {dish.description.length > 80 && (
-                          <div style={{ textAlign: 'right', marginBottom: 6 }}>
-                            <button
-                              onClick={() =>
-                                setExpandedDishes((prev) => ({ ...prev, [dish._id]: !prev[dish._id] }))
-                              }
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#000000',
-                                fontSize: 11,
-                                cursor: 'pointer',
-                                textDecoration: 'underline',
-                                padding: 0,
-                                fontWeight: 'bold'
-                              }}
-                            >
-                              {isExpanded ? 'show less' : 'read more'}
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Meta Info Bar: Capacity, Join Mode, Status */}
-                        <div style={{ fontSize: 11, color: '#000000', marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 8, fontWeight: '500' }}>
-                          <span>👥 {dish.participants?.length || 1}/{dish.capacity?.max || 4} spots ({spotsLeft} left)</span>
-                          <span>• {dish.joinMode === 'auto' ? '⚡ Auto-join' : '⏳ Request approval'}</span>
-                          {dish.type === 'chefs_special' && <span style={{ color: '#8b0000', fontWeight: 'bold' }}>• ⭐ Chef's Special</span>}
-                        </div>
-
-                        {/* Creator Pending Requests Section */}
-                        {isCreator && dish.requests?.filter((r) => r.status === 'pending').length > 0 && (
-                          <GlassContainer radius={16} innerStyle={{ padding: '8px 12px', marginBottom: 10, fontSize: 11, color: '#000000' }}>
-                            <strong>Pending Requests ({dish.requests.filter((r) => r.status === 'pending').length}):</strong>
-                            {dish.requests
-                              .filter((r) => r.status === 'pending')
-                              .map((r) => (
-                                <div key={r._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                                  <span style={{ color: '#000000' }}>User: {r.user?._id || r.user}</span>
-                                  <div>
-                                    <button onClick={() => handleApproveRequest(dish._id, r._id)} style={{ padding: '2px 6px', fontSize: 11, marginRight: 4, color: '#000000', background: '#fff', border: '1px solid #000', borderRadius: 3, cursor: 'pointer' }}>[✓ Approve]</button>
-                                    <button onClick={() => handleRejectRequest(dish._id, r._id)} style={{ padding: '2px 6px', fontSize: 11, color: '#000000', background: '#fff', border: '1px solid #000', borderRadius: 3, cursor: 'pointer' }}>[✕ Reject]</button>
-                                  </div>
-                                </div>
-                              ))}
-                          </GlassContainer>
-                        )}
-
-                        {/* Actions */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                          {!isParticipant && !hasPendingReq && (
-                            <FluidButton
-                              onClick={() => handleJoinDish(dish._id)}
-                              style={{
-                                padding: '5px 14px',
-                                fontSize: 12,
-                                fontWeight: 600
-                              }}
-                            >
-                              {dish.joinMode === 'auto' ? 'Join Dish' : 'Request to Join'}
-                            </FluidButton>
-                          )}
-                          {hasPendingReq && (
-                            <span style={{ fontSize: 11, color: '#000000', fontStyle: 'italic', alignSelf: 'center', fontWeight: 'bold' }}>
-                              Request pending approval
-                            </span>
-                          )}
-                          {isParticipant && !isCreator && (
-                            <FluidButton
-                              onClick={() => handleLeaveDish(dish._id)}
-                              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600 }}
-                            >
-                              Leave Dish
-                            </FluidButton>
-                          )}
-                          {isCreator && dish.status === 'lets_cook' && (
-                            <FluidButton
-                              onClick={() => handleUpdateStatus(dish._id, 'cooking')}
-                              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600 }}
-                            >
-                              Start Cooking
-                            </FluidButton>
-                          )}
-                          {isCreator && dish.status === 'cooking' && (
-                            <FluidButton
-                              onClick={() => handleUpdateStatus(dish._id, 'cooked')}
-                              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600 }}
-                            >
-                              Mark Cooked
-                            </FluidButton>
-                          )}
-                        </div>
-                      </div>
-                    </GlassContainer>
-                  );
-                })}
+                {filteredDishes.map((dish) => (
+                  <DishCard
+                    key={dish._id}
+                    dish={dish}
+                    currentUser={user}
+                    onJoin={handleJoinDish}
+                    onLeave={handleLeaveDish}
+                    onStartCooking={(id) => handleUpdateStatus(id, 'cooking')}
+                    onMarkCooked={(id) => handleUpdateStatus(id, 'cooked')}
+                    onApproveRequest={handleApproveRequest}
+                    onRejectRequest={handleRejectRequest}
+                  />
+                ))}
               </div>
             );
           })()}
@@ -1480,365 +852,38 @@ export default function App() {
             }}
           >
             {/* Left Panel: Conversations List */}
-            <div
-              style={{
-                width: 360,
-                flexShrink: 0,
-                borderRight: '1.5px solid rgba(255, 255, 255, 0.7)',
-                display: 'flex',
-                flexDirection: 'column',
-                backgroundColor: 'transparent'
-              }}
-            >
-              {/* Header: Username + Tabs */}
-              <div style={{ padding: '22px 24px 0 24px' }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: '#000000', marginBottom: 16, letterSpacing: '-0.3px' }}>
-                  {user.name || user.username}
-                </div>
-
-                {/* Message / Requests Sub-tabs */}
-                <div style={{ display: 'flex', gap: 32, borderBottom: '2px solid #000000', paddingBottom: 0 }}>
-                  <button
-                    onClick={() => setMessagesTab('message')}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: 16,
-                      fontFamily: 'inherit',
-                      cursor: 'pointer',
-                      fontWeight: messagesTab === 'message' ? 700 : 500,
-                      color: '#000000',
-                      borderBottom: messagesTab === 'message' ? '3.5px solid #000000' : '3.5px solid transparent',
-                      padding: '0 4px 8px 4px',
-                      marginBottom: -2,
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    Message
-                  </button>
-                  <button
-                    onClick={() => setMessagesTab('requests')}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: 16,
-                      fontFamily: 'inherit',
-                      cursor: 'pointer',
-                      fontWeight: messagesTab === 'requests' ? 700 : 500,
-                      color: '#000000',
-                      borderBottom: messagesTab === 'requests' ? '3.5px solid #000000' : '3.5px solid transparent',
-                      padding: '0 4px 8px 4px',
-                      marginBottom: -2,
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    Requests {conversations.filter((c) => c.isRequest).length > 0 && `(${conversations.filter((c) => c.isRequest).length})`}
-                  </button>
-                </div>
-              </div>
-
-              {/* Pill Search Bar */}
-              <div style={{ padding: '16px 20px 10px 20px' }}>
-                <GlassContainer
-                  radius={9999}
-                  innerStyle={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '8px 16px',
-                    gap: 10
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                  <input
-                    type="text"
-                    value={searchMsgQuery}
-                    onChange={(e) => setSearchMsgQuery(e.target.value)}
-                    placeholder="Search Bar"
-                    style={{
-                      border: 'none',
-                      background: 'transparent',
-                      outline: 'none',
-                      fontSize: 14,
-                      width: '100%',
-                      color: '#000000',
-                      fontWeight: 500,
-                      fontFamily: 'inherit'
-                    }}
-                  />
-                </GlassContainer>
-              </div>
-
-              {/* Conversation List */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '6px 14px' }}>
-                {(() => {
-                  const list = conversations.filter((c) => {
-                    const matchTab = messagesTab === 'requests' ? c.isRequest : !c.isRequest;
-                    const query = searchMsgQuery.trim().toLowerCase();
-                    if (!query) return matchTab;
-                    const nameMatch = (c.user?.name || '').toLowerCase().includes(query);
-                    const usernameMatch = (c.user?.username || '').toLowerCase().includes(query);
-                    const lastMsgMatch = (c.lastMessage || '').toLowerCase().includes(query);
-                    return matchTab && (nameMatch || usernameMatch || lastMsgMatch);
-                  });
-
-                  if (list.length === 0) {
-                    return (
-                      <div style={{ textAlign: 'center', padding: '36px 16px', color: '#666666', fontSize: 14 }}>
-                        {messagesTab === 'requests' ? 'No message requests' : 'No conversations found'}
-                      </div>
-                    );
-                  }
-
-                  return list.map((c) => {
-                    const isSelected = selectedConvId === c.conversationId;
-                    const otherUser = c.user || {};
-                    return (
-                      <div
-                        key={c.conversationId}
-                        onClick={() => handleOpenConversation(c.conversationId)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 14,
-                          padding: '12px 14px',
-                          borderRadius: 14,
-                          cursor: 'pointer',
-                          backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.5)' : 'transparent',
-                          marginBottom: 4,
-                          transition: 'background-color 0.15s ease'
-                        }}
-                      >
-                        {/* Purple Avatar Circle */}
-                        <div
-                          style={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: '50%',
-                            backgroundColor: '#8257e5',
-                            flexShrink: 0
-                          }}
-                        />
-
-                        {/* Name & Snippet */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, fontSize: 15, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
-                            {otherUser.name || 'NAME'}
-                          </div>
-                          <div style={{ fontSize: 13, color: '#333333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>
-                            {c.lastMessage || 'Hey there how are...'}
-                          </div>
-
-                          {/* Requests Action Buttons */}
-                          {c.needsResponse && (
-                            <div style={{ marginTop: 6, display: 'flex', gap: 6 }}>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleRespondMessageRequest(c.conversationId, 'accepted'); }}
-                                style={{ padding: '3px 8px', fontSize: 11, background: '#000000', color: '#ffffff', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
-                              >
-                                Accept
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleRespondMessageRequest(c.conversationId, 'rejected'); }}
-                                style={{ padding: '3px 8px', fontSize: 11, background: '#ffffff', color: '#000000', border: '1px solid #000000', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
-                              >
-                                Decline
-                              </button>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Timestamp */}
-                        <div style={{ fontSize: 12, color: '#555555', flexShrink: 0, alignSelf: 'flex-start', marginTop: 4 }}>
-                          {formatTimeAgo(c.updatedAt)}
-                        </div>
-                      </div>
-                    );
-                  });
-                })()}
-              </div>
-            </div>
+            <ConversationList
+              userName={user.name || user.username}
+              conversations={conversations}
+              selectedConvId={selectedConvId}
+              onSelectConversation={handleOpenConversation}
+              messagesTab={messagesTab}
+              setMessagesTab={setMessagesTab}
+              searchQuery={searchMsgQuery}
+              setSearchQuery={setSearchMsgQuery}
+              onRespondRequest={handleRespondMessageRequest}
+            />
 
             {/* Right Panel: Chat Thread */}
             {(() => {
               const activeConv = conversations.find((c) => c.conversationId === selectedConvId);
-              const activeUser = activeConv?.user || (convMessages.length > 0 ? (convMessages[0].sender?._id === user._id ? convMessages[0].receiver : convMessages[0].sender) : null);
+              const activeUser =
+                activeConv?.user ||
+                (convMessages.length > 0
+                  ? convMessages[0].sender?._id === user._id
+                    ? convMessages[0].receiver
+                    : convMessages[0].sender
+                  : null);
 
               return (
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'transparent', minWidth: 0 }}>
-                  {activeUser ? (
-                    <>
-                      {/* Top Header */}
-                      <div
-                        style={{
-                          padding: '16px 28px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 18,
-                          borderBottom: '1.5px solid rgba(255, 255, 255, 0.7)',
-                          backgroundColor: 'transparent'
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: 62,
-                            height: 62,
-                            borderRadius: '50%',
-                            backgroundColor: '#8257e5',
-                            flexShrink: 0
-                          }}
-                        />
-                        <div>
-                          <div style={{ fontSize: 22, fontWeight: 700, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            {activeUser.name || 'NAME'}
-                          </div>
-                          <div style={{ fontSize: 13, color: '#555555', marginTop: 2 }}>
-                            @{activeUser.username || 'username'}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Messages Area */}
-                      <div
-                        style={{
-                          flex: 1,
-                          overflowY: 'auto',
-                          padding: '24px 32px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 18
-                        }}
-                      >
-                        {convMessages.length === 0 ? (
-                          <div style={{ textAlign: 'center', margin: 'auto', color: '#888888', fontSize: 14 }}>
-                            No messages yet in this conversation. Say hello!
-                          </div>
-                        ) : (
-                          convMessages.map((m) => {
-                            const isMe = (m.sender?._id || m.sender) === user._id;
-
-                            if (isMe) {
-                              // Outgoing Message
-                              return (
-                                <GlassContainer
-                                  key={m._id}
-                                  radius={24}
-                                  style={{ alignSelf: 'flex-end', maxWidth: '70%' }}
-                                  innerStyle={{
-                                    padding: '14px 22px',
-                                    color: '#000000',
-                                    fontSize: 15,
-                                    lineHeight: 1.4
-                                  }}
-                                >
-                                  {m.content}
-                                </GlassContainer>
-                              );
-                            } else {
-                              // Incoming Message
-                              return (
-                                <div
-                                  key={m._id}
-                                  style={{
-                                    alignSelf: 'flex-start',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 12,
-                                    maxWidth: '75%'
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      width: 32,
-                                      height: 32,
-                                      borderRadius: '50%',
-                                      backgroundColor: '#8257e5',
-                                      flexShrink: 0
-                                    }}
-                                  />
-                                  <GlassContainer
-                                    radius={24}
-                                    style={{ flex: 1 }}
-                                    innerStyle={{
-                                      padding: '14px 22px',
-                                      color: '#000000',
-                                      fontSize: 15,
-                                      lineHeight: 1.4
-                                    }}
-                                  >
-                                    {m.content}
-                                  </GlassContainer>
-                                </div>
-                              );
-                            }
-                          })
-                        )}
-                      </div>
-
-                      {/* Bottom Input Bar */}
-                      <div style={{ padding: '16px 24px', backgroundColor: 'transparent' }}>
-                        <form onSubmit={handleSendMessage}>
-                          <GlassContainer
-                            radius={9999}
-                            innerStyle={{
-                              padding: '6px 14px 6px 18px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 12
-                            }}
-                          >
-                            {/* Winking Smiley SVG Icon */}
-                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                              <circle cx="12" cy="12" r="10" />
-                              <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                              <line x1="9" y1="9" x2="9.01" y2="9" />
-                              <path d="M15 8.5a1.5 1.5 0 0 1 1.5 1.5" />
-                            </svg>
-                            <input
-                              type="text"
-                              required
-                              value={msgContent}
-                              onChange={(e) => setMsgContent(e.target.value)}
-                              placeholder="Type a Message..."
-                              style={{
-                                border: 'none',
-                                background: 'transparent',
-                                outline: 'none',
-                                fontSize: 15,
-                                flex: 1,
-                                color: '#000000',
-                                fontFamily: 'inherit'
-                              }}
-                            />
-                            <FluidButton
-                              type="submit"
-                              variant="icon"
-                              style={{
-                                width: 36,
-                                height: 36,
-                                minWidth: 36,
-                                minHeight: 36,
-                                flexShrink: 0
-                              }}
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                              </svg>
-                            </FluidButton>
-                          </GlassContainer>
-                        </form>
-                      </div>
-                    </>
-                  ) : (
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#666666' }}>
-                      <div style={{ fontSize: 44, marginBottom: 12 }}>💬</div>
-                      <div style={{ fontSize: 16, fontWeight: 600 }}>Select a conversation to start chatting</div>
-                    </div>
-                  )}
-                </div>
+                <MessageArea
+                  currentUser={user}
+                  activeUser={activeUser}
+                  messages={convMessages}
+                  messageText={msgContent}
+                  setMessageText={setMsgContent}
+                  onSendMessage={handleSendMessage}
+                />
               );
             })()}
           </GlassContainer>
@@ -1854,250 +899,18 @@ export default function App() {
           {/* ========================================================= */}
           {/* 1. TOP PROFILE HEADER (Instagram Profile Layout)          */}
           {/* ========================================================= */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 56, marginBottom: 44, padding: '0 20px', flexWrap: 'wrap' }}>
-            {/* Left Column: Avatar with Instagram Note */}
-            <div style={{ width: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', flexShrink: 0 }}>
-              {/* Floating Note Tag */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: -8,
-                  left: 6,
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(0, 0, 0, 0.08)',
-                  borderRadius: 16,
-                  padding: '3px 10px',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: '#4b5563',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-                  cursor: 'default',
-                  zIndex: 2,
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                Note...
-              </div>
-
-              {/* Large Circular Avatar: Orange if no photo, no glow/shadow */}
-              <div
-                style={{
-                  width: 150,
-                  height: 150,
-                  borderRadius: '50%',
-                  backgroundColor: '#f97316',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: 'none',
-                  border: 'none',
-                  position: 'relative'
-                }}
-              >
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name || user.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <span style={{ fontSize: 52, color: '#ffffff', fontWeight: 800, userSelect: 'none' }}>
-                    {(user.name || user.username || 'S')[0].toUpperCase()}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column: Profile Info */}
-            <div style={{ flex: 1, minWidth: 280, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Row 1: Username & Action Buttons (View Archive Removed) */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-                <h1 style={{ fontSize: 21, fontWeight: 600, margin: 0, letterSpacing: '-0.3px', color: '#000000', lineHeight: 1.2 }}>
-                  {user.username || 'username'}
-                </h1>
-
-                {/* Edit Profile Button */}
-                <button
-                  onClick={() => setShowEditProfile(true)}
-                  style={{
-                    padding: '7px 18px',
-                    borderRadius: 8,
-                    fontSize: 14,
-                    fontWeight: 600,
-                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                    border: 'none',
-                    color: '#000000',
-                    cursor: 'pointer',
-                    transition: 'background 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.12)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.08)'}
-                >
-                  Edit Profile
-                </button>
-
-                {/* Settings Gear Button */}
-                <button
-                  onClick={() => setShowSettings(true)}
-                  title="Settings & Privacy"
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#000000',
-                    transition: 'background 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="3" />
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Row 2: Stats Row */}
-              <div style={{ display: 'flex', gap: 36, fontSize: 15.5, color: '#000000' }}>
-                <span style={{ cursor: 'pointer' }} onClick={() => setProfileActiveTab('dishes')}>
-                  <strong>{user.stats?.dishesCreated ?? 17}</strong> cooked
-                </span>
-                <span style={{ cursor: 'pointer' }} onClick={() => setProfileActiveTab('joined')}>
-                  <strong>{user.stats?.dishesJoined ?? 19}</strong> joined
-                </span>
-                <span style={{ cursor: 'pointer' }} onClick={() => setShowSettings(true)}>
-                  <strong>{connections.length > 0 ? connections.length : 72}</strong> connections
-                </span>
-              </div>
-
-              {/* Row 3: Name, Pronouns, Verified Institute, Bio with Blue Hashtags, Button Aesthetic Tags */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14, lineHeight: 1.45 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                  <span style={{ fontWeight: 700, fontSize: 15, color: '#000000' }}>
-                    {user.name || 'Sid G'}
-                  </span>
-                  <span style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>
-                    {pronouns || user.pronouns || 'He/Him'}
-                  </span>
-                </div>
-
-                {/* Institute with Verified Tick Badge */}
-                <div style={{ fontSize: 13.5, color: '#374151', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                  <span style={{ fontWeight: 600 }}>🎓 {user.institute?.name || instituteName || 'IIT MADRAS'}</span>
-                  {/* Verified Tick Mark */}
-                  <span
-                    title="Verified Institute Student"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#0095f6'
-                    }}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="#0095f6">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                    </svg>
-                  </span>
-                  <span style={{ color: '#6b7280', fontWeight: 500 }}>
-                    • Batch of {user.institute?.year || instituteYear || '2029'}
-                  </span>
-                </div>
-
-                {/* Bio with Blue Hashtags Inside */}
-                <div style={{ color: '#111827', marginTop: 4, maxWidth: 540 }}>
-                  {(() => {
-                    const rawBio = user.bio || bio || "Always down for badminton, late night study sessions, gym workouts, or grabbing coffee at the campus cafe. Let's cook! #Badminton #Gym #Study #Gaming #Coffee";
-                    const isLong = rawBio.length > 90;
-                    const displayBio = isLong && !bioExpanded ? rawBio.slice(0, 90) + '...' : rawBio;
-                    
-                    // Parse words to format hashtags in blue
-                    const bioParts = displayBio.split(/(#[a-zA-Z0-9_]+)/g);
-
-                    return (
-                      <div>
-                        <span>
-                          {bioParts.map((part, i) => {
-                            if (part.startsWith('#')) {
-                              return (
-                                <span
-                                  key={i}
-                                  style={{
-                                    color: '#0095f6',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    transition: 'opacity 0.15s ease'
-                                  }}
-                                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.75'}
-                                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                                >
-                                  {part}
-                                </span>
-                              );
-                            }
-                            return part;
-                          })}
-                        </span>
-                        {isLong && (
-                          <button
-                            onClick={() => setBioExpanded(!bioExpanded)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              color: '#6b7280',
-                              fontWeight: 600,
-                              fontSize: 13,
-                              marginLeft: 6,
-                              padding: 0
-                            }}
-                          >
-                            {bioExpanded ? 'show less' : 'more'}
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Tags using Button Aesthetics */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-                  {(interests && interests.length > 0 ? interests : ['music', 'Gym', 'Sports', 'Anime', 'Coffee']).map((tag, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: 20,
-                        fontSize: 12.5,
-                        fontWeight: 600,
-                        backgroundColor: 'rgba(0, 0, 0, 0.06)',
-                        border: '1px solid rgba(0, 0, 0, 0.06)',
-                        color: '#111827',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        transition: 'all 0.15s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}
-                    >
-                      {tag.startsWith('#') ? tag.slice(1) : tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <ProfileHeader
+            user={user}
+            pronouns={pronouns}
+            instituteName={instituteName}
+            instituteYear={instituteYear}
+            bio={bio}
+            interests={interests}
+            connectionsCount={connections.length > 0 ? connections.length : 72}
+            onEditProfile={() => setShowEditProfile(true)}
+            onOpenSettings={() => setShowSettings(true)}
+            onTabChange={(tab) => setProfileActiveTab(tab)}
+          />
 
           {/* ========================================================= */}
           {/* 2. TAB BAR (DISHES, JOINED, AWARDS)                        */}
@@ -2590,261 +1403,7 @@ export default function App() {
           )}
 
           {/* TAB 3: AWARDS (Award Library based on PRODUCT.md Section 20 Achievements) */}
-          {profileActiveTab === 'awards' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-              {/* Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
-                <div>
-                  <h3 style={{ fontSize: 19, fontWeight: 800, margin: '0 0 4px 0', color: '#000000', letterSpacing: '-0.3px' }}>
-                    Award Library
-                  </h3>
-                  <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>
-                    Earned through real-world community coordination and activities on campus.
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: 8, fontSize: 12, fontWeight: 700 }}>
-                  <span style={{ padding: '4px 12px', borderRadius: 9999, backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#15803d' }}>
-                    ✓ 3 Unlocked
-                  </span>
-                  <span style={{ padding: '4px 12px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)', color: '#4b5563' }}>
-                    🔒 5 to Unlock
-                  </span>
-                </div>
-              </div>
-
-              {/* 1. OWNED / UNLOCKED ACHIEVEMENTS (Top Section - Full Color) */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <span style={{ fontSize: 14 }}>🏆</span>
-                  <h4 style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#15803d', margin: 0 }}>
-                    Unlocked Achievements
-                  </h4>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
-                  {/* Owned 1: Chef (PRODUCT.md Section 20) */}
-                  <GlassContainer
-                    radius={22}
-                    innerStyle={{
-                      padding: '22px 18px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      textAlign: 'center',
-                      gap: 12,
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <div style={{ width: 76, height: 76, borderRadius: '50%', backgroundColor: 'rgba(254, 243, 199, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(245, 158, 11, 0.3)' }}>
-                      <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" fill="#fef3c7" stroke="#f59e0b" strokeWidth="1.8" />
-                        <path d="M12 6.5l1.6 3.8 4.1.4-3.1 2.8.9 4-3.5-2.1-3.5 2.1.9-4-3.1-2.8 4.1-.4z" fill="#f59e0b" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#b45309', backgroundColor: 'rgba(245, 158, 11, 0.12)', padding: '2px 8px', borderRadius: 9999, marginBottom: 5 }}>
-                        ✓ Unlocked
-                      </div>
-                      <h4 style={{ fontSize: 15.5, fontWeight: 800, margin: '0 0 3px 0', color: '#000000' }}>Chef</h4>
-                      <p style={{ fontSize: 12, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
-                        Created 10+ Dishes (Activities) for the community.
-                      </p>
-                    </div>
-                  </GlassContainer>
-
-                  {/* Owned 2: Good Company (PRODUCT.md Section 20) */}
-                  <GlassContainer
-                    radius={22}
-                    innerStyle={{
-                      padding: '22px 18px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      textAlign: 'center',
-                      gap: 12,
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <div style={{ width: 76, height: 76, borderRadius: '50%', backgroundColor: 'rgba(209, 250, 229, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(16, 185, 129, 0.3)' }}>
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#047857', backgroundColor: 'rgba(16, 185, 129, 0.12)', padding: '2px 8px', borderRadius: 9999, marginBottom: 5 }}>
-                        ✓ Unlocked
-                      </div>
-                      <h4 style={{ fontSize: 15.5, fontWeight: 800, margin: '0 0 3px 0', color: '#000000' }}>Good Company</h4>
-                      <p style={{ fontSize: 12, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
-                        Joined and participated in 15+ community Dishes.
-                      </p>
-                    </div>
-                  </GlassContainer>
-
-                  {/* Owned 3: Night Chef (PRODUCT.md Section 20) */}
-                  <GlassContainer
-                    radius={22}
-                    innerStyle={{
-                      padding: '22px 18px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      textAlign: 'center',
-                      gap: 12,
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <div style={{ width: 76, height: 76, borderRadius: '50%', backgroundColor: 'rgba(254, 240, 138, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(202, 138, 4, 0.3)' }}>
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#fde047" stroke="#ca8a04" strokeWidth="1.8" />
-                        <path d="M19 5l.5 1.2 1.3.3-1.1.9.3 1.3-1-.7-1 .7.3-1.3-1.1-.9 1.3-.3z" fill="#ca8a04" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#ca8a04', backgroundColor: 'rgba(234, 179, 8, 0.12)', padding: '2px 8px', borderRadius: 9999, marginBottom: 5 }}>
-                        ✓ Unlocked
-                      </div>
-                      <h4 style={{ fontSize: 15.5, fontWeight: 800, margin: '0 0 3px 0', color: '#000000' }}>Night Chef</h4>
-                      <p style={{ fontSize: 12, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
-                        Organized late-night study or gaming activities past 11 PM.
-                      </p>
-                    </div>
-                  </GlassContainer>
-                </div>
-              </div>
-
-              {/* 2. YET TO BE UNLOCKED (Down the line - Black & White Grayscale) */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 14 }}>🔒</span>
-                  <h4 style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
-                    Yet to Unlock (Award Library)
-                  </h4>
-                </div>
-                <p style={{ fontSize: 12, color: '#6b7280', margin: '0 0 14px 0' }}>
-                  These badges remain in black & white until activity milestones are achieved.
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
-                  {[
-                    {
-                      id: 'master-chef',
-                      title: 'MasterChef',
-                      desc: 'Create 25+ successful campus Dishes.',
-                      progress: '17 / 25 Dishes',
-                      progressPercent: 68,
-                      icon: (
-                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                      )
-                    },
-                    {
-                      id: 'campus-connector',
-                      title: 'Campus Connector',
-                      desc: 'Coordinate activities with 20 distinct campus students.',
-                      progress: '14 / 20 students',
-                      progressPercent: 70,
-                      icon: (
-                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                          <circle cx="8.5" cy="7" r="4" />
-                          <polyline points="17 11 19 13 23 9" />
-                        </svg>
-                      )
-                    },
-                    {
-                      id: 'activity-explorer',
-                      title: 'Activity Explorer',
-                      desc: 'Host across 4 categories (Study, Sports, Gym, Social).',
-                      progress: '3 / 4 categories',
-                      progressPercent: 75,
-                      icon: (
-                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10" />
-                          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                        </svg>
-                      )
-                    },
-                    {
-                      id: 'early-bird',
-                      title: 'Early Bird',
-                      desc: 'Host an early morning activity (Gym / Run) before 8:30 AM.',
-                      progress: '0 / 1 hosted',
-                      progressPercent: 0,
-                      icon: (
-                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 2v4" />
-                          <path d="M4.93 10.93l2.83 2.83" />
-                          <path d="M2 18h20" />
-                          <path d="M20 18a8 8 0 0 0-16 0" />
-                          <path d="M19.07 10.93l-2.83 2.83" />
-                        </svg>
-                      )
-                    },
-                    {
-                      id: 'squad-leader',
-                      title: 'Squad Leader',
-                      desc: 'Host a coordination ticket with a full squad of 6+ participants.',
-                      progress: '0 / 1 squad',
-                      progressPercent: 0,
-                      icon: (
-                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                        </svg>
-                      )
-                    }
-                  ].map((locked) => (
-                    <GlassContainer
-                      key={locked.id}
-                      radius={22}
-                      style={{
-                        filter: 'grayscale(100%)',
-                        opacity: 0.72,
-                        transition: 'opacity 0.2s ease'
-                      }}
-                      innerStyle={{
-                        padding: '22px 18px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                        gap: 12,
-                        boxSizing: 'border-box'
-                      }}
-                    >
-                      <div style={{ width: 76, height: 76, borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px dashed rgba(0, 0, 0, 0.25)' }}>
-                        {locked.icon}
-                      </div>
-
-                      <div style={{ width: '100%' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#4b5563', backgroundColor: 'rgba(0, 0, 0, 0.08)', padding: '2px 8px', borderRadius: 9999, marginBottom: 5 }}>
-                          <span>🔒</span> Locked
-                        </div>
-                        <h4 style={{ fontSize: 15.5, fontWeight: 800, margin: '0 0 3px 0', color: '#000000' }}>
-                          {locked.title}
-                        </h4>
-                        <p style={{ fontSize: 12, color: '#4b5563', margin: '0 0 10px 0', lineHeight: 1.4 }}>
-                          {locked.desc}
-                        </p>
-
-                        {/* Progress Bar in B&W */}
-                        <div style={{ width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.08)', borderRadius: 9999, height: 5, overflow: 'hidden', marginBottom: 5 }}>
-                          <div style={{ width: `${locked.progressPercent}%`, height: '100%', backgroundColor: '#4b5563', borderRadius: 9999 }} />
-                        </div>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#4b5563' }}>
-                          {locked.progress}
-                        </span>
-                      </div>
-                    </GlassContainer>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          {profileActiveTab === 'awards' && <AwardsLibrary />}
 
 
           {/* EDIT PROFILE MODAL (Triggered by pill button) */}
