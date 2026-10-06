@@ -2,12 +2,33 @@ const User = require('../models/User');
 const Connection = require('../models/Connection');
 
 const updateProfile = async (userId, updateData) => {
-  const allowedUpdates = ['name', 'pronouns', 'bio', 'interests', 'avatar', 'institute', 'secondaryInstitute', 'privacy'];
+  const allowedUpdates = [
+    'name',
+    'pronouns',
+    'bio',
+    'interests',
+    'avatar',
+    'institute',
+    'secondaryInstitute',
+    'privacy',
+    'age',
+    'gender',
+    'mobile',
+    'email',
+    'address'
+  ];
   const updatePayload = {};
 
   for (const key of allowedUpdates) {
     if (updateData[key] !== undefined) {
-      updatePayload[key] = updateData[key];
+      if (key === 'age') {
+        const parsedAge = Number(updateData[key]);
+        if (!isNaN(parsedAge) && parsedAge >= 13 && parsedAge <= 120) {
+          updatePayload[key] = parsedAge;
+        }
+      } else {
+        updatePayload[key] = updateData[key];
+      }
     }
   }
 

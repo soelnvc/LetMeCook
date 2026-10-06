@@ -393,18 +393,28 @@ export default function SettingsPage({
   };
 
   // Handle account credentials save
-  const handleSaveAccount = (e) => {
-    e.preventDefault();
+  const handleSaveCredentials = async (e) => {
+    if (e) e.preventDefault();
     if (onUpdateUser) {
-      onUpdateUser({
+      await onUpdateUser({
         mobile: mobileNumber,
         email: emailAddress,
         age: Number(age),
-        gender,
+        gender
+      });
+    }
+    triggerSuccess('Account credentials updated successfully');
+  };
+
+  // Handle personal address save
+  const handleSaveAddress = async (e) => {
+    if (e) e.preventDefault();
+    if (onUpdateUser) {
+      await onUpdateUser({
         address
       });
     }
-    triggerSuccess('Account & Personal Information updated');
+    triggerSuccess('Address updated successfully');
   };
 
   return (
@@ -1257,7 +1267,7 @@ export default function SettingsPage({
                 </FluidButton>
               </GlassContainer>
 
-              <form onSubmit={handleSaveAccount} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Account Details Card */}
                 <GlassContainer radius={22} innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
@@ -1317,6 +1327,20 @@ export default function SettingsPage({
                       />
                     </div>
                   </div>
+
+                  <FluidButton
+                    type="button"
+                    onClick={handleSaveCredentials}
+                    style={{
+                      padding: '8px 22px',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      alignSelf: 'flex-start',
+                      marginTop: 4
+                    }}
+                  >
+                    Save Credentials
+                  </FluidButton>
                 </GlassContainer>
 
                 {/* Verification Status Card */}
@@ -1425,15 +1449,22 @@ export default function SettingsPage({
                       placeholder="e.g. Mandakini Hostel, Room 314"
                     />
                   </div>
-                </GlassContainer>
 
-                <FluidButton
-                  type="submit"
-                  style={{ padding: '9px 24px', fontSize: 13, fontWeight: 700, alignSelf: 'flex-start' }}
-                >
-                  Save Account Details
-                </FluidButton>
-              </form>
+                  <FluidButton
+                    type="button"
+                    onClick={handleSaveAddress}
+                    style={{
+                      padding: '8px 22px',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      alignSelf: 'flex-start',
+                      marginTop: 4
+                    }}
+                  >
+                    Save Address
+                  </FluidButton>
+                </GlassContainer>
+              </div>
             </div>
           )}
 

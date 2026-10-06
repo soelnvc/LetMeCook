@@ -80,8 +80,8 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ['men', 'women', 'other', 'prefer_not_to_say'],
-      default: 'prefer_not_to_say'
+      enum: ['Male', 'Female', 'Non-binary', 'Prefer not to say', 'men', 'women', 'other', 'prefer_not_to_say'],
+      default: 'Prefer not to say'
     },
     address: {
       type: String,
