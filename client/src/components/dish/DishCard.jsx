@@ -4,6 +4,189 @@ import React, { useState } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 
+/**
+ * Genre-specific vector icons for dish tickets:
+ * - Sports: Athletic sports ball with clean seam curves
+ * - Study: Open academic book / study pages
+ * - Gaming: Gamepad controller
+ * - Cafe & Social: Hot coffee mug with steam
+ * - Food & Dining: Culinary cutlery & fork
+ * - Travel: Commuter car / transport
+ * - Learning: Workshop lightbulb / ideas
+ */
+function getGenreIcon(category = '') {
+  const cat = (category || '').toLowerCase().trim();
+
+  // Sports & Fitness
+  if (cat === 'sport' || cat === 'sports' || cat === 'fitness') {
+    return (
+      <svg
+        width="44"
+        height="44"
+        viewBox="0 0 40 40"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="20" cy="20" r="15" />
+        <line x1="5" y1="20" x2="35" y2="20" />
+        <path d="M20 5a16 16 0 0 1 0 30" />
+        <path d="M20 5a16 16 0 0 0 0 30" />
+      </svg>
+    );
+  }
+
+  // Study & Academics & Coding
+  if (cat === 'study' || cat === 'code' || cat === 'academics') {
+    return (
+      <svg
+        width="44"
+        height="44"
+        viewBox="0 0 40 40"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M6 31V9a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v22a3 3 0 0 0-3-2H9a3 3 0 0 0-3 2z" />
+        <path d="M34 31V9a3 3 0 0 0-3-3h-8a3 3 0 0 0-3 3v22a3 3 0 0 1 3-2h8a3 3 0 0 1 3 2z" />
+        <line x1="20" y1="9" x2="20" y2="29" />
+        <line x1="10" y1="14" x2="16" y2="14" />
+        <line x1="10" y1="19" x2="16" y2="19" />
+        <line x1="24" y1="14" x2="30" y2="14" />
+        <line x1="24" y1="19" x2="30" y2="19" />
+      </svg>
+    );
+  }
+
+  // Gaming
+  if (cat === 'gaming' || cat === 'games' || cat === 'game') {
+    return (
+      <svg
+        width="44"
+        height="44"
+        viewBox="0 0 40 40"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="5" y="11" width="30" height="18" rx="7" />
+        <line x1="14" y1="16" x2="14" y2="24" />
+        <line x1="10" y1="20" x2="18" y2="20" />
+        <circle cx="26" cy="18" r="1.6" fill="#000000" />
+        <circle cx="30" cy="21" r="1.6" fill="#000000" />
+      </svg>
+    );
+  }
+
+  // Cafe & Social & Hangouts
+  if (cat === 'social' || cat === 'cafe' || cat === 'hangout') {
+    return (
+      <svg
+        width="44"
+        height="44"
+        viewBox="0 0 40 40"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M7 14h20v8a7 7 0 0 1-7 7h-6a7 7 0 0 1-7-7v-8z" />
+        <path d="M27 16h3a3.5 3.5 0 0 1 0 7h-3" />
+        <path d="M13 7c0 2-2 3-2 5" />
+        <path d="M19 7c0 2-2 3-2 5" />
+        <line x1="5" y1="33" x2="29" y2="33" />
+      </svg>
+    );
+  }
+
+  // Food & Dining
+  if (cat === 'food' || cat === 'dining') {
+    return (
+      <svg
+        width="44"
+        height="44"
+        viewBox="0 0 40 40"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <line x1="12" y1="7" x2="12" y2="33" />
+        <path d="M8 7v7a4 4 0 0 0 8 0V7" />
+        <path d="M29 7v10a4 4 0 0 1-4 4v12" />
+        <path d="M25 7a4 4 0 0 1 4 4v6" />
+      </svg>
+    );
+  }
+
+  // Travel & Cabs & Commute
+  if (cat === 'travel' || cat === 'cab' || cat === 'commute') {
+    return (
+      <svg
+        width="44"
+        height="44"
+        viewBox="0 0 40 40"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M9 17l3-9h16l3 9" />
+        <rect x="5" y="17" width="30" height="11" rx="3" />
+        <circle cx="12" cy="28" r="2.8" fill="#000000" />
+        <circle cx="28" cy="28" r="2.8" fill="#000000" />
+      </svg>
+    );
+  }
+
+  // Learning & Workshops
+  if (cat === 'learning' || cat === 'skills' || cat === 'workshop') {
+    return (
+      <svg
+        width="44"
+        height="44"
+        viewBox="0 0 40 40"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M14 27h12" />
+        <path d="M16 31h8" />
+        <path d="M20 7a10 10 0 0 0-7 17.2c1.5 1.5 2 2.8 2 3.8h10c0-1 .5-2.3 2-3.8A10 10 0 0 0 20 7z" />
+        <line x1="20" y1="12" x2="20" y2="16" />
+      </svg>
+    );
+  }
+
+  // Default Activity Ticket Icon
+  return (
+    <svg
+      width="44"
+      height="44"
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="#000000"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="20" cy="20" r="15" />
+      <polygon points="23 13 15 17 17 25 25 21" />
+    </svg>
+  );
+}
+
 export default function DishCard({
   dish,
   currentUser,
@@ -45,26 +228,9 @@ export default function DishCard({
         width: '100%'
       }}
     >
-      {/* Left Icon: Signature Cart SVG */}
+      {/* Left Icon: Genre-Specific Ticket SVG (Sport, Study, Gaming, etc.) */}
       <div style={{ paddingTop: 4, flexShrink: 0 }}>
-        <svg
-          width="44"
-          height="44"
-          viewBox="0 0 40 40"
-          fill="none"
-          stroke="#000000"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M4 6h5l3.5 17h18l3.5-12H11" />
-          <line x1="14" y1="15" x2="31.5" y2="15" />
-          <line x1="15.5" y1="19" x2="28" y2="19" />
-          <line x1="19" y1="11" x2="18" y2="23" />
-          <line x1="25" y1="11" x2="24" y2="23" />
-          <circle cx="16" cy="29" r="2.8" fill="#000000" />
-          <circle cx="28" cy="29" r="2.8" fill="#000000" />
-        </svg>
+        {getGenreIcon(dish.category)}
       </div>
 
       {/* Right Card Content */}

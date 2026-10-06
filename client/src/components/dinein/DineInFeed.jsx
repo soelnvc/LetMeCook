@@ -223,7 +223,7 @@ export default function DineInFeed({
   return (
     <section style={{ width: '100%', maxWidth: 960, margin: '0 auto', color: '#09090b', paddingBottom: 60 }}>
       {/* ========================================================= */}
-      {/* 1. TOP HEADER & APP-BAR (Inspo: Spotify / Instagram / Swiggy) */}
+      {/* 1. TOP HEADER & APP-BAR */}
       {/* ========================================================= */}
       <div
         style={{
@@ -236,36 +236,6 @@ export default function DineInFeed({
         }}
       >
         <div>
-          {/* Real-time campus beacon badge */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 7,
-              padding: '4px 10px',
-              borderRadius: 9999,
-              background: 'rgba(255, 255, 255, 0.75)',
-              border: '1px solid rgba(0, 0, 0, 0.08)',
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.8px',
-              textTransform: 'uppercase',
-              color: '#18181b',
-              marginBottom: 8
-            }}
-          >
-            <span
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: '50%',
-                backgroundColor: '#16a34a',
-                boxShadow: '0 0 6px rgba(22, 163, 74, 0.6)'
-              }}
-            />
-            Campus Feed • Live Coordination
-          </div>
-
           <h1
             style={{
               fontSize: 34,
@@ -294,32 +264,15 @@ export default function DineInFeed({
 
         {/* Action Button Cluster */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Refresh Button with subtle spin animation */}
-          <button
+          {/* Refresh Button using FluidButton design */}
+          <FluidButton
+            variant="icon"
             onClick={handleRefresh}
             title="Refresh live tickets"
             style={{
-              height: 40,
-              width: 40,
-              borderRadius: 9999,
-              border: '1px solid rgba(0, 0, 0, 0.1)',
-              background: 'rgba(255, 255, 255, 0.7)',
-              backdropFilter: 'blur(10px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: '#18181b',
-              transition: 'all 0.2s ease',
+              width: 42,
+              height: 42,
               padding: 0
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
-              e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.7)';
-              e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.1)';
             }}
           >
             <svg
@@ -339,7 +292,7 @@ export default function DineInFeed({
               <path d="M21.5 2v6h-6" />
               <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
             </svg>
-          </button>
+          </FluidButton>
 
           {/* "+ Drop a Dish" Primary CTA */}
           <FluidButton
@@ -363,22 +316,17 @@ export default function DineInFeed({
       </div>
 
       {/* ========================================================= */}
-      {/* 2. SEGMENTED GLASS CAPSULE SWITCHER (Inspo: Apple / Spotify) */}
+      {/* 2. SEGMENTED SUB-TAB SWITCHER (Wrapped in GlassContainer) */}
       {/* ========================================================= */}
       <div style={{ marginBottom: 20 }}>
-        <div
-          style={{
-            display: 'inline-flex',
-            background: 'rgba(255, 255, 255, 0.65)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.85)',
-            boxShadow: '0 4px 18px -2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
-            borderRadius: 9999,
+        <GlassContainer
+          radius={9999}
+          style={{ width: '100%', maxWidth: 580 }}
+          innerStyle={{
+            display: 'flex',
             padding: 4,
             gap: 4,
-            width: '100%',
-            maxWidth: 580
+            boxSizing: 'border-box'
           }}
         >
           {[
@@ -484,11 +432,11 @@ export default function DineInFeed({
               </button>
             );
           })}
-        </div>
+        </GlassContainer>
       </div>
 
       {/* ========================================================= */}
-      {/* 3. DISCOVERY & SEARCH BAR (Inspo: Spotify / Instagram) */}
+      {/* 3. DISCOVERY & SEARCH BAR (Built with GlassContainer & FluidButtons) */}
       {/* ========================================================= */}
       <div
         style={{
@@ -499,23 +447,26 @@ export default function DineInFeed({
           marginBottom: 14
         }}
       >
-        {/* Search input field */}
-        <div
-          style={{
-            flex: '1 1 280px',
-            position: 'relative',
+        {/* Search Input using our GlassContainer design */}
+        <GlassContainer
+          radius={9999}
+          style={{ flex: '1 1 280px' }}
+          innerStyle={{
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            padding: '0 14px',
+            height: 42,
+            position: 'relative'
           }}
         >
           <div
             style={{
-              position: 'absolute',
-              left: 14,
               display: 'flex',
               alignItems: 'center',
               pointerEvents: 'none',
-              color: '#71717a'
+              color: '#71717a',
+              marginRight: 10,
+              flexShrink: 0
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -531,26 +482,13 @@ export default function DineInFeed({
             placeholder="Search activities by topic, @creator, keyword..."
             style={{
               width: '100%',
-              height: 42,
-              paddingLeft: 40,
-              paddingRight: searchQuery ? 36 : 14,
+              height: '100%',
               fontSize: 13,
-              borderRadius: 9999,
-              border: '1px solid rgba(0, 0, 0, 0.1)',
-              background: 'rgba(255, 255, 255, 0.75)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
+              background: 'transparent',
+              border: 'none',
               color: '#09090b',
               outline: 'none',
-              transition: 'border-color 0.2s ease, background 0.2s ease'
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = '#09090b';
-              e.currentTarget.style.background = '#ffffff';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.1)';
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.75)';
+              fontFamily: 'inherit'
             }}
           />
 
@@ -559,8 +497,6 @@ export default function DineInFeed({
             <button
               onClick={() => setSearchQuery('')}
               style={{
-                position: 'absolute',
-                right: 12,
                 background: 'none',
                 border: 'none',
                 color: '#71717a',
@@ -577,73 +513,63 @@ export default function DineInFeed({
               </svg>
             </button>
           )}
-        </div>
+        </GlassContainer>
 
-        {/* Quick Filter Toggles */}
+        {/* Quick Filter Toggles using our FluidButton design */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          {/* Auto-join only toggle pill */}
-          <button
+          {/* Auto-join only toggle button */}
+          <FluidButton
             onClick={() => setAutoJoinOnly((prev) => !prev)}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              height: 40,
-              padding: '0 14px',
-              borderRadius: 9999,
+              padding: '8px 16px',
               fontSize: 12,
               fontWeight: 600,
-              cursor: 'pointer',
-              border: autoJoinOnly ? '1px solid #09090b' : '1px solid rgba(0, 0, 0, 0.1)',
-              background: autoJoinOnly ? '#09090b' : 'rgba(255, 255, 255, 0.65)',
-              color: autoJoinOnly ? '#ffffff' : '#27272a',
-              transition: 'all 0.15s ease'
+              background: autoJoinOnly ? '#09090b' : 'transparent',
+              color: autoJoinOnly ? '#ffffff' : '#101214',
+              transition: 'all 0.2s ease'
             }}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill={autoJoinOnly ? '#ffffff' : 'currentColor'} stroke="none">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-            </svg>
-            Auto-Join
-          </button>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill={autoJoinOnly ? '#ffffff' : 'currentColor'} stroke="none">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              Auto-Join
+            </span>
+          </FluidButton>
 
-          {/* Open spots only toggle pill */}
-          <button
+          {/* Open spots only toggle button */}
+          <FluidButton
             onClick={() => setOpenSpotsOnly((prev) => !prev)}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              height: 40,
-              padding: '0 14px',
-              borderRadius: 9999,
+              padding: '8px 16px',
               fontSize: 12,
               fontWeight: 600,
-              cursor: 'pointer',
-              border: openSpotsOnly ? '1px solid #09090b' : '1px solid rgba(0, 0, 0, 0.1)',
-              background: openSpotsOnly ? '#09090b' : 'rgba(255, 255, 255, 0.65)',
-              color: openSpotsOnly ? '#ffffff' : '#27272a',
-              transition: 'all 0.15s ease'
+              background: openSpotsOnly ? '#09090b' : 'transparent',
+              color: openSpotsOnly ? '#ffffff' : '#101214',
+              transition: 'all 0.2s ease'
             }}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <polyline points="16 11 18 13 22 9" />
-            </svg>
-            Spots Available
-          </button>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <polyline points="16 11 18 13 22 9" />
+              </svg>
+              Spots Available
+            </span>
+          </FluidButton>
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* 4. HORIZONTAL CATEGORY PILL CAROUSEL (Inspo: Swiggy / Spotify) */}
+      {/* 4. HORIZONTAL CATEGORY PILL CAROUSEL (Built with FluidButtons) */}
       {/* ========================================================= */}
       <div
         style={{
           display: 'flex',
           gap: 8,
           overflowX: 'auto',
-          paddingBottom: 10,
+          paddingBottom: 8,
           marginBottom: 16,
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -653,74 +579,47 @@ export default function DineInFeed({
         {categories.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
-            <button
+            <FluidButton
               key={cat.id || 'all'}
               onClick={() => setSelectedCategory(cat.id)}
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 7,
-                whiteSpace: 'nowrap',
-                padding: '7px 14px',
-                borderRadius: 9999,
+                padding: '6px 14px',
                 fontSize: 12,
                 fontWeight: isSelected ? 600 : 500,
-                cursor: 'pointer',
-                border: isSelected ? '1px solid #09090b' : '1px solid rgba(0, 0, 0, 0.08)',
-                background: isSelected ? '#09090b' : 'rgba(255, 255, 255, 0.65)',
-                color: isSelected ? '#ffffff' : '#27272a',
-                backdropFilter: 'blur(10px)',
-                transition: 'all 0.15s ease',
+                background: isSelected ? '#09090b' : 'transparent',
+                color: isSelected ? '#ffffff' : '#101214',
+                whiteSpace: 'nowrap',
                 flexShrink: 0
               }}
-              onMouseEnter={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
-                  e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.16)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.65)';
-                  e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.08)';
-                }
-              }}
             >
-              <span style={{ display: 'flex', alignItems: 'center' }}>{cat.icon}</span>
-              <span>{cat.label}</span>
-            </button>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                {cat.icon}
+                <span>{cat.label}</span>
+              </span>
+            </FluidButton>
           );
         })}
       </div>
 
       {/* ========================================================= */}
-      {/* 5. FEED STATUS STRIP & ACTIVE FILTER BADGES */}
+      {/* 5. ACTIVE FILTER BADGES (Shows only when filtered) */}
       {/* ========================================================= */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 10,
-          marginBottom: 18,
-          fontSize: 12,
-          color: '#52525b',
-          fontWeight: 500
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          <span>
-            Showing <strong style={{ color: '#09090b' }}>{filteredDishes.length}</strong>{' '}
-            {filteredDishes.length === 1 ? 'ticket' : 'tickets'}
-          </span>
-          <span>•</span>
-          <span style={{ textTransform: 'capitalize' }}>
-            Section: <strong style={{ color: '#09090b' }}>{activeSubTab.replace(/_/g, ' ')}</strong>
-          </span>
-          {selectedCategory && (
-            <>
-              <span>•</span>
+      {hasActiveFilters && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 10,
+            marginBottom: 16,
+            fontSize: 12,
+            color: '#52525b',
+            fontWeight: 500
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            {selectedCategory && (
               <span
                 style={{
                   display: 'inline-flex',
@@ -754,11 +653,8 @@ export default function DineInFeed({
                   </svg>
                 </button>
               </span>
-            </>
-          )}
-          {searchQuery && (
-            <>
-              <span>•</span>
+            )}
+            {searchQuery && (
               <span
                 style={{
                   display: 'inline-flex',
@@ -791,11 +687,9 @@ export default function DineInFeed({
                   </svg>
                 </button>
               </span>
-            </>
-          )}
-        </div>
+            )}
+          </div>
 
-        {hasActiveFilters && (
           <button
             onClick={resetFilters}
             style={{
@@ -811,11 +705,11 @@ export default function DineInFeed({
           >
             Clear all filters
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* ========================================================= */}
-      {/* 6. DISH TICKETS GRID / EMPTY STATE (Tickets preserved) */}
+      {/* 6. DISH TICKETS GRID / EMPTY STATE */}
       {/* ========================================================= */}
       {filteredDishes.length === 0 ? (
         <GlassContainer
