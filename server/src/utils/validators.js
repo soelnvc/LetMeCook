@@ -24,7 +24,12 @@ const registerValidator = [
     .withMessage('A valid mobile phone number is required'),
   body('password')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long')
+    .withMessage('Password must be at least 6 characters long'),
+  body('age')
+    .notEmpty()
+    .withMessage('Age must be entered during account creation')
+    .isInt({ min: 13, max: 120 })
+    .withMessage('Age must be a valid number between 13 and 120')
 ];
 
 const loginValidator = [

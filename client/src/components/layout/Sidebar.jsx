@@ -17,6 +17,8 @@ export default function Sidebar({
   const [navHovered, setNavHovered] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
+  const isAdult = Boolean(user?.age && Number(user.age) >= 18);
+
   const navItems = [
     {
       id: 'home',
@@ -193,7 +195,9 @@ export default function Sidebar({
             flex: 1
           }}
         >
-          {navItems.map((item) => {
+          {navItems
+            .filter((item) => item.id !== 'global' || isAdult)
+            .map((item) => {
             const isActive = item.id === 'kitchen' ? showKitchenModal : activeTab === item.id;
             return (
               <button

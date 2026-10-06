@@ -11,8 +11,63 @@ export default function GlobalPage({
   onOpenKitchenModal,
   onNavigateTab
 }) {
+  const isAdult = Boolean(user && user.age !== undefined && user.age !== null && Number(user.age) >= 18);
+
   const [distanceFilter, setDistanceFilter] = useState('all'); // 'all' | '1km' | '3km' | '5km'
   const [categoryFilter, setCategoryFilter] = useState('all');
+
+  if (!isAdult) {
+    return (
+      <div style={{ width: '100%', maxWidth: 720, margin: '40px auto', padding: '0 16px', boxSizing: 'border-box' }}>
+        <GlassContainer
+          radius={24}
+          innerStyle={{
+            padding: '36px 24px',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 16
+          }}
+        >
+          <div
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: '50%',
+              background: 'rgba(0, 0, 0, 0.05)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#71717a'
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+          </div>
+
+          <div>
+            <h3 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 6px 0', color: '#09090b', letterSpacing: '-0.02em' }}>
+              Global Discovery is Restricted (18+ Only)
+            </h3>
+            <p style={{ fontSize: 13, color: '#71717a', maxWidth: 440, margin: 0, lineHeight: 1.55 }}>
+              Global broadcasted activities and 5km discovery are reserved for verified adult students (18+). You can continue chatting, connecting, and participating in activities within your verified campus network.
+            </p>
+          </div>
+
+          <FluidButton
+            onClick={() => onNavigateTab && onNavigateTab('dine-in')}
+            style={{ padding: '8px 22px', fontSize: 13, fontWeight: 700, marginTop: 4 }}
+          >
+            Return to Campus Feed
+          </FluidButton>
+        </GlassContainer>
+      </div>
+    );
+  }
 
   // Filter global dishes (< 5km radius)
   const globalDishes = useMemo(() => {

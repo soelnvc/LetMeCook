@@ -2,9 +2,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const register = async ({ username, name, email, mobile, password, institute }) => {
-  if (!username || !name || !email || !mobile || !password) {
-    throw new Error('All required fields must be provided (username, name, email, mobile, password)');
+const register = async ({ username, name, email, mobile, password, age, institute }) => {
+  if (!username || !name || !email || !mobile || !password || age === undefined || age === null || age === '') {
+    throw new Error('All required fields must be provided (username, name, email, mobile, password, age)');
+  }
+
+  const parsedAge = Number(age);
+  if (isNaN(parsedAge) || parsedAge < 13 || parsedAge > 120) {
+    throw new Error('Age must be a valid number between 13 and 120');
   }
 
   const existingEmail = await User.findOne({ email: email.toLowerCase() });
@@ -31,6 +36,7 @@ const register = async ({ username, name, email, mobile, password, institute }) 
     email: email.toLowerCase(),
     mobile,
     passwordHash,
+    age: parsedAge,
     institute: institute || {}
   });
 
@@ -46,6 +52,7 @@ const register = async ({ username, name, email, mobile, password, institute }) 
       username: newUser.username,
       name: newUser.name,
       email: newUser.email,
+      age: newUser.age,
       avatar: newUser.avatar,
       institute: newUser.institute,
       verification: newUser.verification,

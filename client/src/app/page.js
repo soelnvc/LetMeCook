@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { apiFetch } from '@/lib/api';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
@@ -37,6 +37,7 @@ export default function App() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
+  const [registerAge, setRegisterAge] = useState('');
 
   // Dine-in states
   const [dishes, setDishes] = useState([]);
@@ -193,6 +194,22 @@ export default function App() {
     }
   }, [user, activeTab, categoryFilter]);
 
+  // Age restriction check: Only 18+ users can access Global features and tickets
+  const isAdult = Boolean(user && user.age !== undefined && user.age !== null && Number(user.age) >= 18);
+
+  // Guard: If an underaged user attempts to access the Global tab, redirect them to Home
+  useEffect(() => {
+    if (user && !isAdult && activeTab === 'global') {
+      setActiveTab('home');
+    }
+  }, [user, isAdult, activeTab]);
+
+  // Filter global tickets for underage users across the app
+  const visibleDishes = useMemo(() => {
+    if (isAdult) return dishes;
+    return dishes.filter((d) => d.visibility !== 'global' && d.location?.scope !== 'nearby');
+  }, [dishes, isAdult]);
+
   // Auth Handlers
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -208,9 +225,19 @@ export default function App() {
           body: JSON.stringify({ identifier, password })
         });
       } else {
+        if (!registerAge || isNaN(Number(registerAge))) {
+          throw new Error('Age is mandatory and must be entered during account creation');
+        }
         res = await apiFetch('/auth/register', {
           method: 'POST',
-          body: JSON.stringify({ username, name, email, mobile, password })
+          body: JSON.stringify({
+            username,
+            name,
+            email,
+            mobile,
+            password,
+            age: Number(registerAge)
+          })
         });
       }
       localStorage.setItem('token', res.data.token);
@@ -554,6 +581,18 @@ export default function App() {
                   onChange={(e) => setMobile(e.target.value)}
                   style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
+                <label style={{ fontSize: 13, fontWeight: 600 }}>Age (must be entered):</label>
+                <input
+                  type="number"
+                  required
+                  min="13"
+                  max="120"
+                  placeholder="e.g. 19"
+                  disabled={isAuthSubmitting}
+                  value={registerAge}
+                  onChange={(e) => setRegisterAge(e.target.value)}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
+                />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Password (min 6 chars):</label>
                 <input
                   type="password"
@@ -634,7 +673,7 @@ export default function App() {
       {activeTab === 'home' && (
         <HomeDashboard
           user={user}
-          dishes={dishes}
+          dishes={visibleDishes}
           onOpenKitchenModal={(category) => {
             if (category) setCategoryFilter(category);
             setShowKitchenModal(true);
@@ -651,7 +690,7 @@ export default function App() {
       {activeTab === 'dine-in' && (
         <DineInFeed
           user={user}
-          dishes={dishes}
+          dishes={visibleDishes}
           fetchDishes={fetchDishes}
           onJoinDish={handleJoinDish}
           onLeaveDish={handleLeaveDish}
@@ -671,7 +710,7 @@ export default function App() {
       {/* ========================================================= */}
       {/* 3. GLOBAL DISHES SCREEN (Location-based Within 5km)       */}
       {/* ========================================================= */}
-      {activeTab === 'global' && (
+      {activeTab === 'global' && isAdult && (
         <GlobalPage
           user={user}
           dishes={dishes}

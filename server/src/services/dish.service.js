@@ -18,6 +18,13 @@ const createDish = async (creatorId, dishData) => {
     throw new Error('Description and category are required to create a Dish');
   }
 
+  const creator = await User.findById(creatorId);
+  let effectiveVisibility = visibility;
+  // Underaged users cannot create global dishes
+  if (creator && creator.age && creator.age < 18 && visibility === 'global') {
+    effectiveVisibility = 'institute';
+  }
+
   const dish = await Dish.create({
     creator: creatorId,
     type,
@@ -27,10 +34,10 @@ const createDish = async (creatorId, dishData) => {
     joinMode,
     timing: timing || { cookStart: new Date() },
     location: {
-      scope: location?.scope || 'nearby',
-      areaName: location?.areaName || 'Nearby'
+      scope: location?.scope || (effectiveVisibility === 'global' ? 'nearby' : 'institute'),
+      areaName: location?.areaName || 'Campus Zone'
     },
-    visibility,
+    visibility: effectiveVisibility,
     eligibility: eligibility || { gender: 'any', instituteOnly: false },
     participants: [
       {
@@ -73,14 +80,29 @@ const getDishes = async (userId, query = {}) => {
     currentUser = await User.findById(userId);
   }
 
+  // Underage users (< 18) must not see global tickets
+  if (currentUser && currentUser.age && currentUser.age < 18) {
+    if (scope === 'global') {
+      return [];
+    }
+    filter.visibility = { $ne: 'global' };
+  }
+
   const dishes = await Dish.find(filter)
     .populate('creator', 'username name avatar institute verification')
     .populate('participants.user', 'username name avatar')
     .sort({ createdAt: -1 })
     .limit(50);
 
-  // Server-authoritative Chef's Special eligibility filtering
+  // Server-authoritative Chef's Special eligibility and Age filtering
   return dishes.filter((dish) => {
+    // Underaged users (< 18) must not see global tickets
+    if (currentUser && currentUser.age && currentUser.age < 18) {
+      if (dish.visibility === 'global' || dish.location?.scope === 'nearby') {
+        return false;
+      }
+    }
+
     if (dish.type !== 'chefs_special') return true;
     if (!currentUser) return false;
 

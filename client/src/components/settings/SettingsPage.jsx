@@ -204,6 +204,8 @@ export default function SettingsPage({
   const [searchQuery, setSearchQuery] = useState('');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
+  const isAdult = Boolean(user && user.age !== undefined && user.age !== null && Number(user.age) >= 18);
+
   // 1. Privacy Settings States
   const [bioVisibility, setBioVisibility] = useState(user?.privacy?.bioVisibility || 'everyone');
   const [instituteVisibility, setInstituteVisibility] = useState(user?.privacy?.instituteVisibility || 'institute');
@@ -713,16 +715,35 @@ export default function SettingsPage({
                   {/* Profile Discovery Toggle */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#09090b' }}>
-                        Global Profile Discovery
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#09090b', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>Global Profile Discovery</span>
+                        {!isAdult && (
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 700,
+                              padding: '1px 6px',
+                              borderRadius: 6,
+                              background: 'rgba(0, 0, 0, 0.06)',
+                              color: '#71717a'
+                            }}
+                          >
+                            18+ Only
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>
-                        Allow my profile to appear in Global discovery within 5km radius.
+                        {isAdult
+                          ? 'Allow my profile to appear in Global discovery within 5km radius.'
+                          : 'Global discovery is restricted to verified 18+ members. Your profile remains active within campus network.'}
                       </div>
                     </div>
                     <CustomToggle
-                      checked={globalDiscovery}
-                      onChange={setGlobalDiscovery}
+                      checked={isAdult ? globalDiscovery : false}
+                      onChange={(val) => {
+                        if (!isAdult) return;
+                        setGlobalDiscovery(val);
+                      }}
                     />
                   </div>
 

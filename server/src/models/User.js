@@ -74,9 +74,9 @@ const userSchema = new mongoose.Schema(
     },
     age: {
       type: Number,
-      min: 13,
-      max: 120,
-      default: null
+      required: [true, 'Age is required during account creation'],
+      min: [13, 'Minimum age is 13'],
+      max: [120, 'Maximum age is 120']
     },
     gender: {
       type: String,
