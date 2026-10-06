@@ -127,7 +127,32 @@ const userSchema = new mongoose.Schema(
       activityVisibility: {
         type: Boolean,
         default: true
+      },
+      locationPrivacy: {
+        type: String,
+        enum: ['never', 'approximate', 'on_start'],
+        default: 'approximate'
       }
+    },
+    blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ],
+    restrictedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ],
+    isDeactivated: {
+      type: Boolean,
+      default: false
+    },
+    deactivatedUntil: {
+      type: Date,
+      default: null
     },
     stats: {
       dishesCreated: { type: Number, default: 0 },

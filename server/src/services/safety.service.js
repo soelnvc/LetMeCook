@@ -57,7 +57,44 @@ const submitInstituteVerification = async (userId, { instituteName, instituteEma
   return verification;
 };
 
+const getMyReports = async (userId) => {
+  const reports = await Report.find({ reporter: userId })
+    .populate('reportedUser', 'name username avatar')
+    .populate('dish', 'description category')
+    .sort({ createdAt: -1 });
+
+  return reports.map((r) => {
+    let target = 'Campus Ticket';
+    if (r.reportedUser?.username) {
+      target = `@${r.reportedUser.username}`;
+    } else if (r.dish?.description) {
+      target = r.dish.description.slice(0, 30) + '...';
+    }
+
+    const createdDate = new Date(r.createdAt);
+    const dateStr = createdDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+
+    let displayStatus = 'Under Review';
+    if (r.status === 'resolved') displayStatus = 'Resolved • Action Taken';
+    else if (r.status === 'dismissed') displayStatus = 'Dismissed • Standard Upheld';
+    else if (r.status === 'reviewing') displayStatus = 'In Review';
+
+    return {
+      id: r._id,
+      target,
+      date: dateStr,
+      status: displayStatus,
+      reason: r.reason,
+      createdAt: r.createdAt
+    };
+  });
+};
+
 module.exports = {
   createReport,
-  submitInstituteVerification
+  submitInstituteVerification,
+  getMyReports
 };

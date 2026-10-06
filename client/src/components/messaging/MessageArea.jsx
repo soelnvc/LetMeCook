@@ -10,7 +10,8 @@ export default function MessageArea({
   messages = [],
   messageText,
   setMessageText,
-  onSendMessage
+  onSendMessage,
+  onViewProfile
 }) {
   return (
     <div
@@ -26,32 +27,52 @@ export default function MessageArea({
         <>
           {/* Header */}
           <div
+            onClick={() => {
+              if (onViewProfile) onViewProfile(activeUser);
+            }}
             style={{
               padding: '16px 28px',
               display: 'flex',
               alignItems: 'center',
               gap: 18,
               borderBottom: '1.5px solid rgba(255, 255, 255, 0.7)',
-              backgroundColor: 'transparent'
+              backgroundColor: 'transparent',
+              cursor: onViewProfile ? 'pointer' : 'default'
             }}
+            title={onViewProfile ? `View @${activeUser.username}'s profile` : ''}
           >
-            <div
-              style={{
-                width: 62,
-                height: 62,
-                borderRadius: '50%',
-                backgroundColor: '#8257e5',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontSize: 24,
-                fontWeight: 'bold',
-                flexShrink: 0
-              }}
-            >
-              {(activeUser.name || activeUser.username || 'U')[0].toUpperCase()}
-            </div>
+            {activeUser.avatar ? (
+              <img
+                src={activeUser.avatar}
+                alt={activeUser.name || 'User'}
+                style={{
+                  width: 62,
+                  height: 62,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  flexShrink: 0,
+                  border: '1px solid rgba(0, 0, 0, 0.08)'
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 62,
+                  height: 62,
+                  borderRadius: '50%',
+                  backgroundColor: '#8257e5',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontSize: 24,
+                  fontWeight: 'bold',
+                  flexShrink: 0
+                }}
+              >
+                {(activeUser.name || activeUser.username || 'U')[0].toUpperCase()}
+              </div>
+            )}
             <div>
               <div
                 style={{
@@ -118,21 +139,43 @@ export default function MessageArea({
                       }}
                     >
                       <div
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: '50%',
-                          backgroundColor: '#8257e5',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#fff',
-                          fontSize: 13,
-                          fontWeight: 'bold',
-                          flexShrink: 0
+                        onClick={() => {
+                          if (onViewProfile && activeUser) onViewProfile(activeUser);
                         }}
+                        style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0 }}
+                        title={onViewProfile ? `View @${activeUser.username}'s profile` : ''}
                       >
-                        {(activeUser.name || activeUser.username || 'U')[0].toUpperCase()}
+                        {activeUser.avatar ? (
+                          <img
+                            src={activeUser.avatar}
+                            alt={activeUser.name || 'User'}
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              display: 'block',
+                              border: '1px solid rgba(0, 0, 0, 0.08)'
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: '50%',
+                              backgroundColor: '#8257e5',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#fff',
+                              fontSize: 13,
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {(activeUser.name || activeUser.username || 'U')[0].toUpperCase()}
+                          </div>
+                        )}
                       </div>
                       <GlassContainer
                         radius={24}

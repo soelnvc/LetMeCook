@@ -81,6 +81,15 @@ const login = async ({ identifier, password }) => {
     throw new Error('Invalid credentials');
   }
 
+  // Auto-reactivate if account was deactivated
+  let wasReactivated = false;
+  if (user.isDeactivated) {
+    user.isDeactivated = false;
+    user.deactivatedUntil = null;
+    await user.save();
+    wasReactivated = true;
+  }
+
   const token = jwt.sign(
     { userId: user._id, username: user.username },
     process.env.JWT_SECRET,
@@ -100,10 +109,38 @@ const login = async ({ identifier, password }) => {
       institute: user.institute,
       verification: user.verification,
       privacy: user.privacy,
-      stats: user.stats
+      stats: user.stats,
+      isDeactivated: user.isDeactivated
     },
-    token
+    token,
+    wasReactivated
   };
+};
+
+const changePassword = async (userId, currentPassword, newPassword) => {
+  if (!currentPassword || !newPassword) {
+    throw new Error('Current password and new password are required');
+  }
+
+  if (newPassword.length < 8) {
+    throw new Error('New password must be at least 8 characters long');
+  }
+
+  const user = await User.findById(userId).select('+passwordHash');
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!isMatch) {
+    throw new Error('Current password is incorrect');
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  user.passwordHash = await bcrypt.hash(newPassword, salt);
+  await user.save();
+
+  return { success: true, message: 'Password updated successfully' };
 };
 
 const getCurrentUser = async (userId) => {
@@ -117,5 +154,6 @@ const getCurrentUser = async (userId) => {
 module.exports = {
   register,
   login,
-  getCurrentUser
+  getCurrentUser,
+  changePassword
 };

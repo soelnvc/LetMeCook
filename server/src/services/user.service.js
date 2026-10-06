@@ -1,5 +1,8 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Connection = require('../models/Connection');
+const Dish = require('../models/Dish');
+const Report = require('../models/Report');
 
 const updateProfile = async (userId, updateData) => {
   const allowedUpdates = [
@@ -25,6 +28,10 @@ const updateProfile = async (userId, updateData) => {
         const parsedAge = Number(updateData[key]);
         if (!isNaN(parsedAge) && parsedAge >= 13 && parsedAge <= 120) {
           updatePayload[key] = parsedAge;
+        }
+      } else if (key === 'privacy' && typeof updateData.privacy === 'object') {
+        for (const [pKey, pVal] of Object.entries(updateData.privacy)) {
+          updatePayload[`privacy.${pKey}`] = pVal;
         }
       } else {
         updatePayload[key] = updateData[key];
@@ -66,6 +73,10 @@ const getPublicProfile = async (username, requesterId) => {
     }
   }
 
+  if (targetUser.isDeactivated && !isSelf) {
+    throw new Error('This account is currently deactivated');
+  }
+
   const privacy = targetUser.privacy || {};
 
   const canView = (setting) => {
@@ -90,6 +101,11 @@ const getPublicProfile = async (username, requesterId) => {
     verification: {
       institute: targetUser.verification?.institute || false
     },
+    privacy: {
+      locationPrivacy: privacy.locationPrivacy || 'approximate',
+      activityVisibility: privacy.activityVisibility ?? true,
+      invitePermission: privacy.invitePermission || 'everyone'
+    },
     stats: {
       dishesCreated: targetUser.stats?.dishesCreated || 0,
       dishesJoined: targetUser.stats?.dishesJoined || 0,
@@ -101,7 +117,171 @@ const getPublicProfile = async (username, requesterId) => {
   return publicProfile;
 };
 
+const exportUserData = async (userId) => {
+  const user = await User.findById(userId).select('-passwordHash');
+  if (!user) throw new Error('User not found');
+
+  const createdDishes = await Dish.find({ creator: userId })
+    .populate('participants.user', 'username name')
+    .lean();
+
+  const joinedDishes = await Dish.find({ 'participants.user': userId, creator: { $ne: userId } })
+    .populate('creator', 'username name')
+    .lean();
+
+  const connections = await Connection.find({
+    $or: [{ requester: userId }, { recipient: userId }],
+    status: 'accepted'
+  })
+    .populate('requester', 'username name')
+    .populate('recipient', 'username name')
+    .lean();
+
+  const safetyReports = await Report.find({ reporter: userId }).lean();
+
+  return {
+    exportDate: new Date().toISOString(),
+    exportVersion: '1.0.0',
+    account: {
+      username: user.username,
+      name: user.name,
+      email: user.email,
+      mobile: user.mobile,
+      age: user.age,
+      gender: user.gender,
+      bio: user.bio,
+      pronouns: user.pronouns,
+      interests: user.interests,
+      institute: user.institute,
+      secondaryInstitute: user.secondaryInstitute,
+      verification: user.verification,
+      createdAt: user.createdAt
+    },
+    privacySettings: user.privacy,
+    stats: user.stats,
+    createdDishes,
+    joinedDishes,
+    connectionsCount: connections.length,
+    safetyReports
+  };
+};
+
+const deactivateAccount = async (userId, password) => {
+  if (!password) {
+    throw new Error('Password is required to deactivate your account');
+  }
+
+  const user = await User.findById(userId).select('+passwordHash');
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const isMatch = await bcrypt.compare(password, user.passwordHash);
+  if (!isMatch) {
+    throw new Error('Incorrect password');
+  }
+
+  const deactivatedUntil = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  user.isDeactivated = true;
+  user.deactivatedUntil = deactivatedUntil;
+  await user.save();
+
+  return {
+    success: true,
+    message: 'Account deactivated successfully for 14 days',
+    deactivatedUntil
+  };
+};
+
+const getSafetyLists = async (userId) => {
+  const user = await User.findById(userId)
+    .populate('blockedUsers', 'username name avatar')
+    .populate('restrictedUsers', 'username name avatar');
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return {
+    blockedUsers: user.blockedUsers || [],
+    restrictedUsers: user.restrictedUsers || []
+  };
+};
+
+const blockUser = async (userId, targetUsername) => {
+  if (!targetUsername) throw new Error('Username to block is required');
+  const cleanUsername = targetUsername.replace(/^@/, '').trim().toLowerCase();
+
+  const target = await User.findOne({ username: cleanUsername });
+  if (!target) throw new Error(`User @${cleanUsername} not found`);
+  if (target._id.toString() === userId.toString()) throw new Error('Cannot block yourself');
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $addToSet: { blockedUsers: target._id } },
+    { new: true }
+  ).populate('blockedUsers', 'username name avatar');
+
+  return updatedUser.blockedUsers;
+};
+
+const unblockUser = async (userId, targetUsername) => {
+  if (!targetUsername) throw new Error('Username to unblock is required');
+  const cleanUsername = targetUsername.replace(/^@/, '').trim().toLowerCase();
+
+  const target = await User.findOne({ username: cleanUsername });
+  if (!target) return [];
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $pull: { blockedUsers: target._id } },
+    { new: true }
+  ).populate('blockedUsers', 'username name avatar');
+
+  return updatedUser.blockedUsers;
+};
+
+const restrictUser = async (userId, targetUsername) => {
+  if (!targetUsername) throw new Error('Username to restrict is required');
+  const cleanUsername = targetUsername.replace(/^@/, '').trim().toLowerCase();
+
+  const target = await User.findOne({ username: cleanUsername });
+  if (!target) throw new Error(`User @${cleanUsername} not found`);
+  if (target._id.toString() === userId.toString()) throw new Error('Cannot restrict yourself');
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $addToSet: { restrictedUsers: target._id } },
+    { new: true }
+  ).populate('restrictedUsers', 'username name avatar');
+
+  return updatedUser.restrictedUsers;
+};
+
+const unrestrictUser = async (userId, targetUsername) => {
+  if (!targetUsername) throw new Error('Username to unrestrict is required');
+  const cleanUsername = targetUsername.replace(/^@/, '').trim().toLowerCase();
+
+  const target = await User.findOne({ username: cleanUsername });
+  if (!target) return [];
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $pull: { restrictedUsers: target._id } },
+    { new: true }
+  ).populate('restrictedUsers', 'username name avatar');
+
+  return updatedUser.restrictedUsers;
+};
+
 module.exports = {
   updateProfile,
-  getPublicProfile
+  getPublicProfile,
+  exportUserData,
+  deactivateAccount,
+  getSafetyLists,
+  blockUser,
+  unblockUser,
+  restrictUser,
+  unrestrictUser
 };

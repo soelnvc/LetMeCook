@@ -1,5 +1,7 @@
 const Dish = require('../models/Dish');
 const User = require('../models/User');
+const Connection = require('../models/Connection');
+const Notification = require('../models/Notification');
 
 const createDish = async (creatorId, dishData) => {
   const {
@@ -89,35 +91,71 @@ const getDishes = async (userId, query = {}) => {
   }
 
   const dishes = await Dish.find(filter)
-    .populate('creator', 'username name avatar institute verification')
+    .populate('creator', 'username name avatar institute verification privacy isDeactivated blockedUsers')
     .populate('participants.user', 'username name avatar')
     .sort({ createdAt: -1 })
     .limit(50);
 
-  // Server-authoritative Chef's Special eligibility and Age filtering
-  return dishes.filter((dish) => {
-    // Underaged users (< 18) must not see global tickets
-    if (currentUser && currentUser.age && currentUser.age < 18) {
-      if (dish.visibility === 'global' || dish.location?.scope === 'nearby') {
+  // Filter deactivated, blocked users, chef's special, and sanitize location privacy
+  return dishes
+    .filter((dish) => {
+      // Omit dishes from deactivated creators
+      if (dish.creator?.isDeactivated) {
         return false;
       }
-    }
 
-    if (dish.type !== 'chefs_special') return true;
-    if (!currentUser) return false;
+      // Omit dishes if creator is blocked or has blocked currentUser
+      if (currentUser && dish.creator) {
+        const creatorIdStr = dish.creator._id.toString();
+        const currentUserIdStr = currentUser._id.toString();
 
-    if (dish.eligibility?.gender && dish.eligibility.gender !== 'any') {
-      if (currentUser.gender !== dish.eligibility.gender) return false;
-    }
-
-    if (dish.eligibility?.instituteOnly) {
-      if (!currentUser.institute?.name || currentUser.institute?.name !== dish.creator?.institute?.name) {
-        return false;
+        if (currentUser.blockedUsers && currentUser.blockedUsers.some((b) => b.toString() === creatorIdStr)) {
+          return false;
+        }
+        if (dish.creator.blockedUsers && dish.creator.blockedUsers.some((b) => b.toString() === currentUserIdStr)) {
+          return false;
+        }
       }
-    }
 
-    return true;
-  });
+      // Underaged users (< 18) must not see global tickets
+      if (currentUser && currentUser.age && currentUser.age < 18) {
+        if (dish.visibility === 'global' || dish.location?.scope === 'nearby') {
+          return false;
+        }
+      }
+
+      if (dish.type !== 'chefs_special') return true;
+      if (!currentUser) return false;
+
+      if (dish.eligibility?.gender && dish.eligibility.gender !== 'any') {
+        if (currentUser.gender !== dish.eligibility.gender) return false;
+      }
+
+      if (dish.eligibility?.instituteOnly) {
+        if (!currentUser.institute?.name || currentUser.institute?.name !== dish.creator?.institute?.name) {
+          return false;
+        }
+      }
+
+      return true;
+    })
+    .map((dish) => {
+      // Enforce location privacy
+      const locPrivacy = dish.creator?.privacy?.locationPrivacy || 'approximate';
+      const isConfirmed =
+        currentUser &&
+        dish.participants?.some(
+          (p) =>
+            (p.user?._id || p.user)?.toString() === currentUser._id.toString()
+        );
+
+      if (locPrivacy === 'never') {
+        dish.location.areaName = dish.creator?.institute?.name || 'Campus Network';
+      } else if (locPrivacy === 'on_start' && !isConfirmed) {
+        dish.location.areaName = `${dish.creator?.institute?.name || 'Campus'} • Spot revealed when accepted`;
+      }
+      return dish;
+    });
 };
 
 const getDishById = async (dishId) => {
@@ -299,6 +337,68 @@ const respondToJoinRequest = async (dishId, creatorId, requestId, action) => {
   }
 };
 
+const inviteToDish = async (dishId, inviterId, targetUsername) => {
+  if (!targetUsername) throw new Error('Target username is required');
+  const cleanUsername = targetUsername.replace(/^@/, '').trim().toLowerCase();
+
+  const dish = await Dish.findById(dishId);
+  if (!dish) throw new Error('Dish not found');
+
+  const inviter = await User.findById(inviterId);
+  const target = await User.findOne({ username: cleanUsername });
+  if (!target) throw new Error(`User @${cleanUsername} not found`);
+  if (target.isDeactivated) throw new Error(`User @${cleanUsername} is currently deactivated`);
+
+  // Check if inviter is part of the dish
+  const isParticipant = dish.participants.some(
+    (p) => (p.user?._id || p.user).toString() === inviterId.toString()
+  );
+  if (!isParticipant) throw new Error('You must be a participant to invite someone');
+
+  // Check blocked
+  if (
+    (inviter.blockedUsers && inviter.blockedUsers.includes(target._id)) ||
+    (target.blockedUsers && target.blockedUsers.includes(inviter._id))
+  ) {
+    throw new Error('Unable to invite this user');
+  }
+
+  // Check target user's invitePermission
+  const permission = target.privacy?.invitePermission || 'everyone';
+  if (permission === 'nobody') {
+    throw new Error(`@${cleanUsername} does not accept dish invitations`);
+  }
+
+  if (permission === 'institute') {
+    if (!inviter.institute?.name || inviter.institute.name !== target.institute?.name) {
+      throw new Error(`@${cleanUsername} only accepts dish invitations from ${target.institute?.name || 'their institute'}`);
+    }
+  }
+
+  if (permission === 'connections') {
+    const conn = await Connection.findOne({
+      $or: [
+        { requester: inviterId, recipient: target._id, status: 'accepted' },
+        { requester: target._id, recipient: inviterId, status: 'accepted' }
+      ]
+    });
+    if (!conn) {
+      throw new Error(`@${cleanUsername} only accepts invitations from connected peers`);
+    }
+  }
+
+  // Create notification
+  await Notification.create({
+    recipient: target._id,
+    actor: inviterId,
+    type: 'dish_invite',
+    dish: dish._id,
+    content: `${inviter.name || inviter.username} invited you to join "${dish.description.slice(0, 40)}..."`
+  });
+
+  return { success: true, message: `Invitation sent to @${cleanUsername}` };
+};
+
 module.exports = {
   createDish,
   getDishes,
@@ -306,6 +406,7 @@ module.exports = {
   joinDish,
   leaveDish,
   respondToJoinRequest,
-  transitionDishStatus
+  transitionDishStatus,
+  inviteToDish
 };
 

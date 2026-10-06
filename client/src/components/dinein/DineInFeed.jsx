@@ -16,6 +16,7 @@ export default function DineInFeed({
   onApproveRequest,
   onRejectRequest,
   onOpenKitchenModal,
+  onViewProfile,
   initialTab = 'join_to_cook',
   initialCategory = ''
 }) {
@@ -812,6 +813,7 @@ export default function DineInFeed({
               onMarkCooked={onMarkCooked}
               onApproveRequest={onApproveRequest}
               onRejectRequest={onRejectRequest}
+              onViewProfile={onViewProfile}
             />
           ))}
         </div>

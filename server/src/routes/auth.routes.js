@@ -10,5 +10,6 @@ const { registerValidator, loginValidator } = require('../utils/validators');
 router.post('/register', validate(registerValidator), authController.register);
 router.post('/login', authLimiter, validate(loginValidator), authController.login);
 router.get('/me', authMiddleware, authController.getMe);
+router.post('/change-password', authMiddleware, authController.changePassword);
 
 module.exports = router;

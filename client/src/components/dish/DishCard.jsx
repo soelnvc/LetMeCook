@@ -195,14 +195,19 @@ export default function DishCard({
   onStartCooking,
   onMarkCooked,
   onApproveRequest,
-  onRejectRequest
+  onRejectRequest,
+  onViewProfile
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const creatorObj = dish.creator || {};
   const creatorName = creatorObj.name || 'Anonymous';
   const creatorUsername = creatorObj.username || 'user';
-  const isCreator = (creatorObj._id || creatorObj) === currentUser?._id;
+  const isCreator =
+    (creatorObj._id && String(creatorObj._id) === String(currentUser?._id)) ||
+    (creatorObj.username && creatorObj.username === currentUser?.username) ||
+    String(creatorObj) === String(currentUser?._id);
+  const creatorAvatar = isCreator ? (currentUser?.avatar || creatorObj.avatar) : creatorObj.avatar;
   const isParticipant = dish.participants?.some(
     (p) => (p.user?._id || p.user) === currentUser?._id
   );
@@ -236,24 +241,59 @@ export default function DishCard({
       {/* Right Card Content */}
       <div style={{ flex: 1, minWidth: 0, color: '#000000' }}>
         {/* Header: DP + Name + Username • Category */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: '50%',
-              backgroundColor: '#f97316',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 13,
-              fontWeight: 'bold',
-              flexShrink: 0
-            }}
-          >
-            {(creatorName || 'U')[0].toUpperCase()}
-          </div>
+        <div
+          onClick={() => {
+            if (onViewProfile) {
+              onViewProfile({
+                ...creatorObj,
+                avatar: creatorAvatar,
+                name: creatorName,
+                username: creatorObj.username || 'user'
+              });
+            }
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            marginBottom: 8,
+            cursor: onViewProfile ? 'pointer' : 'default',
+            width: 'fit-content'
+          }}
+          title={onViewProfile ? `View @${creatorObj.username || 'user'}'s profile` : ''}
+        >
+          {creatorAvatar ? (
+            <img
+              src={creatorAvatar}
+              alt={creatorName}
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                objectFit: 'cover',
+                flexShrink: 0,
+                border: '1px solid rgba(0, 0, 0, 0.08)'
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                backgroundColor: '#f97316',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 13,
+                fontWeight: 'bold',
+                flexShrink: 0
+              }}
+            >
+              {(creatorName || 'U')[0].toUpperCase()}
+            </div>
+          )}
           <div style={{ minWidth: 0 }}>
             <div
               style={{
@@ -330,6 +370,52 @@ export default function DishCard({
             </svg>
             {dish.participants?.length || 1}/{dish.capacity?.max || 4} spots ({spotsLeft} left)
           </span>
+
+          {/* Participant Avatars (Clickable to view profile) */}
+          {dish.participants && dish.participants.length > 0 && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 2 }}>
+              {dish.participants.slice(0, 4).map((p, pIdx) => {
+                const pUser = p.user || p;
+                if (!pUser || typeof pUser !== 'object') return null;
+                const pAvatar = pUser.avatar;
+                const pName = pUser.name || pUser.username || 'Peer';
+                return (
+                  <div
+                    key={pUser._id || pIdx}
+                    onClick={(e) => {
+                      if (onViewProfile) {
+                        e.stopPropagation();
+                        onViewProfile(pUser);
+                      }
+                    }}
+                    title={onViewProfile ? `View @${pUser.username || 'user'}'s profile` : pName}
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      marginLeft: pIdx === 0 ? 0 : -5,
+                      border: '1.5px solid #ffffff',
+                      cursor: onViewProfile ? 'pointer' : 'default',
+                      backgroundColor: '#f97316',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 9,
+                      color: '#ffffff',
+                      fontWeight: 700
+                    }}
+                  >
+                    {pAvatar ? (
+                      <img src={pAvatar} alt={pName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      (pName[0] || 'U').toUpperCase()
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
             • {dish.joinMode === 'auto' ? (
               <>
@@ -377,7 +463,22 @@ export default function DishCard({
                       marginTop: 4
                     }}
                   >
-                    <span style={{ color: '#000000' }}>User: {r.user?._id || r.user}</span>
+                    <span
+                      onClick={() => {
+                        if (onViewProfile) {
+                          onViewProfile(typeof r.user === 'object' ? r.user : { username: r.user });
+                        }
+                      }}
+                      style={{
+                        color: '#000000',
+                        cursor: onViewProfile ? 'pointer' : 'default',
+                        textDecoration: onViewProfile ? 'underline' : 'none',
+                        fontWeight: 600
+                      }}
+                      title={onViewProfile ? 'View profile' : ''}
+                    >
+                      User: {typeof r.user === 'object' ? (r.user.name || r.user.username) : r.user}
+                    </span>
                     <div>
                       <button
                         onClick={() => onApproveRequest && onApproveRequest(dish._id, r._id)}

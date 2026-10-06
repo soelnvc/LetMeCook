@@ -108,6 +108,16 @@ const rejectRequest = async (req, res, next) => {
   }
 };
 
+const inviteToDish = async (req, res, next) => {
+  try {
+    const { username } = req.body;
+    const result = await dishService.inviteToDish(req.params.id, req.user.userId, username);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createDish,
   getDishes,
@@ -116,6 +126,7 @@ module.exports = {
   leaveDish,
   approveRequest,
   rejectRequest,
-  updateStatus
+  updateStatus,
+  inviteToDish
 };
 

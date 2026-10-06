@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
+import { apiFetch } from '@/lib/api';
 
 /**
  * Custom Input wrapped in GlassContainer to avoid browser default styles
@@ -197,7 +198,8 @@ export default function SettingsPage({
   onUpdateUser,
   onOpenEditProfile,
   themePreference = 'system',
-  onThemeChange
+  onThemeChange,
+  onViewProfile
 }) {
   // Navigation active section
   const [activeSection, setActiveSection] = useState('privacy');
@@ -216,14 +218,12 @@ export default function SettingsPage({
   const [activityVisibility, setActivityVisibility] = useState(user?.privacy?.activityVisibility ?? true);
 
   // 2. Safety Settings States
-  const [locationPrivacy, setLocationPrivacy] = useState('approximate'); // 'never' | 'approximate' | 'on_start'
-  const [blockedUsers, setBlockedUsers] = useState(['alex_fake_bot', 'spammer_99']);
+  const [locationPrivacy, setLocationPrivacy] = useState(user?.privacy?.locationPrivacy || 'approximate');
+  const [blockedUsers, setBlockedUsers] = useState([]);
   const [newBlockInput, setNewBlockInput] = useState('');
-  const [restrictedUsers, setRestrictedUsers] = useState(['campus_troll_01']);
-  const [reportHistory] = useState([
-    { id: 'rep-1', target: 'Fake Badminton Ticket', date: '2 days ago', status: 'Resolved • Removed' },
-    { id: 'rep-2', target: 'Harassment in Chat', date: 'Last week', status: 'Action Taken • User Warned' }
-  ]);
+  const [restrictedUsers, setRestrictedUsers] = useState([]);
+  const [newRestrictInput, setNewRestrictInput] = useState('');
+  const [reportHistory, setReportHistory] = useState([]);
 
   // 3. Notification Settings States
   const [pushEnabled, setPushEnabled] = useState(true);
@@ -255,6 +255,9 @@ export default function SettingsPage({
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isDownloadingData, setIsDownloadingData] = useState(false);
 
   // 2-Step Deactivation State
   const [deactivateStep, setDeactivateStep] = useState(null); // null | 1 | 2
@@ -373,9 +376,46 @@ export default function SettingsPage({
       .filter((sec) => sec.items.length > 0);
   }, [searchQuery]);
 
+  // Sync safety data on mount
+  const fetchSafetyData = async () => {
+    try {
+      const res = await apiFetch('/users/me/safety-lists');
+      if (res?.data) {
+        setBlockedUsers(res.data.blockedUsers || []);
+        setRestrictedUsers(res.data.restrictedUsers || []);
+      }
+    } catch {
+      // silently handle
+    }
+
+    try {
+      const repRes = await apiFetch('/safety/my-reports');
+      if (repRes?.data) {
+        setReportHistory(repRes.data);
+      }
+    } catch {
+      // silently handle
+    }
+  };
+
+  useEffect(() => {
+    fetchSafetyData();
+  }, []);
+
+  useEffect(() => {
+    if (user?.privacy) {
+      if (user.privacy.locationPrivacy) setLocationPrivacy(user.privacy.locationPrivacy);
+      if (user.privacy.invitePermission) setInvitePermission(user.privacy.invitePermission);
+      if (user.privacy.activityVisibility !== undefined) setActivityVisibility(user.privacy.activityVisibility);
+      if (user.privacy.bioVisibility) setBioVisibility(user.privacy.bioVisibility);
+      if (user.privacy.instituteVisibility) setInstituteVisibility(user.privacy.instituteVisibility);
+      if (user.privacy.avatarVisibility) setAvatarVisibility(user.privacy.avatarVisibility);
+    }
+  }, [user]);
+
   // Handle privacy save
   const handleSavePrivacy = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (onUpdateUser) {
       onUpdateUser({
         privacy: {
@@ -385,11 +425,153 @@ export default function SettingsPage({
           invitePermission,
           messagePermission,
           globalDiscovery,
-          activityVisibility
+          activityVisibility,
+          locationPrivacy
         }
       });
     }
     triggerSuccess('Privacy settings saved successfully');
+  };
+
+  // Block & Restrict handlers
+  const handleBlockUser = async () => {
+    if (!newBlockInput.trim()) return;
+    try {
+      const res = await apiFetch('/users/me/block', {
+        method: 'POST',
+        body: JSON.stringify({ username: newBlockInput.trim() })
+      });
+      setBlockedUsers(res.data || []);
+      setNewBlockInput('');
+      triggerSuccess('User blocked successfully');
+    } catch (err) {
+      triggerSuccess(err.message || 'Failed to block user');
+    }
+  };
+
+  const handleUnblockUser = async (bUser) => {
+    const username = typeof bUser === 'object' ? bUser.username : bUser;
+    try {
+      const res = await apiFetch(`/users/me/block/${username}`, {
+        method: 'DELETE'
+      });
+      setBlockedUsers(res.data || []);
+      triggerSuccess(`@${username} unblocked`);
+    } catch (err) {
+      triggerSuccess(err.message || 'Failed to unblock user');
+    }
+  };
+
+  const handleRestrictUser = async () => {
+    if (!newRestrictInput.trim()) return;
+    try {
+      const res = await apiFetch('/users/me/restrict', {
+        method: 'POST',
+        body: JSON.stringify({ username: newRestrictInput.trim() })
+      });
+      setRestrictedUsers(res.data || []);
+      setNewRestrictInput('');
+      triggerSuccess('User restricted');
+    } catch (err) {
+      triggerSuccess(err.message || 'Failed to restrict user');
+    }
+  };
+
+  const handleUnrestrictUser = async (rUser) => {
+    const username = typeof rUser === 'object' ? rUser.username : rUser;
+    try {
+      const res = await apiFetch(`/users/me/restrict/${username}`, {
+        method: 'DELETE'
+      });
+      setRestrictedUsers(res.data || []);
+      triggerSuccess(`Restriction removed for @${username}`);
+    } catch (err) {
+      triggerSuccess(err.message || 'Failed to remove restriction');
+    }
+  };
+
+  // Handle password update
+  const handleUpdatePassword = async () => {
+    setPasswordError('');
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError('Please fill in all password fields');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters long');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New password and confirm password do not match');
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      await apiFetch('/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      triggerSuccess('Password updated successfully');
+    } catch (err) {
+      setPasswordError(err.message || 'Failed to update password');
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  // Handle download data
+  const handleDownloadData = async () => {
+    setIsDownloadingData(true);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const res = await fetch('http://localhost:5001/api/users/me/export-data', {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || 'Failed to export data');
+      }
+      const blob = await res.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `letmecook-data-${user?.username || 'user'}-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      triggerSuccess('Your data archive has been downloaded successfully.');
+    } catch (err) {
+      triggerSuccess(err.message || 'Failed to download data');
+    } finally {
+      setIsDownloadingData(false);
+    }
+  };
+
+  // Handle deactivation confirmation
+  const handleConfirmDeactivation = async () => {
+    if (!deactivatePassword.trim()) {
+      setDeactivateError('Please enter your password to deactivate');
+      return;
+    }
+    try {
+      await apiFetch('/users/me/deactivate', {
+        method: 'POST',
+        body: JSON.stringify({ password: deactivatePassword })
+      });
+      setDeactivateStep(null);
+      setDeactivatePassword('');
+      triggerSuccess('Account deactivated for 14 days. Logging out...');
+      setTimeout(() => onLogout && onLogout(), 1600);
+    } catch (err) {
+      setDeactivateError(err.message || 'Failed to deactivate account');
+    }
   };
 
   // Handle account credentials save
@@ -824,6 +1006,14 @@ export default function SettingsPage({
                         key={item.id}
                         onClick={() => {
                           setLocationPrivacy(item.id);
+                          if (onUpdateUser) {
+                            onUpdateUser({
+                              privacy: {
+                                ...user?.privacy,
+                                locationPrivacy: item.id
+                              }
+                            });
+                          }
                           triggerSuccess('Location privacy updated');
                         }}
                         style={{
@@ -877,16 +1067,17 @@ export default function SettingsPage({
                     placeholder="Enter @username to block..."
                     value={newBlockInput}
                     onChange={(e) => setNewBlockInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleBlockUser();
+                      }
+                    }}
                     style={{ flex: 1 }}
                   />
                   <FluidButton
-                    onClick={() => {
-                      if (newBlockInput.trim()) {
-                        setBlockedUsers((prev) => [...prev, newBlockInput.trim()]);
-                        setNewBlockInput('');
-                        triggerSuccess('User blocked');
-                      }
-                    }}
+                    type="button"
+                    onClick={handleBlockUser}
                     style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}
                   >
                     Block
@@ -902,79 +1093,194 @@ export default function SettingsPage({
                     <div style={{ fontSize: 12, color: '#71717a' }}>No blocked accounts.</div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {blockedUsers.map((bUser) => (
-                        <div
-                          key={bUser}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '8px 12px',
-                            borderRadius: 12,
-                            background: 'rgba(0, 0, 0, 0.03)'
-                          }}
-                        >
-                          <span style={{ fontSize: 12.5, fontWeight: 600 }}>@{bUser}</span>
-                          <button
-                            onClick={() => {
-                              setBlockedUsers((prev) => prev.filter((u) => u !== bUser));
-                              triggerSuccess('User unblocked');
-                            }}
+                      {blockedUsers.map((bUser) => {
+                        const uname = typeof bUser === 'object' ? bUser.username : bUser;
+                        const uavatar = typeof bUser === 'object' ? bUser.avatar : null;
+                        const displayName = typeof bUser === 'object' ? (bUser.name || bUser.username) : bUser;
+                        return (
+                          <div
+                            key={uname}
                             style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#dc2626',
-                              fontSize: 11.5,
-                              fontWeight: 600,
-                              cursor: 'pointer'
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '8px 12px',
+                              borderRadius: 12,
+                              background: 'rgba(0, 0, 0, 0.03)'
                             }}
                           >
-                            Unblock
-                          </button>
-                        </div>
-                      ))}
+                            <div
+                              onClick={() => {
+                                if (onViewProfile) {
+                                  onViewProfile(typeof bUser === 'object' ? bUser : { username: uname, name: displayName, avatar: uavatar });
+                                }
+                              }}
+                              style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: onViewProfile ? 'pointer' : 'default' }}
+                              title={onViewProfile ? `View @${uname}'s profile` : ''}
+                            >
+                              {uavatar ? (
+                                <img
+                                  src={uavatar}
+                                  alt={uname}
+                                  style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
+                                />
+                              ) : (
+                                <div
+                                  style={{
+                                    width: 28,
+                                    height: 28,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#f97316',
+                                    color: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: 11,
+                                    fontWeight: 700
+                                  }}
+                                >
+                                  {(uname || 'U')[0]?.toUpperCase()}
+                                </div>
+                              )}
+                              <div style={{ minWidth: 0 }}>
+                                <span style={{ fontSize: 12.5, fontWeight: 700, color: '#09090b', textDecoration: onViewProfile ? 'underline' : 'none' }}>
+                                  {displayName}
+                                </span>
+                                <span style={{ fontSize: 11.5, color: '#71717a', marginLeft: 6 }}>
+                                  @{uname}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleUnblockUser(bUser)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#dc2626',
+                                fontSize: 11.5,
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Unblock
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
 
-                {/* Restricted Users */}
-                <div style={{ marginTop: 4 }}>
+                {/* Restrict a user form */}
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                    <CustomInput
+                      placeholder="Enter @username to restrict..."
+                      value={newRestrictInput}
+                      onChange={(e) => setNewRestrictInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleRestrictUser();
+                        }
+                      }}
+                      style={{ flex: 1 }}
+                    />
+                    <FluidButton
+                      type="button"
+                      onClick={handleRestrictUser}
+                      style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}
+                    >
+                      Restrict
+                    </FluidButton>
+                  </div>
+
+                  {/* Restricted Users */}
                   <div style={{ fontSize: 12, fontWeight: 600, color: '#71717a', marginBottom: 6 }}>
                     Hidden / Restricted Users ({restrictedUsers.length})
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {restrictedUsers.map((rUser) => (
-                      <div
-                        key={rUser}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 12px',
-                          borderRadius: 12,
-                          background: 'rgba(0, 0, 0, 0.03)'
-                        }}
-                      >
-                        <span style={{ fontSize: 12.5, fontWeight: 600 }}>@{rUser}</span>
-                        <button
-                          onClick={() => {
-                            setRestrictedUsers((prev) => prev.filter((u) => u !== rUser));
-                            triggerSuccess('Restriction removed');
-                          }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#71717a',
-                            fontSize: 11.5,
-                            fontWeight: 600,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  {restrictedUsers.length === 0 ? (
+                    <div style={{ fontSize: 12, color: '#71717a' }}>No restricted accounts.</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {restrictedUsers.map((rUser) => {
+                        const uname = typeof rUser === 'object' ? rUser.username : rUser;
+                        const uavatar = typeof rUser === 'object' ? rUser.avatar : null;
+                        const displayName = typeof rUser === 'object' ? (rUser.name || rUser.username) : rUser;
+                        return (
+                          <div
+                            key={uname}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '8px 12px',
+                              borderRadius: 12,
+                              background: 'rgba(0, 0, 0, 0.03)'
+                            }}
+                          >
+                            <div
+                              onClick={() => {
+                                if (onViewProfile) {
+                                  onViewProfile(typeof rUser === 'object' ? rUser : { username: uname, name: displayName, avatar: uavatar });
+                                }
+                              }}
+                              style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: onViewProfile ? 'pointer' : 'default' }}
+                              title={onViewProfile ? `View @${uname}'s profile` : ''}
+                            >
+                              {uavatar ? (
+                                <img
+                                  src={uavatar}
+                                  alt={uname}
+                                  style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
+                                />
+                              ) : (
+                                <div
+                                  style={{
+                                    width: 28,
+                                    height: 28,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#71717a',
+                                    color: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: 11,
+                                    fontWeight: 700
+                                  }}
+                                >
+                                  {(uname || 'U')[0]?.toUpperCase()}
+                                </div>
+                              )}
+                              <div style={{ minWidth: 0 }}>
+                                <span style={{ fontSize: 12.5, fontWeight: 700, color: '#09090b', textDecoration: onViewProfile ? 'underline' : 'none' }}>
+                                  {displayName}
+                                </span>
+                                <span style={{ fontSize: 11.5, color: '#71717a', marginLeft: 6 }}>
+                                  @{uname}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleUnrestrictUser(rUser)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#71717a',
+                                fontSize: 11.5,
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </GlassContainer>
 
@@ -1007,32 +1313,47 @@ export default function SettingsPage({
                 {/* Report History */}
                 <div style={{ marginTop: 4 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: '#71717a', marginBottom: 6 }}>
-                    Your Report History
+                    Your Report History ({reportHistory.length})
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {reportHistory.map((rep) => (
-                      <div
-                        key={rep.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '10px 12px',
-                          borderRadius: 12,
-                          background: 'rgba(0, 0, 0, 0.02)',
-                          fontSize: 12
-                        }}
-                      >
-                        <div>
-                          <strong style={{ color: '#09090b' }}>{rep.target}</strong>
-                          <span style={{ color: '#71717a', marginLeft: 6 }}>• {rep.date}</span>
+                  {reportHistory.length === 0 ? (
+                    <div style={{ fontSize: 12, color: '#71717a' }}>No report history found.</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {reportHistory.map((rep) => (
+                        <div
+                          key={rep.id || rep._id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '10px 12px',
+                            borderRadius: 12,
+                            background: 'rgba(0, 0, 0, 0.02)',
+                            fontSize: 12
+                          }}
+                        >
+                          <div>
+                            <strong
+                              onClick={() => {
+                                if (onViewProfile && rep.target) {
+                                  const cleanUser = rep.target.replace(/^@/, '');
+                                  onViewProfile({ username: cleanUser });
+                                }
+                              }}
+                              style={{ color: '#09090b', cursor: onViewProfile ? 'pointer' : 'default', textDecoration: onViewProfile ? 'underline' : 'none' }}
+                              title={onViewProfile ? `View profile` : ''}
+                            >
+                              {rep.target}
+                            </strong>
+                            <span style={{ color: '#71717a', marginLeft: 6 }}>• {rep.date}</span>
+                          </div>
+                          <span style={{ color: '#16a34a', fontWeight: 600, fontSize: 11.5 }}>
+                            {rep.status}
+                          </span>
                         </div>
-                        <span style={{ color: '#16a34a', fontWeight: 600, fontSize: 11.5 }}>
-                          {rep.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </GlassContainer>
             </div>
@@ -1239,23 +1560,79 @@ export default function SettingsPage({
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                   <div
                     style={{
-                      width: 52,
-                      height: 52,
+                      width: 54,
+                      height: 54,
                       borderRadius: '50%',
-                      background: '#f97316',
+                      overflow: 'hidden',
+                      backgroundColor: '#f97316',
                       color: '#ffffff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: 18,
-                      fontWeight: 800
+                      fontWeight: 800,
+                      flexShrink: 0,
+                      border: '1.5px solid rgba(0, 0, 0, 0.08)'
                     }}
                   >
-                    {(user?.name || 'U')[0].toUpperCase()}
+                    {user?.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user?.name || 'User'}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      (user?.name || 'U')[0].toUpperCase()
+                    )}
                   </div>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 700 }}>@{user?.username || 'user'}</div>
-                    <div style={{ fontSize: 12.5, color: '#71717a' }}>{user?.institute?.name || 'IIT Madras'}</div>
+                    <div style={{ fontSize: 12, color: '#71717a' }}>{user?.institute?.name || 'IIT Madras'}</div>
+                    <label
+                      style={{
+                        display: 'inline-block',
+                        fontSize: 12,
+                        color: '#f97316',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        marginTop: 4
+                      }}
+                    >
+                      Change Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            const img = new Image();
+                            img.onload = () => {
+                              const canvas = document.createElement('canvas');
+                              const maxDim = 400;
+                              let w = img.width, h = img.height;
+                              if (w > h) {
+                                if (w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                              } else {
+                                if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+                              }
+                              canvas.width = w; canvas.height = h;
+                              const ctx = canvas.getContext('2d');
+                              ctx.drawImage(img, 0, 0, w, h);
+                              const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                              if (onUpdateUser) {
+                                onUpdateUser({ avatar: dataUrl });
+                                triggerSuccess('Profile picture updated successfully!');
+                              }
+                            };
+                            img.src = ev.target.result;
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
                   </div>
                 </div>
 
@@ -1486,40 +1863,47 @@ export default function SettingsPage({
                   Change Password & Security
                 </h3>
 
+                {passwordError && (
+                  <div style={{ fontSize: 12.5, color: '#dc2626', fontWeight: 600 }}>
+                    {passwordError}
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <CustomInput
                     type="password"
                     value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    onChange={(e) => {
+                      setCurrentPassword(e.target.value);
+                      setPasswordError('');
+                    }}
                     placeholder="Current Password"
                   />
                   <CustomInput
                     type="password"
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={(e) => {
+                      setNewPassword(e.target.value);
+                      setPasswordError('');
+                    }}
                     placeholder="New Password (min 8 characters)"
                   />
                   <CustomInput
                     type="password"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      setPasswordError('');
+                    }}
                     placeholder="Confirm New Password"
                   />
 
                   <FluidButton
-                    onClick={() => {
-                      if (!currentPassword || !newPassword) {
-                        triggerSuccess('Please enter password fields');
-                        return;
-                      }
-                      setCurrentPassword('');
-                      setNewPassword('');
-                      setConfirmPassword('');
-                      triggerSuccess('Password updated successfully');
-                    }}
+                    disabled={isUpdatingPassword}
+                    onClick={handleUpdatePassword}
                     style={{ padding: '7px 20px', fontSize: 12.5, fontWeight: 600, alignSelf: 'flex-start', marginTop: 4 }}
                   >
-                    Update Password
+                    {isUpdatingPassword ? 'Updating...' : 'Update Password'}
                   </FluidButton>
                 </div>
               </GlassContainer>
@@ -1531,14 +1915,15 @@ export default function SettingsPage({
                   <div>
                     <div style={{ fontSize: 13.5, fontWeight: 700 }}>Download My Data</div>
                     <div style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>
-                      Request an archive containing all your activity tickets, messages, and connections.
+                      Download an archive containing your full profile data, activity tickets, and connections.
                     </div>
                   </div>
                   <FluidButton
-                    onClick={() => triggerSuccess('Data archive requested. Link will be sent to your email.')}
+                    disabled={isDownloadingData}
+                    onClick={handleDownloadData}
                     style={{ padding: '7px 16px', fontSize: 12, fontWeight: 600 }}
                   >
-                    Request Archive
+                    {isDownloadingData ? 'Downloading...' : 'Download My Data'}
                   </FluidButton>
                 </div>
 
@@ -1767,16 +2152,7 @@ export default function SettingsPage({
 
                   <FluidButton
                     type="button"
-                    onClick={() => {
-                      if (!deactivatePassword.trim()) {
-                        setDeactivateError('Please enter your password to deactivate');
-                        return;
-                      }
-                      setDeactivateStep(null);
-                      setDeactivatePassword('');
-                      triggerSuccess('Account deactivated for 14 days. Logging out...');
-                      setTimeout(() => onLogout && onLogout(), 1600);
-                    }}
+                    onClick={handleConfirmDeactivation}
                     style={{
                       padding: '8px 20px',
                       fontSize: 12.5,

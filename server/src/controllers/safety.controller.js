@@ -24,7 +24,20 @@ const verifyInstitute = async (req, res, next) => {
   }
 };
 
+const getMyReports = async (req, res, next) => {
+  try {
+    const reports = await safetyService.getMyReports(req.user.userId);
+    res.status(200).json({
+      success: true,
+      data: reports
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createReport,
-  verifyInstitute
+  verifyInstitute,
+  getMyReports
 };

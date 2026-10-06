@@ -13,7 +13,8 @@ export default function ConversationList({
   setMessagesTab,
   searchQuery,
   setSearchQuery,
-  onRespondRequest
+  onRespondRequest,
+  onViewProfile
 }) {
   const filteredList = conversations.filter((c) => {
     const matchTab = messagesTab === 'requests' ? c.isRequest : !c.isRequest;
@@ -169,38 +170,83 @@ export default function ConversationList({
               >
                 {/* Avatar */}
                 <div
-                  style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: '50%',
-                    backgroundColor: '#e0c8b0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    color: '#4a3b32',
-                    flexShrink: 0
+                  onClick={(e) => {
+                    if (onViewProfile && c.user) {
+                      e.stopPropagation();
+                      onViewProfile(c.user);
+                    }
                   }}
+                  title={onViewProfile ? `View @${c.user?.username || 'user'}'s profile` : ''}
+                  style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0 }}
                 >
-                  {(c.user?.name || c.user?.username || 'U')[0].toUpperCase()}
+                  {c.user?.avatar ? (
+                    <img
+                      src={c.user.avatar}
+                      alt={c.user?.name || 'User'}
+                      style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        display: 'block',
+                        border: '1px solid rgba(0,0,0,0.08)'
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: '50%',
+                        backgroundColor: '#e0c8b0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        color: '#4a3b32'
+                      }}
+                    >
+                      {(c.user?.name || c.user?.username || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
                 </div>
 
                 {/* Details */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
+                    onClick={(e) => {
+                      if (onViewProfile && c.user) {
+                        e.stopPropagation();
+                        onViewProfile(c.user);
+                      }
+                    }}
+                    title={onViewProfile ? `View @${c.user?.username || 'user'}'s profile` : ''}
                     style={{
-                      fontSize: 14.5,
-                      fontWeight: 700,
-                      color: '#000000',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.3px',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      gap: 6,
+                      cursor: onViewProfile ? 'pointer' : 'default',
+                      width: 'fit-content'
                     }}
                   >
-                    {c.user?.name || 'NAME'}
+                    <span
+                      style={{
+                        fontSize: 14.5,
+                        fontWeight: 700,
+                        color: '#000000',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.3px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {c.user?.name || 'NAME'}
+                    </span>
+                    <span style={{ fontSize: 11.5, color: '#71717a', fontWeight: 500 }}>
+                      @{c.user?.username || 'user'}
+                    </span>
                   </div>
                   <div
                     style={{

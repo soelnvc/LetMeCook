@@ -10,7 +10,8 @@ export default function HomeDashboard({
   onOpenKitchenModal,
   onJoinDish,
   onExploreDineIn,
-  onNavigateTab
+  onNavigateTab,
+  onViewProfile
 }) {
   const [historyFilter, setHistoryFilter] = useState('all'); // 'all' | 'hosted' | 'joined'
 
@@ -38,7 +39,12 @@ export default function HomeDashboard({
         status: 'lets_cook',
         joinMode: 'auto',
         badgeText: `${instituteName} • Starts in 45m`,
-        creator: { name: 'Arjun Sharma', username: 'arjun', institute: { name: instituteName } },
+        creator: {
+          name: 'Arjun Sharma',
+          username: 'arjun',
+          avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+          institute: { name: instituteName }
+        },
         capacity: { max: 4 },
         participants: [{ user: '1' }, { user: '2' }]
       },
@@ -49,7 +55,12 @@ export default function HomeDashboard({
         status: 'lets_cook',
         joinMode: 'auto',
         badgeText: `${instituteName} • Interacted before`,
-        creator: { name: 'Meera Patel', username: 'meera', institute: { name: instituteName } },
+        creator: {
+          name: 'Meera Patel',
+          username: 'meera',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          institute: { name: instituteName }
+        },
         capacity: { max: 4 },
         participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
       },
@@ -60,7 +71,12 @@ export default function HomeDashboard({
         status: 'lets_cook',
         joinMode: 'approval',
         badgeText: `${instituteName} • Close to you`,
-        creator: { name: 'Kabir Roy', username: 'kabir', institute: { name: instituteName } },
+        creator: {
+          name: 'Kabir Roy',
+          username: 'kabir',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          institute: { name: instituteName }
+        },
         capacity: { max: 4 },
         participants: [{ user: '1' }, { user: '2' }]
       }
@@ -104,7 +120,12 @@ export default function HomeDashboard({
         status: 'lets_cook',
         joinMode: 'auto',
         visibility: 'institute',
-        creator: { name: 'Aman Sharma', username: 'amans', institute: { name: instituteName } },
+        creator: {
+          name: 'Aman Sharma',
+          username: 'amans',
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+          institute: { name: instituteName }
+        },
         capacity: { max: 4 },
         participants: [{ user: '1' }, { user: '2' }]
       },
@@ -115,7 +136,12 @@ export default function HomeDashboard({
         status: 'lets_cook',
         joinMode: 'approval',
         visibility: 'institute',
-        creator: { name: 'Priya Patel', username: 'priyap', institute: { name: instituteName } },
+        creator: {
+          name: 'Priya Patel',
+          username: 'priyap',
+          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+          institute: { name: instituteName }
+        },
         capacity: { max: 4 },
         participants: [{ user: '1' }]
       },
@@ -126,7 +152,12 @@ export default function HomeDashboard({
         status: 'cooking',
         joinMode: 'auto',
         visibility: 'institute',
-        creator: { name: 'Rohan Verma', username: 'rohanv', institute: { name: instituteName } },
+        creator: {
+          name: 'Rohan Verma',
+          username: 'rohanv',
+          avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+          institute: { name: instituteName }
+        },
         capacity: { max: 6 },
         participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
       }
@@ -146,7 +177,11 @@ export default function HomeDashboard({
         category: 'gaming',
         status: 'cooked',
         isOwner: true,
-        creator: { name: user?.name || 'Sid G', username: user?.username || 'soelnvc' },
+        creator: {
+          name: user?.name || 'Sid G',
+          username: user?.username || 'soelnvc',
+          avatar: user?.avatar || null
+        },
         capacity: { max: 6 },
         participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }, { user: '5' }, { user: '6' }],
         completedAt: 'Yesterday'
@@ -157,7 +192,11 @@ export default function HomeDashboard({
         category: 'study',
         status: 'cooked',
         isOwner: false,
-        creator: { name: 'Maya Lin', username: 'mayachef' },
+        creator: {
+          name: 'Maya Lin',
+          username: 'mayachef',
+          avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80'
+        },
         capacity: { max: 3 },
         participants: [{ user: '1' }, { user: user?._id }, { user: '3' }],
         completedAt: '3 days ago'
@@ -168,7 +207,11 @@ export default function HomeDashboard({
         category: 'social',
         status: 'cooked',
         isOwner: true,
-        creator: { name: user?.name || 'Sid G', username: user?.username || 'soelnvc' },
+        creator: {
+          name: user?.name || 'Sid G',
+          username: user?.username || 'soelnvc',
+          avatar: user?.avatar || null
+        },
         capacity: { max: 4 },
         participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }],
         completedAt: '5 days ago'
@@ -179,7 +222,11 @@ export default function HomeDashboard({
         category: 'sport',
         status: 'cooked',
         isOwner: false,
-        creator: { name: 'Priya Patel', username: 'priyabakes' },
+        creator: {
+          name: 'Priya Patel',
+          username: 'priyabakes',
+          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80'
+        },
         capacity: { max: 4 },
         participants: [{ user: '1' }, { user: user?._id }, { user: '3' }, { user: '4' }],
         completedAt: '1 week ago'
@@ -205,7 +252,11 @@ export default function HomeDashboard({
   const renderDishCard = (dish) => {
     const creatorName = dish.creator?.name || 'Peer';
     const creatorUsername = dish.creator?.username || 'user';
-    const isCreator = (dish.creator?._id || dish.creator) === user?._id;
+    const isCreator =
+      (dish.creator?._id && String(dish.creator._id) === String(user?._id)) ||
+      (dish.creator?.username && dish.creator.username === user?.username) ||
+      String(dish.creator) === String(user?._id);
+    const creatorAvatar = isCreator ? (user?.avatar || dish.creator?.avatar) : dish.creator?.avatar;
     const isParticipant = dish.participants?.some(
       (p) => (p.user?._id || p.user) === user?._id
     );
@@ -237,23 +288,57 @@ export default function HomeDashboard({
         <div>
           {/* Top: Creator Info + Category Pill */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: '50%',
-                  backgroundColor: '#f97316',
-                  color: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 14,
-                  fontWeight: 700
-                }}
-              >
-                {creatorName[0].toUpperCase()}
-              </div>
+            <div
+              onClick={() => {
+                if (onViewProfile) {
+                  onViewProfile({
+                    ...dish.creator,
+                    avatar: creatorAvatar,
+                    name: creatorName,
+                    username: creatorUsername
+                  });
+                }
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                cursor: onViewProfile ? 'pointer' : 'default'
+              }}
+              title={onViewProfile ? `View @${creatorUsername}'s profile` : ''}
+            >
+              {creatorAvatar ? (
+                <img
+                  src={creatorAvatar}
+                  alt={creatorName}
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    flexShrink: 0,
+                    border: '1px solid rgba(0, 0, 0, 0.08)'
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: '50%',
+                    backgroundColor: '#f97316',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    flexShrink: 0
+                  }}
+                >
+                  {creatorName[0].toUpperCase()}
+                </div>
+              )}
               <div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: '#09090b', lineHeight: 1.2 }}>
                   {creatorName}
@@ -919,8 +1004,16 @@ export default function HomeDashboard({
                     </span>
 
                     {!isOwner && dish.creator?.name && (
-                      <span style={{ fontSize: 11.5, color: '#71717a' }}>
-                        Host: {dish.creator.name}
+                      <span
+                        onClick={() => onViewProfile && onViewProfile(dish.creator)}
+                        style={{
+                          fontSize: 11.5,
+                          color: '#71717a',
+                          cursor: onViewProfile ? 'pointer' : 'default'
+                        }}
+                        title={onViewProfile ? `View @${dish.creator.username || 'user'}'s profile` : ''}
+                      >
+                        Host: <strong style={{ color: '#09090b', textDecoration: onViewProfile ? 'underline' : 'none' }}>{dish.creator.name}</strong>
                       </span>
                     )}
                   </div>

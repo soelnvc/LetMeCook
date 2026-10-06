@@ -21,6 +21,7 @@ router.get('/:id', dishController.getDishById);
 router.post('/', authMiddleware, validate(createDishValidator), dishController.createDish);
 router.post('/:id/join', authMiddleware, dishController.joinDish);
 router.post('/:id/leave', authMiddleware, dishController.leaveDish);
+router.post('/:id/invite', authMiddleware, dishController.inviteToDish);
 router.post('/:id/requests/:requestId/approve', authMiddleware, dishController.approveRequest);
 router.post('/:id/requests/:requestId/reject', authMiddleware, dishController.rejectRequest);
 router.patch('/:id/status', authMiddleware, dishController.updateStatus);

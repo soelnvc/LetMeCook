@@ -9,7 +9,8 @@ export default function GlobalPage({
   dishes = [],
   onJoinDish,
   onOpenKitchenModal,
-  onNavigateTab
+  onNavigateTab,
+  onViewProfile
 }) {
   const isAdult = Boolean(user && user.age !== undefined && user.age !== null && Number(user.age) >= 18);
 
@@ -88,7 +89,11 @@ export default function GlobalPage({
         distanceKm: 1.2,
         distance: '~1.2 km away',
         locationName: 'Lake Promenade Public Park',
-        creator: { name: 'Vikram Joshi', username: 'vikramj' },
+        creator: {
+          name: 'Vikram Joshi',
+          username: 'vikramj',
+          avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80'
+        },
         capacity: { max: 5 },
         participants: [{ user: '1' }, { user: '2' }]
       },
@@ -103,7 +108,11 @@ export default function GlobalPage({
         distanceKm: 2.4,
         distance: '~2.4 km away',
         locationName: 'Blue Tokai Coffee Roasters',
-        creator: { name: 'Ananya Roy', username: 'ananyar' },
+        creator: {
+          name: 'Ananya Roy',
+          username: 'ananyar',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+        },
         capacity: { max: 4 },
         participants: [{ user: '1' }]
       },
@@ -118,7 +127,11 @@ export default function GlobalPage({
         distanceKm: 3.1,
         distance: '~3.1 km away',
         locationName: 'City Library Hub',
-        creator: { name: 'Karthik Rao', username: 'karthikr' },
+        creator: {
+          name: 'Karthik Rao',
+          username: 'karthikr',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+        },
         capacity: { max: 4 },
         participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
       },
@@ -133,7 +146,11 @@ export default function GlobalPage({
         distanceKm: 4.2,
         distance: '~4.2 km away',
         locationName: 'Marina Sports Arena',
-        creator: { name: 'Dev Sharma', username: 'devs' },
+        creator: {
+          name: 'Dev Sharma',
+          username: 'devs',
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'
+        },
         capacity: { max: 6 },
         participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }]
       },
@@ -346,7 +363,11 @@ export default function GlobalPage({
           {globalDishes.map((dish) => {
             const creatorName = dish.creator?.name || 'Peer';
             const creatorUsername = dish.creator?.username || 'user';
-            const isCreator = (dish.creator?._id || dish.creator) === user?._id;
+            const isCreator =
+              (dish.creator?._id && String(dish.creator._id) === String(user?._id)) ||
+              (dish.creator?.username && dish.creator.username === user?.username) ||
+              String(dish.creator) === String(user?._id);
+            const creatorAvatar = isCreator ? (user?.avatar || dish.creator?.avatar) : dish.creator?.avatar;
             const isParticipant = dish.participants?.some(
               (p) => (p.user?._id || p.user) === user?._id
             );
@@ -449,24 +470,63 @@ export default function GlobalPage({
                 {/* Meta & Actions */}
                 <div>
                   {/* Host info line */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, fontSize: 12, color: '#71717a' }}>
-                    <div
-                      style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: '50%',
-                        backgroundColor: '#09090b',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 10,
-                        fontWeight: 700
-                      }}
-                    >
-                      {creatorName[0].toUpperCase()}
+                  <div
+                    onClick={() => {
+                      if (onViewProfile) {
+                        onViewProfile({
+                          ...dish.creator,
+                          avatar: creatorAvatar,
+                          name: creatorName,
+                          username: creatorUsername
+                        });
+                      }
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      marginBottom: 12,
+                      fontSize: 12,
+                      color: '#71717a',
+                      cursor: onViewProfile ? 'pointer' : 'default',
+                      width: 'fit-content'
+                    }}
+                    title={onViewProfile ? `View @${creatorUsername}'s profile` : ''}
+                  >
+                    {creatorAvatar ? (
+                      <img
+                        src={creatorAvatar}
+                        alt={creatorName}
+                        style={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          flexShrink: 0
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '50%',
+                          backgroundColor: '#09090b',
+                          color: '#ffffff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 10,
+                          fontWeight: 700
+                        }}
+                      >
+                        {creatorName[0].toUpperCase()}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                      <span style={{ fontWeight: 700, color: '#09090b' }}>{creatorName}</span>
+                      <span style={{ fontWeight: 500, color: '#71717a' }}>@{creatorUsername}</span>
                     </div>
-                    <span style={{ fontWeight: 600, color: '#09090b' }}>@{creatorUsername}</span>
                     <span>•</span>
                     <span style={{ fontSize: 11 }}>Non-campus Peer</span>
                   </div>
