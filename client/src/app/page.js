@@ -63,6 +63,7 @@ export default function App() {
   const [newTagInput, setNewTagInput] = useState('');
   const [bioExpanded, setBioExpanded] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [profileActiveTab, setProfileActiveTab] = useState('dishes'); // 'dishes' | 'joined' | 'institutes'
   const [searchUsername, setSearchUsername] = useState('');
   const [searchedProfile, setSearchedProfile] = useState(null);
   const [connections, setConnections] = useState([]);
@@ -1072,7 +1073,7 @@ export default function App() {
       </div>
 
       {/* Main App Container */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: activeTab === 'profile' ? 'center' : 'flex-start', minHeight: '100vh', padding: activeTab === 'profile' ? '24px 32px' : '40px 32px', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '100vh', padding: activeTab === 'profile' ? '30px 24px 60px' : '40px 32px', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
         {/* Global Feedback */}
         {error && <div style={{ border: '1px solid red', padding: 10, marginBottom: 16, color: '#b91c1c', backgroundColor: '#fef2f2', borderRadius: 6 }}>Error: {error}</div>}
         {message && <div style={{ border: '1px solid green', padding: 10, marginBottom: 16, color: '#15803d', backgroundColor: '#f0fdf4', borderRadius: 6 }}>{message}</div>}
@@ -1848,309 +1849,740 @@ export default function App() {
       {/* 5. PROFILE SCREEN & SETTINGS (Matching Wireframe)        */}
       {/* ========================================================= */}
       {activeTab === 'profile' && (
-        <section style={{ width: '100%', maxWidth: 800, margin: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', color: '#000000' }}>
+        <section style={{ width: '100%', maxWidth: 935, margin: '0 auto', color: '#000000', fontFamily: "'Inter', sans-serif" }}>
           
-          {/* TOP PROFILE IDENTITY HEADER */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 36, marginBottom: 44, width: '100%' }}>
-            {/* Large Purple Avatar */}
-            <div
-              style={{
-                width: 216,
-                height: 216,
-                borderRadius: '50%',
-                backgroundColor: '#8257e5',
-                flexShrink: 0
-              }}
-            />
+          {/* ========================================================= */}
+          {/* 1. TOP PROFILE HEADER (Instagram Profile Layout)          */}
+          {/* ========================================================= */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 56, marginBottom: 44, padding: '0 20px', flexWrap: 'wrap' }}>
+            {/* Left Column: Avatar with Instagram Note */}
+            <div style={{ width: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', flexShrink: 0 }}>
+              {/* Floating Note Tag */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: -8,
+                  left: 6,
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(0, 0, 0, 0.08)',
+                  borderRadius: 16,
+                  padding: '3px 10px',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: '#4b5563',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                  cursor: 'default',
+                  zIndex: 2,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                Note...
+              </div>
 
-            {/* Profile Info Details */}
-            <div
-              style={{
-                height: 216,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                flex: 1,
-                maxWidth: 520
-              }}
-            >
-              {/* Line 1: username + Settings Gear */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <h1 style={{ fontSize: 34, fontWeight: 800, margin: 0, letterSpacing: '-0.5px', color: '#000000', lineHeight: 1 }}>
+              {/* Large Circular Avatar */}
+              <div
+                style={{
+                  width: 150,
+                  height: 150,
+                  borderRadius: '50%',
+                  backgroundColor: '#8257e5',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid rgba(255, 255, 255, 0.7)',
+                  boxShadow: '0 6px 20px rgba(130, 87, 229, 0.28)'
+                }}
+              >
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name || user.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontSize: 46, color: '#ffffff', fontWeight: 800 }}>
+                    {(user.name || user.username || 'U')[0].toUpperCase()}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column: Profile Info */}
+            <div style={{ flex: 1, minWidth: 280, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Row 1: Username & Action Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                <h1 style={{ fontSize: 21, fontWeight: 600, margin: 0, letterSpacing: '-0.3px', color: '#000000', lineHeight: 1.2 }}>
                   {user.username || 'username'}
                 </h1>
-                <FluidButton
-                  variant="icon"
-                  onClick={() => setShowSettings(true)}
-                  title="Open Settings & Privacy"
-                  style={{ width: 34, height: 34, minWidth: 34, minHeight: 34 }}
+
+                {/* Edit Profile Button (Instagram styled) */}
+                <button
+                  onClick={() => setShowEditProfile(true)}
+                  style={{
+                    padding: '7px 18px',
+                    borderRadius: 8,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                    border: 'none',
+                    color: '#000000',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.12)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.08)'}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  Edit Profile
+                </button>
+
+                {/* View Archive Button */}
+                <button
+                  onClick={() => setProfileActiveTab('joined')}
+                  style={{
+                    padding: '7px 18px',
+                    borderRadius: 8,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                    border: 'none',
+                    color: '#000000',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.12)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.08)'}
+                >
+                  View archive
+                </button>
+
+                {/* Settings Gear Button */}
+                <button
+                  onClick={() => setShowSettings(true)}
+                  title="Settings & Privacy"
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#000000',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="3" />
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
-                </FluidButton>
+                </button>
               </div>
 
-              {/* Line 2: Name, Pronouns, Connections */}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color: '#000000', lineHeight: 1 }}>
-                  {user.name || 'Name'}
+              {/* Row 2: Stats Row (Instagram style: 17 cooked • 19 joined • 72 connections) */}
+              <div style={{ display: 'flex', gap: 36, fontSize: 15.5, color: '#000000' }}>
+                <span style={{ cursor: 'pointer' }} onClick={() => setProfileActiveTab('dishes')}>
+                  <strong>{user.stats?.dishesCreated ?? 17}</strong> cooked
                 </span>
-                <span style={{ fontSize: 13, color: '#4b5563', fontWeight: 500 }}>
-                  {pronouns || user.pronouns || 'He/Him'}
+                <span style={{ cursor: 'pointer' }} onClick={() => setProfileActiveTab('joined')}>
+                  <strong>{user.stats?.dishesJoined ?? 19}</strong> joined
                 </span>
-                <span style={{ fontSize: 14, color: '#111827', fontWeight: 500, marginLeft: 14 }}>
-                  {connections.length > 0 ? `${connections.length} connections` : '72 connections'}
+                <span style={{ cursor: 'pointer' }} onClick={() => setShowSettings(true)}>
+                  <strong>{connections.length > 0 ? connections.length : 72}</strong> connections
                 </span>
               </div>
 
-              {/* Line 3: Bio with Read More toggle */}
-              <div style={{ fontSize: 14, lineHeight: '1.45', color: '#111827' }}>
-                {(() => {
-                  const fullBio = user.bio || bio || 'Mastering sourdough fermentation, late night pasta experiments, and finding the best espresso roast in town. Always down to cook together!';
-                  const isLong = fullBio.length > 70;
-                  const displayBio = isLong && !bioExpanded ? fullBio.slice(0, 70) + '...' : fullBio;
-                  return (
-                    <div>
-                      <span>Bio: {displayBio}</span>
-                      {isLong && (
-                        <button
-                          onClick={() => setBioExpanded(!bioExpanded)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: '#000000',
-                            fontWeight: 600,
-                            fontSize: 13,
-                            marginLeft: 6,
-                            padding: 0,
-                            textDecoration: 'underline'
-                          }}
-                        >
-                          {bioExpanded ? 'show less' : 'read more'}
-                        </button>
-                      )}
-                    </div>
-                  );
-                })()}
-              </div>
+              {/* Row 3: Name, Pronouns, Institute Subtitle, Bio, Tags */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontSize: 14, lineHeight: 1.45 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <span style={{ fontWeight: 700, fontSize: 15, color: '#000000' }}>
+                    {user.name || 'Sid G'}
+                  </span>
+                  <span style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>
+                    {pronouns || user.pronouns || 'He/Him'}
+                  </span>
+                </div>
 
-              {/* Line 4: Stats */}
-              <div style={{ display: 'flex', gap: 20, fontSize: 15, fontWeight: 600, color: '#111827', lineHeight: 1 }}>
-                <span>{user.stats?.dishesCreated ?? 16} Cooked</span>
-                <span>{user.stats?.dishesJoined ?? 19} Joined</span>
-              </div>
+                {/* Institute & Batch subtitle */}
+                <div style={{ fontSize: 13.5, color: '#4b5563', fontWeight: 500 }}>
+                  🎓 {user.institute?.name || instituteName || 'IIT MADRAS'} • Batch of {user.institute?.year || instituteYear || '2029'}
+                </div>
 
-              {/* Line 5: Edit Profile Pill Button */}
-              <div>
-                <FluidButton
-                  onClick={() => setShowEditProfile(true)}
-                  style={{
-                    padding: '10px 24px',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: '#000000'
-                  }}
-                >
-                  Edit Profile (Only show when viewing Own Profile)
-                </FluidButton>
+                {/* Bio with read more toggle */}
+                <div style={{ color: '#111827', marginTop: 2, maxWidth: 540 }}>
+                  {(() => {
+                    const fullBio = user.bio || bio || 'Mastering sourdough fermentation, late night pasta experiments, and finding the best espresso roast in town. Always down to cook together!';
+                    const isLong = fullBio.length > 80;
+                    const displayBio = isLong && !bioExpanded ? fullBio.slice(0, 80) + '...' : fullBio;
+                    return (
+                      <div>
+                        <span>{displayBio}</span>
+                        {isLong && (
+                          <button
+                            onClick={() => setBioExpanded(!bioExpanded)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: '#6b7280',
+                              fontWeight: 600,
+                              fontSize: 13,
+                              marginLeft: 6,
+                              padding: 0
+                            }}
+                          >
+                            {bioExpanded ? 'show less' : 'more'}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Tags Row */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                  {(interests && interests.length > 0 ? interests : ['music', 'Gym', 'Sports', 'Anime', 'Coffee']).map((tag, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: '#1d4ed8',
+                        cursor: 'default'
+                      }}
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* MIDDLE SECTION: TAGS & ACHIEVEMENTS */}
-          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', width: '100%', marginBottom: 36 }}>
-            {/* Left Column: Tags */}
-            <div style={{ width: 230, flexShrink: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 10 }}>
-                \Tags
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 10px', width: 230 }}>
-                {(interests && interests.length > 0 ? interests : ['music', 'Gym', 'Sports', 'Anime', 'Coffee']).map((tag, idx) => (
-                  <FluidButton
-                    key={idx}
-                    as="span"
-                    style={{
-                      padding: '7px 20px',
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: '#000000',
-                      cursor: 'default'
-                    }}
-                  >
-                    {tag}
-                  </FluidButton>
-                ))}
-              </div>
-            </div>
-
-            {/* Right Column: Achievements */}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 10 }}>
-                Achievements
-              </div>
-              <GlassContainer
-                radius={28}
-                style={{ width: '100%' }}
-                innerStyle={{
-                  height: 112,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-around',
-                  padding: '12px 28px',
-                  boxSizing: 'border-box'
-                }}
-              >
-                {/* 1. Chef's Hat Badge */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} title="Master Chef">
-                  <svg width="60" height="54" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M18 36 C12 36 8 30 11 23 C13 18 19 16 23 18 C25 11 34 8 40 13 C46 9 55 12 56 19 C60 21 61 29 56 34 C54 36 51 36 49 36 Z"
-                      fill="#ffffff"
-                      stroke="#cbd5e1"
-                      strokeWidth="1.8"
-                    />
+          {/* ========================================================= */}
+          {/* 2. STORY HIGHLIGHTS (Achievements & Institutes Row)       */}
+          {/* ========================================================= */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 28,
+              alignItems: 'center',
+              overflowX: 'auto',
+              padding: '10px 20px 24px',
+              marginBottom: 16
+            }}
+          >
+            {[
+              {
+                id: 'chef',
+                label: 'Master Chef',
+                icon: (
+                  <svg width="38" height="34" viewBox="0 0 64 64" fill="none">
+                    <path d="M18 36 C12 36 8 30 11 23 C13 18 19 16 23 18 C25 11 34 8 40 13 C46 9 55 12 56 19 C60 21 61 29 56 34 C54 36 51 36 49 36 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
                     <path d="M25 21 C26 28 27 34 27 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
                     <path d="M36 15 C36 24 36 32 36 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
                     <path d="M46 19 C45 26 44 32 43 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
                     <rect x="17" y="36" width="33" height="13" rx="3" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
-                    <line x1="20" y1="41" x2="47" y2="41" stroke="#e2e8f0" strokeWidth="1.5" />
                   </svg>
-                </div>
-
-                {/* 2. Steaming Coffee Cup Badge */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} title="Coffee Connoisseur">
-                  <svg width="66" height="54" viewBox="0 0 68 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                ),
+                onClick: () => setProfileActiveTab('institutes')
+              },
+              {
+                id: 'coffee',
+                label: 'Coffee Roast',
+                icon: (
+                  <svg width="40" height="34" viewBox="0 0 68 56" fill="none">
                     <path d="M22 13 C20 9 24 6 22 2" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
                     <path d="M30 11 C28 7 32 4 30 1" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                    <path d="M38 13 C36 9 40 6 38 2" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
                     <ellipse cx="32" cy="49" rx="27" ry="5" fill="#fdfbf7" stroke="#78350f" strokeWidth="2" />
-                    <ellipse cx="32" cy="48" rx="21" ry="3" fill="#e7d8c9" />
-                    <path d="M44 26 C53 26 55 38 43 41" stroke="#78350f" strokeWidth="3.2" fill="none" strokeLinecap="round" />
+                    <path d="M44 26 C53 26 55 38 43 41" stroke="#78350f" strokeWidth="3" fill="none" strokeLinecap="round" />
                     <path d="M14 21 L18 43 C19 46 25 47 32 47 C39 47 45 46 46 43 L50 21 Z" fill="#6f4e37" stroke="#451a03" strokeWidth="2" />
-                    <ellipse cx="32" cy="21" rx="18" ry="4.5" fill="#3e2312" stroke="#451a03" strokeWidth="1.5" />
-                    <ellipse cx="31" cy="21" rx="13" ry="3" fill="#583119" />
-                    <ellipse cx="28" cy="20" rx="4" ry="1.2" fill="#a16207" opacity="0.6" />
+                    <ellipse cx="32" cy="21" rx="18" ry="4.5" fill="#3e2312" />
                   </svg>
-                </div>
-
-                {/* 3. Crescent Moon on Cloud Badge */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} title="Midnight Kitchen">
-                  <svg width="66" height="54" viewBox="0 0 68 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M37 7 C32 12 32 20 37 25 C40 28 44 29 47 28 C43 35 33 37 26 32 C19 26 20 15 27 9 C30 7 33 6 37 7 Z"
-                      fill="#fde047"
-                      stroke="#ca8a04"
-                      strokeWidth="2"
-                    />
-                    <circle cx="51" cy="13" r="1.5" fill="#eab308" />
-                    <circle cx="16" cy="18" r="1.2" fill="#eab308" />
-                    <path
-                      d="M18 43 C13 43 9 39 10 34 C11 29 16 28 19 29 C22 23 30 22 35 26 C38 24 43 24 45 27 C50 26 55 30 54 35 C57 37 57 42 52 43 Z"
-                      fill="#ffffff"
-                      stroke="#cbd5e1"
-                      strokeWidth="2"
-                    />
+                ),
+                onClick: () => setProfileActiveTab('institutes')
+              },
+              {
+                id: 'midnight',
+                label: 'Midnight Cook',
+                icon: (
+                  <svg width="40" height="34" viewBox="0 0 68 56" fill="none">
+                    <path d="M37 7 C32 12 32 20 37 25 C40 28 44 29 47 28 C43 35 33 37 26 32 C19 26 20 15 27 9 C30 7 33 6 37 7 Z" fill="#fde047" stroke="#ca8a04" strokeWidth="2" />
+                    <path d="M18 43 C13 43 9 39 10 34 C11 29 16 28 19 29 C22 23 30 22 35 26 C38 24 43 24 45 27 C50 26 55 30 54 35 C57 37 57 42 52 43 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="2" />
                   </svg>
-                </div>
-              </GlassContainer>
-            </div>
-          </div>
-
-          {/* BOTTOM SECTION: INSTITUTES */}
-          <div style={{ width: '100%' }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 10 }}>
-              Institutes
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, width: '100%' }}>
-              {/* Card 1: IIT MADRAS with Academic Crest */}
-              <GlassContainer
-                radius={28}
-                style={{ width: '100%' }}
-                innerStyle={{
-                  padding: '24px 28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 22,
-                  boxSizing: 'border-box'
-                }}
-              >
-                {/* Academic Book + Globe Crest SVG */}
-                <div style={{ width: 78, height: 78, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="76" height="76" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="50" cy="50" r="44" stroke="#000000" strokeWidth="5" strokeDasharray="9 4" fill="none" />
-                    <g transform="translate(0, 8)">
-                      <circle cx="50" cy="54" r="28" stroke="#000000" strokeWidth="4" fill="none" />
-                      <ellipse cx="50" cy="54" rx="14" ry="28" stroke="#000000" strokeWidth="3" fill="none" />
-                      <line x1="22" y1="54" x2="78" y2="54" stroke="#000000" strokeWidth="3.5" />
-                      <path d="M 26 43 Q 50 48 74 43" stroke="#000000" strokeWidth="2.5" fill="none" />
-                      <path d="M 26 65 Q 50 60 74 65" stroke="#000000" strokeWidth="2.5" fill="none" />
-                      <line x1="50" y1="26" x2="50" y2="82" stroke="#000000" strokeWidth="3" />
-                    </g>
-                    <g transform="translate(0, -7)">
-                      <path
-                        d="M 50 26 C 42 16, 28 17, 20 20 L 20 40 C 28 37, 42 36, 50 44 C 58 36, 72 37, 80 40 L 80 20 C 72 17, 58 16, 50 26 Z"
-                        fill="#ffffff"
-                        stroke="#000000"
-                        strokeWidth="4"
-                        strokeLinejoin="round"
-                      />
-                      <line x1="50" y1="26" x2="50" y2="44" stroke="#000000" strokeWidth="3.5" />
-                      <path d="M 27 26 C 33 24, 42 24, 46 29" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M 27 32 C 33 30, 42 30, 46 35" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M 73 26 C 67 24, 58 24, 54 29" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M 73 32 C 67 30, 58 30, 54 35" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                    </g>
+                ),
+                onClick: () => setProfileActiveTab('institutes')
+              },
+              {
+                id: 'iitm',
+                label: 'IIT Madras',
+                icon: (
+                  <svg width="34" height="34" viewBox="0 0 100 100" fill="none">
+                    <circle cx="50" cy="50" r="44" stroke="#000000" strokeWidth="6" strokeDasharray="9 4" fill="none" />
+                    <circle cx="50" cy="56" r="24" stroke="#000000" strokeWidth="4" fill="none" />
+                    <line x1="26" y1="56" x2="74" y2="56" stroke="#000000" strokeWidth="4" />
+                    <line x1="50" y1="32" x2="50" y2="80" stroke="#000000" strokeWidth="4" />
                   </svg>
-                </div>
-                <div>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                    {user.institute?.name || instituteName || 'IIT MADRAS'}
-                  </div>
-                  <div style={{ fontSize: 15, fontWeight: 500, color: '#111827', marginTop: 4 }}>
-                    Batch of {user.institute?.year || instituteYear || '2029'}
-                  </div>
-                </div>
-              </GlassContainer>
-
-              {/* Card 2: SST with Campus Building Silhouette */}
-              <GlassContainer
-                radius={28}
-                style={{ width: '100%' }}
-                innerStyle={{
-                  padding: '24px 28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 22,
-                  boxSizing: 'border-box'
-                }}
-              >
-                {/* University Campus Building Silhouette SVG */}
-                <div style={{ width: 78, height: 78, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="76" height="76" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                ),
+                onClick: () => setProfileActiveTab('institutes')
+              },
+              {
+                id: 'sst',
+                label: 'SST Campus',
+                icon: (
+                  <svg width="34" height="34" viewBox="0 0 100 100" fill="none">
                     <path d="M12 90 L12 55 L35 55 L35 32 L50 20 L65 32 L65 55 L88 55 L88 90 Z" fill="#000000" />
-                    <path d="M42 90 L42 66 Q50 60 58 66 L58 90 Z" fill="#e6dfe4" />
-                    <rect x="18" y="60" width="10" height="12" rx="2" fill="#e6dfe4" />
-                    <rect x="18" y="76" width="10" height="10" rx="2" fill="#e6dfe4" />
-                    <rect x="72" y="60" width="10" height="12" rx="2" fill="#e6dfe4" />
-                    <rect x="72" y="76" width="10" height="10" rx="2" fill="#e6dfe4" />
-                    <circle cx="50" cy="42" r="5" fill="#e6dfe4" />
+                    <circle cx="50" cy="42" r="6" fill="#e6dfe4" />
                   </svg>
-                </div>
-                <div>
-                  <div style={{ fontSize: 26, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                    {user.secondaryInstitute?.name || secondaryInstituteName || 'SST'}
+                ),
+                onClick: () => setProfileActiveTab('institutes')
+              },
+              {
+                id: 'new',
+                label: 'New',
+                icon: (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                ),
+                onClick: () => setShowEditProfile(true)
+              }
+            ].map((h) => (
+              <div
+                key={h.id}
+                onClick={h.onClick}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 8,
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+              >
+                <div
+                  style={{
+                    width: 76,
+                    height: 76,
+                    borderRadius: '50%',
+                    padding: 3,
+                    border: '1.5px solid rgba(0, 0, 0, 0.16)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxSizing: 'border-box',
+                    transition: 'transform 0.16s ease, border-color 0.16s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.borderColor = '#000000';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.16)';
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.65)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {h.icon}
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 500, color: '#111827', marginTop: 4 }}>
-                    Batch of {user.secondaryInstitute?.year || secondaryInstituteYear || '2029'}
-                  </div>
                 </div>
-              </GlassContainer>
-            </div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#000000', whiteSpace: 'nowrap' }}>
+                  {h.label}
+                </span>
+              </div>
+            ))}
           </div>
+
+          {/* ========================================================= */}
+          {/* 3. INSTAGRAM TAB BAR (Dishes, Joined, Institutes & Awards) */}
+          {/* ========================================================= */}
+          <div
+            style={{
+              borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 56,
+              marginBottom: 24
+            }}
+          >
+            {[
+              {
+                id: 'dishes',
+                label: 'DISHES',
+                icon: (isActive) => (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isActive ? '2.4' : '2'} strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                  </svg>
+                )
+              },
+              {
+                id: 'joined',
+                label: 'JOINED',
+                icon: (isActive) => (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isActive ? '2.4' : '2'} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                  </svg>
+                )
+              },
+              {
+                id: 'institutes',
+                label: 'INSTITUTES & AWARDS',
+                icon: (isActive) => (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isActive ? '2.4' : '2'} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                )
+              }
+            ].map((tab) => {
+              const isActive = profileActiveTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setProfileActiveTab(tab.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    height: 52,
+                    marginTop: -1,
+                    borderTop: isActive ? '1.5px solid #000000' : '1.5px solid transparent',
+                    borderBottom: 'none',
+                    borderLeft: 'none',
+                    borderRight: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    fontSize: 12.5,
+                    fontWeight: isActive ? 700 : 600,
+                    letterSpacing: '1px',
+                    color: isActive ? '#000000' : '#888888',
+                    transition: 'color 0.15s ease, border-color 0.15s ease'
+                  }}
+                >
+                  {tab.icon(isActive)}
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ========================================================= */}
+          {/* 4. TAB VIEWS CONTENT                                      */}
+          {/* ========================================================= */}
+
+          {/* TAB 1: DISHES (Instagram 3-Column Square Grid) */}
+          {profileActiveTab === 'dishes' && (
+            <div>
+              {(() => {
+                const userDishes = dishes.filter(d => (d.creator?._id || d.creator) === user._id || (d.participants || []).some(p => (p.user?._id || p.user) === user._id));
+                if (userDishes.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666666' }}>
+                      <div style={{ width: 64, height: 64, borderRadius: '50%', border: '2px solid #000000', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 26 }}>
+                        🍲
+                      </div>
+                      <h3 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 8px 0', color: '#000000' }}>Share Your Cooking Sessions</h3>
+                      <p style={{ fontSize: 14, color: '#666666', margin: '0 0 20px 0' }}>
+                        When you create or join dishes, they will appear in your profile grid.
+                      </p>
+                      <FluidButton
+                        onClick={() => setShowKitchenModal(true)}
+                        style={{ padding: '8px 24px', fontSize: 14, fontWeight: 600 }}
+                      >
+                        Cook a Dish
+                      </FluidButton>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                    {userDishes.map((dish) => (
+                      <GlassContainer
+                        key={dish._id}
+                        radius={18}
+                        style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
+                        innerStyle={{
+                          padding: 20,
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          boxSizing: 'border-box'
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
+                              {dish.cuisine || 'Home Cooking'}
+                            </span>
+                            <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)' }}>
+                              {dish.status === 'cooked' ? '✓ Cooked' : '🔥 Active'}
+                            </span>
+                          </div>
+                          <h4 style={{ fontSize: 17, fontWeight: 800, margin: '0 0 6px 0', color: '#000000', lineHeight: 1.3 }}>
+                            {dish.title}
+                          </h4>
+                          <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {dish.description || 'Delicious culinary creation cooked together.'}
+                          </p>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#666666' }}>
+                          <span>👥 {dish.participants?.length || 1}/{dish.capacity || 4}</span>
+                          <span>📍 {dish.location?.landmark || dish.location?.room || 'Host kitchen'}</span>
+                        </div>
+                      </GlassContainer>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* TAB 2: JOINED (Dishes Joined) */}
+          {profileActiveTab === 'joined' && (
+            <div>
+              {(() => {
+                const joinedDishes = dishes.filter(d => (d.participants || []).some(p => (p.user?._id || p.user) === user._id && (d.creator?._id || d.creator) !== user._id));
+                if (joinedDishes.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666666' }}>
+                      <div style={{ width: 64, height: 64, borderRadius: '50%', border: '2px solid #000000', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 26 }}>
+                        🔖
+                      </div>
+                      <h3 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 8px 0', color: '#000000' }}>Save Dishes You Love</h3>
+                      <p style={{ fontSize: 14, color: '#666666', margin: '0 0 20px 0' }}>
+                        When you join or participate in dishes around campus, they appear here.
+                      </p>
+                      <FluidButton
+                        onClick={() => setActiveTab('dine-in')}
+                        style={{ padding: '8px 24px', fontSize: 14, fontWeight: 600 }}
+                      >
+                        Explore Dine-in
+                      </FluidButton>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                    {joinedDishes.map((dish) => (
+                      <GlassContainer
+                        key={dish._id}
+                        radius={18}
+                        style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
+                        innerStyle={{
+                          padding: 20,
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          boxSizing: 'border-box'
+                        }}
+                      >
+                        <div>
+                          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#555555' }}>
+                            {dish.cuisine || 'Dine-in'}
+                          </span>
+                          <h4 style={{ fontSize: 17, fontWeight: 800, margin: '6px 0', color: '#000000' }}>
+                            {dish.title}
+                          </h4>
+                          <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {dish.description}
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666666' }}>
+                          <span>Host: @{dish.creator?.username || 'chef'}</span>
+                          <span>👥 {dish.participants?.length || 1}/{dish.capacity || 4}</span>
+                        </div>
+                      </GlassContainer>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* TAB 3: INSTITUTES & AWARDS */}
+          {profileActiveTab === 'institutes' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+              {/* Institutes Section */}
+              <div>
+                <h4 style={{ fontSize: 16, fontWeight: 700, color: '#000000', margin: '0 0 16px 0' }}>
+                  Educational Institutes
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, width: '100%' }}>
+                  {/* Card 1: IIT MADRAS with Academic Crest */}
+                  <GlassContainer
+                    radius={24}
+                    style={{ width: '100%' }}
+                    innerStyle={{
+                      padding: '24px 28px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 22,
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <div style={{ width: 78, height: 78, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="76" height="76" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="50" cy="50" r="44" stroke="#000000" strokeWidth="5" strokeDasharray="9 4" fill="none" />
+                        <g transform="translate(0, 8)">
+                          <circle cx="50" cy="54" r="28" stroke="#000000" strokeWidth="4" fill="none" />
+                          <ellipse cx="50" cy="54" rx="14" ry="28" stroke="#000000" strokeWidth="3" fill="none" />
+                          <line x1="22" y1="54" x2="78" y2="54" stroke="#000000" strokeWidth="3.5" />
+                          <path d="M 26 43 Q 50 48 74 43" stroke="#000000" strokeWidth="2.5" fill="none" />
+                          <path d="M 26 65 Q 50 60 74 65" stroke="#000000" strokeWidth="2.5" fill="none" />
+                          <line x1="50" y1="26" x2="50" y2="82" stroke="#000000" strokeWidth="3" />
+                        </g>
+                        <g transform="translate(0, -7)">
+                          <path
+                            d="M 50 26 C 42 16, 28 17, 20 20 L 20 40 C 28 37, 42 36, 50 44 C 58 36, 72 37, 80 40 L 80 20 C 72 17, 58 16, 50 26 Z"
+                            fill="#ffffff"
+                            stroke="#000000"
+                            strokeWidth="4"
+                            strokeLinejoin="round"
+                          />
+                          <line x1="50" y1="26" x2="50" y2="44" stroke="#000000" strokeWidth="3.5" />
+                          <path d="M 27 26 C 33 24, 42 24, 46 29" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M 27 32 C 33 30, 42 30, 46 35" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M 73 26 C 67 24, 58 24, 54 29" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M 73 32 C 67 30, 58 30, 54 35" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+                        </g>
+                      </svg>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 22, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                        {user.institute?.name || instituteName || 'IIT MADRAS'}
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: '#111827', marginTop: 4 }}>
+                        Batch of {user.institute?.year || instituteYear || '2029'}
+                      </div>
+                    </div>
+                  </GlassContainer>
+
+                  {/* Card 2: SST with Campus Silhouette */}
+                  <GlassContainer
+                    radius={24}
+                    style={{ width: '100%' }}
+                    innerStyle={{
+                      padding: '24px 28px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 22,
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <div style={{ width: 78, height: 78, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="76" height="76" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 90 L12 55 L35 55 L35 32 L50 20 L65 32 L65 55 L88 55 L88 90 Z" fill="#000000" />
+                        <path d="M42 90 L42 66 Q50 60 58 66 L58 90 Z" fill="#e6dfe4" />
+                        <rect x="18" y="60" width="10" height="12" rx="2" fill="#e6dfe4" />
+                        <rect x="18" y="76" width="10" height="10" rx="2" fill="#e6dfe4" />
+                        <rect x="72" y="60" width="10" height="12" rx="2" fill="#e6dfe4" />
+                        <rect x="72" y="76" width="10" height="10" rx="2" fill="#e6dfe4" />
+                        <circle cx="50" cy="42" r="5" fill="#e6dfe4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: '#000000', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                        {user.secondaryInstitute?.name || secondaryInstituteName || 'SST'}
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: '#111827', marginTop: 4 }}>
+                        Batch of {user.secondaryInstitute?.year || secondaryInstituteYear || '2029'}
+                      </div>
+                    </div>
+                  </GlassContainer>
+                </div>
+              </div>
+
+              {/* Achievements Showcase Section */}
+              <div>
+                <h4 style={{ fontSize: 16, fontWeight: 700, color: '#000000', margin: '0 0 16px 0' }}>
+                  Culinary Achievements & Badges
+                </h4>
+                <GlassContainer
+                  radius={24}
+                  style={{ width: '100%' }}
+                  innerStyle={{
+                    height: 120,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-around',
+                    padding: '12px 28px',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  {/* 1. Chef's Hat Badge */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }} title="Master Chef">
+                    <svg width="60" height="54" viewBox="0 0 64 64" fill="none">
+                      <path
+                        d="M18 36 C12 36 8 30 11 23 C13 18 19 16 23 18 C25 11 34 8 40 13 C46 9 55 12 56 19 C60 21 61 29 56 34 C54 36 51 36 49 36 Z"
+                        fill="#ffffff"
+                        stroke="#cbd5e1"
+                        strokeWidth="1.8"
+                      />
+                      <path d="M25 21 C26 28 27 34 27 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
+                      <path d="M36 15 C36 24 36 32 36 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
+                      <path d="M46 19 C45 26 44 32 43 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
+                      <rect x="17" y="36" width="33" height="13" rx="3" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
+                    </svg>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#000000' }}>Master Chef</span>
+                  </div>
+
+                  {/* 2. Steaming Coffee Cup Badge */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }} title="Coffee Connoisseur">
+                    <svg width="66" height="54" viewBox="0 0 68 56" fill="none">
+                      <path d="M22 13 C20 9 24 6 22 2" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                      <path d="M30 11 C28 7 32 4 30 1" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                      <ellipse cx="32" cy="49" rx="27" ry="5" fill="#fdfbf7" stroke="#78350f" strokeWidth="2" />
+                      <path d="M44 26 C53 26 55 38 43 41" stroke="#78350f" strokeWidth="3.2" fill="none" strokeLinecap="round" />
+                      <path d="M14 21 L18 43 C19 46 25 47 32 47 C39 47 45 46 46 43 L50 21 Z" fill="#6f4e37" stroke="#451a03" strokeWidth="2" />
+                      <ellipse cx="32" cy="21" rx="18" ry="4.5" fill="#3e2312" />
+                    </svg>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#000000' }}>Coffee Roast</span>
+                  </div>
+
+                  {/* 3. Crescent Moon on Cloud Badge */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }} title="Midnight Kitchen">
+                    <svg width="66" height="54" viewBox="0 0 68 56" fill="none">
+                      <path
+                        d="M37 7 C32 12 32 20 37 25 C40 28 44 29 47 28 C43 35 33 37 26 32 C19 26 20 15 27 9 C30 7 33 6 37 7 Z"
+                        fill="#fde047"
+                        stroke="#ca8a04"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M18 43 C13 43 9 39 10 34 C11 29 16 28 19 29 C22 23 30 22 35 26 C38 24 43 24 45 27 C50 26 55 30 54 35 C57 37 57 42 52 43 Z"
+                        fill="#ffffff"
+                        stroke="#cbd5e1"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#000000' }}>Midnight Kitchen</span>
+                  </div>
+                </GlassContainer>
+              </div>
+            </div>
+          )}
+
 
           {/* EDIT PROFILE MODAL (Triggered by pill button) */}
           {showEditProfile && (
