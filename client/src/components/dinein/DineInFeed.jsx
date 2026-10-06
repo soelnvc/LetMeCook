@@ -521,16 +521,15 @@ export default function DineInFeed({
           <FluidButton
             onClick={() => setAutoJoinOnly((prev) => !prev)}
             style={{
-              padding: '8px 16px',
-              fontSize: 12,
-              fontWeight: 600,
-              background: autoJoinOnly ? '#09090b' : 'transparent',
-              color: autoJoinOnly ? '#ffffff' : '#101214',
-              transition: 'all 0.2s ease'
+              padding: autoJoinOnly ? '10px 20px' : '7px 15px',
+              fontSize: autoJoinOnly ? 13.5 : 12,
+              fontWeight: autoJoinOnly ? 800 : 500,
+              color: autoJoinOnly ? '#09090b' : '#52525b',
+              transition: 'all 0.18s ease'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill={autoJoinOnly ? '#ffffff' : 'currentColor'} stroke="none">
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: autoJoinOnly ? 13.5 : 12, fontWeight: autoJoinOnly ? 800 : 500 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill={autoJoinOnly ? '#09090b' : 'currentColor'} stroke="none">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
               </svg>
               Auto-Join
@@ -541,16 +540,15 @@ export default function DineInFeed({
           <FluidButton
             onClick={() => setOpenSpotsOnly((prev) => !prev)}
             style={{
-              padding: '8px 16px',
-              fontSize: 12,
-              fontWeight: 600,
-              background: openSpotsOnly ? '#09090b' : 'transparent',
-              color: openSpotsOnly ? '#ffffff' : '#101214',
-              transition: 'all 0.2s ease'
+              padding: openSpotsOnly ? '10px 20px' : '7px 15px',
+              fontSize: openSpotsOnly ? 13.5 : 12,
+              fontWeight: openSpotsOnly ? 800 : 500,
+              color: openSpotsOnly ? '#09090b' : '#52525b',
+              transition: 'all 0.18s ease'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: openSpotsOnly ? 13.5 : 12, fontWeight: openSpotsOnly ? 800 : 500 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={openSpotsOnly ? '2.5' : '2'} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <polyline points="16 11 18 13 22 9" />
@@ -573,7 +571,8 @@ export default function DineInFeed({
           marginBottom: 16,
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          alignItems: 'center'
         }}
       >
         {categories.map((cat) => {
@@ -583,16 +582,16 @@ export default function DineInFeed({
               key={cat.id || 'all'}
               onClick={() => setSelectedCategory(cat.id)}
               style={{
-                padding: '6px 14px',
-                fontSize: 12,
-                fontWeight: isSelected ? 600 : 500,
-                background: isSelected ? '#09090b' : 'transparent',
-                color: isSelected ? '#ffffff' : '#101214',
+                padding: isSelected ? '10px 20px' : '6px 14px',
+                fontSize: isSelected ? 13.5 : 12,
+                fontWeight: isSelected ? 800 : 500,
+                color: isSelected ? '#09090b' : '#52525b',
                 whiteSpace: 'nowrap',
-                flexShrink: 0
+                flexShrink: 0,
+                transition: 'all 0.18s ease'
               }}
             >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: isSelected ? 13.5 : 12, fontWeight: isSelected ? 800 : 500 }}>
                 {cat.icon}
                 <span>{cat.label}</span>
               </span>

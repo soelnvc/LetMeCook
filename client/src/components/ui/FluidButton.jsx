@@ -137,7 +137,7 @@ export default function FluidButton({
       {...restProps}
     >
       <span className="btn-glare" />
-      <span className="btn-label">
+      <span className="btn-label" style={{ fontWeight: 'inherit', fontSize: 'inherit', color: 'inherit' }}>
         {children}
       </span>
     </Component>
