@@ -2010,7 +2010,7 @@ export default function App() {
                 {/* Bio with Blue Hashtags Inside */}
                 <div style={{ color: '#111827', marginTop: 4, maxWidth: 540 }}>
                   {(() => {
-                    const rawBio = user.bio || bio || 'Mastering sourdough fermentation, late night pasta experiments, and finding the best espresso roast in town. Always down to cook together! #sourdough #pasta #espresso';
+                    const rawBio = user.bio || bio || "Always down for badminton, late night study sessions, gym workouts, or grabbing coffee at the campus cafe. Let's cook! #Badminton #Gym #Study #Gaming #Coffee";
                     const isLong = rawBio.length > 90;
                     const displayBio = isLong && !bioExpanded ? rawBio.slice(0, 90) + '...' : rawBio;
                     
@@ -2179,55 +2179,48 @@ export default function App() {
           {/* 3. TAB VIEWS CONTENT                                      */}
           {/* ========================================================= */}
 
-          {/* TAB 1: DISHES (Own Active Dish on top, Previous Dishes down the line) */}
+          {/* TAB 1: DISHES (Own Active Ticket on top, Previous Tickets down the line) */}
           {profileActiveTab === 'dishes' && (
             <div>
               {(() => {
                 const userOwnedDishes = dishes.filter(d => (d.creator?._id || d.creator) === user._id);
                 
-                // Fallbacks so demo is always rich and structured
+                // Activity Ticket Fallback (Studying, Sport, Gym, Chit-Chat, Cafe - NO food demo)
                 const fallbackActiveDish = {
-                  _id: 'active-dish-demo',
-                  title: 'Truffle Tagliatelle & Burrata',
-                  cuisine: 'Italian Handmade Pasta',
-                  description: 'Slow-simmered winter black truffle sauce paired with artisan hand-rolled tagliatelle and fresh imported burrata. Cooking together live tonight!',
+                  _id: 'active-ticket-own',
+                  description: 'Casual badminton doubles match followed by smoothies at indoor court. Looking for 1 more player to join!',
+                  category: 'sport',
                   status: 'cooking',
-                  capacity: 4,
-                  participants: [{ user: { name: user.name || 'Sid G' } }, { user: { name: 'Elena R' } }, { user: { name: 'Lucas M' } }],
-                  location: { landmark: 'Host Kitchen - Block 4' },
-                  timing: { cookStart: 'Tonight at 8:00 PM' }
+                  joinMode: 'auto',
+                  capacity: { max: 4 },
+                  participants: [{ user: { name: user.name || 'Sid G', username: user.username || 'soelnvc' } }, { user: 'p1' }, { user: 'p2' }],
+                  timing: { cookStart: 'Today at 6:00 PM' }
                 };
 
                 const fallbackPreviousDishes = [
                   {
-                    _id: 'prev-dish-1',
-                    title: 'Sourdough Neapolitan Pizza',
-                    cuisine: 'Wood-fired Pizza',
-                    description: '48-hour cold fermented sourdough dough with San Marzano tomatoes, fresh basil, and fior di latte.',
+                    _id: 'prev-ticket-1',
+                    description: 'Late night Super Smash Bros Ultimate mini-tournament in student center lounge.',
+                    category: 'gaming',
                     status: 'cooked',
-                    capacity: 5,
-                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }, { user: '5' }],
-                    location: { landmark: 'Common Kitchen' }
+                    capacity: { max: 6 },
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }, { user: '5' }, { user: '6' }]
                   },
                   {
-                    _id: 'prev-dish-2',
-                    title: 'Smoked Shakshuka Brunch',
-                    cuisine: 'Middle Eastern',
-                    description: 'Poached farm eggs in spiced tomato, roasted pepper sauce with cumin and zaatar flatbread.',
+                    _id: 'prev-ticket-2',
+                    description: 'DSA Trees & Graphs mock technical interview session in Library Study Room 4.',
+                    category: 'study',
                     status: 'cooked',
-                    capacity: 4,
-                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }],
-                    location: { landmark: 'North Wing Terrace' }
+                    capacity: { max: 3 },
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
                   },
                   {
-                    _id: 'prev-dish-3',
-                    title: 'Artisan Espresso Pour-over Tasting',
-                    cuisine: 'Coffee & Dessert',
-                    description: 'Single-origin Ethiopian Yirgacheffe pairing with homemade citrus biscotti and extraction demo.',
+                    _id: 'prev-ticket-3',
+                    description: 'Evening walk to Campus Cafe for iced coffee & casual chit-chat after classes.',
+                    category: 'social',
                     status: 'cooked',
-                    capacity: 6,
-                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }],
-                    location: { landmark: 'Brew Lab' }
+                    capacity: { max: 4 },
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }]
                   }
                 ];
 
@@ -2237,98 +2230,124 @@ export default function App() {
                 const activeDish = realActive.length > 0 ? realActive[0] : (userOwnedDishes.length === 0 ? fallbackActiveDish : null);
                 const previousDishes = realPrevious.length > 0 ? realPrevious : (userOwnedDishes.length === 0 ? fallbackPreviousDishes : []);
 
+                const spotsLeft = activeDish ? (activeDish.capacity?.unlimited ? '∞' : Math.max(0, (activeDish.capacity?.max || activeDish.capacity || 4) - (activeDish.participants?.length || 0))) : 0;
+
                 return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
-                    {/* SECTION A: OWN ACTIVE DISH ON TOP */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+                    {/* ACTIVE TICKET (Rendered minimally, exactly like a ticket from our feed) */}
                     {activeDish && (
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block', boxShadow: '0 0 0 3px rgba(34, 197, 94, 0.2)' }} />
-                            <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#15803d', margin: 0 }}>
-                              Own Active Dish
-                            </h4>
-                          </div>
-                          <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>
-                            🔥 Live Session
-                          </span>
+                      <GlassContainer
+                        radius={28}
+                        style={{ width: '100%' }}
+                        innerStyle={{
+                          padding: '20px 22px',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 16,
+                          position: 'relative',
+                          color: '#000000',
+                          boxSizing: 'border-box',
+                          width: '100%'
+                        }}
+                      >
+                        {/* Left Icon: Wireframe Shopping Cart SVG (same as Feed) */}
+                        <div style={{ paddingTop: 3, flexShrink: 0 }}>
+                          <svg
+                            width="42"
+                            height="42"
+                            viewBox="0 0 40 40"
+                            fill="none"
+                            stroke="#000000"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M4 6h5l3.5 17h18l3.5-12H11" />
+                            <line x1="14" y1="15" x2="31.5" y2="15" />
+                            <line x1="15.5" y1="19" x2="28" y2="19" />
+                            <line x1="19" y1="11" x2="18" y2="23" />
+                            <line x1="25" y1="11" x2="24" y2="23" />
+                            <circle cx="16" cy="29" r="2.8" fill="#000000" />
+                            <circle cx="28" cy="29" r="2.8" fill="#000000" />
+                          </svg>
                         </div>
 
-                        {/* Prominent Active Dish Card */}
-                        <GlassContainer
-                          radius={22}
-                          style={{ width: '100%' }}
-                          innerStyle={{
-                            padding: '24px 28px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 16,
-                            boxSizing: 'border-box'
-                          }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.1)', padding: '3px 10px', borderRadius: 9999 }}>
-                                  {activeDish.cuisine || activeDish.category || 'Specialty'}
-                                </span>
-                                <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>
-                                  {activeDish.timing?.cookStart || 'Cooking Tonight'}
-                                </span>
+                        {/* Right Card Content */}
+                        <div style={{ flex: 1, minWidth: 0, color: '#000000' }}>
+                          {/* Header: DP + Name + Username • Category and Status */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: '50%',
+                                  backgroundColor: '#f97316',
+                                  color: '#ffffff',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: 13,
+                                  fontWeight: 'bold',
+                                  flexShrink: 0
+                                }}
+                              >
+                                {(user.name || user.username || 'S')[0].toUpperCase()}
                               </div>
-                              <h3 style={{ fontSize: 21, fontWeight: 800, margin: '0 0 6px 0', color: '#000000', letterSpacing: '-0.3px' }}>
-                                {activeDish.title || activeDish.description}
-                              </h3>
-                              <p style={{ fontSize: 14, color: '#4b5563', margin: 0, maxWidth: 680, lineHeight: 1.5 }}>
-                                {activeDish.description || 'Join in the active cooking session to prepare delicious food together.'}
-                              </p>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 'bold', fontSize: 14.5, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: 1.2 }}>
+                                  {user.name || 'Sid G'}
+                                </div>
+                                <div style={{ fontSize: 11.5, color: '#4b5563', marginTop: 1 }}>
+                                  @{user.username || 'soelnvc'} • <span style={{ textTransform: 'capitalize' }}>{activeDish.category || 'sport'}</span>
+                                </div>
+                              </div>
                             </div>
-
-                            <FluidButton
-                              onClick={() => setShowKitchenModal(true)}
-                              style={{ padding: '8px 20px', fontSize: 13, fontWeight: 600, flexShrink: 0 }}
-                            >
-                              Open Kitchen
-                            </FluidButton>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: 14, fontSize: 13, color: '#4b5563', flexWrap: 'wrap', gap: 12 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                              <span>👥 <strong>{activeDish.participants?.length || 3}</strong>/{activeDish.capacity?.max || activeDish.capacity || 4} spots filled</span>
-                              <span>📍 {activeDish.location?.landmark || activeDish.location?.areaName || 'Host kitchen'}</span>
-                            </div>
-                            <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600 }}>
-                              ✓ In Progress
+                            <span style={{ fontSize: 11, fontWeight: 600, color: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.1)', padding: '3px 10px', borderRadius: 9999 }}>
+                              Cooking
                             </span>
                           </div>
-                        </GlassContainer>
-                      </div>
+
+                          {/* Description */}
+                          <div style={{ fontSize: 13.5, color: '#000000', lineHeight: 1.45, marginBottom: 8, wordBreak: 'break-word' }}>
+                            <span style={{ fontWeight: 600, color: '#000000' }}>Description: </span>
+                            {activeDish.description}
+                          </div>
+
+                          {/* Meta Info Bar: Capacity, Join Mode */}
+                          <div style={{ fontSize: 11.5, color: '#4b5563', display: 'flex', flexWrap: 'wrap', gap: 10, fontWeight: '500' }}>
+                            <span>👥 {activeDish.participants?.length || 3}/{activeDish.capacity?.max || activeDish.capacity || 4} spots ({spotsLeft} left)</span>
+                            <span>• {activeDish.joinMode === 'auto' ? '⚡ Auto-join' : '⏳ Request approval'}</span>
+                            {activeDish.timing?.cookStart && <span>• {activeDish.timing.cookStart}</span>}
+                          </div>
+                        </div>
+                      </GlassContainer>
                     )}
 
-                    {/* SECTION B: PREVIOUS DISHES DOWN THE LINE */}
+                    {/* PREVIOUS DISHES (Completed Activity Tickets down the line) */}
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                         <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
                           Previous Dishes ({previousDishes.length})
                         </h4>
                         <span style={{ fontSize: 12, color: '#9ca3af' }}>
-                          Completed Sessions
+                          History
                         </span>
                       </div>
 
                       {previousDishes.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666666' }}>
-                          <p style={{ fontSize: 14, margin: 0 }}>No previous dishes yet. Your completed dishes will appear here.</p>
+                          <p style={{ fontSize: 14, margin: 0 }}>No previous dishes yet.</p>
                         </div>
                       ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
                           {previousDishes.map((dish) => (
                             <GlassContainer
                               key={dish._id}
                               radius={18}
-                              style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
+                              style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'default', overflow: 'hidden' }}
                               innerStyle={{
-                                padding: 20,
+                                padding: 18,
                                 height: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -2339,23 +2358,20 @@ export default function App() {
                               <div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
-                                    {dish.cuisine || dish.category || 'Home Cooking'}
+                                    {dish.category || 'Activity'}
                                   </span>
                                   <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)', color: '#4b5563' }}>
                                     ✓ Cooked
                                   </span>
                                 </div>
-                                <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 6px 0', color: '#000000', lineHeight: 1.3 }}>
-                                  {dish.title || (dish.description ? (dish.description.length > 35 ? dish.description.slice(0, 35) + '...' : dish.description) : 'Culinary Dish')}
-                                </h4>
-                                <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                  {dish.description || 'Delicious culinary creation cooked together.'}
+                                <p style={{ fontSize: 13, color: '#111827', margin: 0, lineHeight: 1.4, lineClamp: 4, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                  {dish.description}
                                 </p>
                               </div>
 
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#666666' }}>
-                                <span>👥 {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4}</span>
-                                <span>📍 {dish.location?.landmark || dish.location?.areaName || 'Campus'}</span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 11.5, color: '#666666' }}>
+                                <span>👥 {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4} spots</span>
+                                <span style={{ textTransform: 'capitalize' }}>{dish.category || 'Done'}</span>
                               </div>
                             </GlassContainer>
                           ))}
@@ -2368,58 +2384,51 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 2: JOINED (Active Joined on top, Previous Joined down the line) */}
+          {/* TAB 2: JOINED (Active Joined Ticket on top, Previous Joined Tickets down the line) */}
           {profileActiveTab === 'joined' && (
             <div>
               {(() => {
                 const userJoinedDishes = dishes.filter(d => (d.creator?._id || d.creator) !== user._id && (d.participants || []).some(p => (p.user?._id || p.user) === user._id));
 
                 const fallbackActiveJoined = {
-                  _id: 'active-joined-demo',
-                  title: 'Tokyo Shoyu Ramen & Chashu Pork',
-                  cuisine: 'Japanese Ramen',
-                  creator: { name: 'Kenji Sato', username: 'kenji_chef' },
-                  description: '12-hour simmered dashi pork bone broth with spring noodles, seasoned ajitsuke tamago, and melted chashu. Gathering to cook and feast together!',
+                  _id: 'active-joined-ticket',
+                  description: 'Weekend 5k morning run & core workout session around campus track. Join in!',
+                  category: 'sport',
+                  creator: { name: 'Alex Rivera', username: 'alex_cooks' },
                   status: 'cooking',
-                  capacity: 4,
-                  participants: [{ user: 'kenji' }, { user: user._id }, { user: 'p3' }],
-                  location: { landmark: 'East Dorm Kitchen 2B' },
-                  timing: { cookStart: 'Tonight at 7:30 PM' }
+                  joinMode: 'auto',
+                  capacity: { max: 4 },
+                  participants: [{ user: 'alex' }, { user: user._id }, { user: 'p3' }],
+                  timing: { cookStart: 'Tomorrow at 7:00 AM' }
                 };
 
                 const fallbackPreviousJoined = [
                   {
                     _id: 'prev-joined-1',
-                    title: 'Spanish Paella Valenciana',
-                    cuisine: 'Spanish Cuisine',
-                    creator: { name: 'Maria Santos', username: 'maria_cooks' },
-                    description: 'Saffron bomba rice with rosemary, butter beans, chicken, and socarrat crisp crust.',
+                    description: 'Deep work study session: preparing for System Design & distributed consensus algorithms in library.',
+                    category: 'learning',
+                    creator: { name: 'Maya Lin', username: 'mayachef' },
                     status: 'cooked',
-                    capacity: 6,
-                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }],
-                    location: { landmark: 'Courtyard Dining Table' }
+                    capacity: { max: 3 },
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
                   },
                   {
                     _id: 'prev-joined-2',
-                    title: 'Handcrafted Xiao Long Bao',
-                    cuisine: 'Dim Sum',
-                    creator: { name: 'Chen Wei', username: 'chef_chen' },
-                    description: 'Delicate soup dumplings filled with savory ginger pork and rich gelatin broth.',
+                    description: 'Casual badminton doubles match followed by protein shakes at campus court.',
+                    category: 'sport',
+                    creator: { name: 'Priya Patel', username: 'priyabakes' },
                     status: 'cooked',
-                    capacity: 4,
-                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }],
-                    location: { landmark: 'West Quad Hall' }
+                    capacity: { max: 4 },
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }]
                   },
                   {
                     _id: 'prev-joined-3',
-                    title: 'Matcha Mille Crêpe Cake',
-                    cuisine: 'French-Japanese Bakery',
-                    creator: { name: 'Aoi Tanaka', username: 'aoi_pastry' },
-                    description: 'Twenty paper-thin green tea crêpes layered with light Uji matcha chantilly cream.',
+                    description: 'Board games & casual chit-chat evening at student center lounge.',
+                    category: 'social',
+                    creator: { name: 'Alex Rivera', username: 'alex_cooks' },
                     status: 'cooked',
-                    capacity: 5,
-                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }],
-                    location: { landmark: 'Bakery Studio' }
+                    capacity: { max: 5 },
+                    participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }]
                   }
                 ];
 
@@ -2429,74 +2438,98 @@ export default function App() {
                 const activeJoined = realActiveJoined.length > 0 ? realActiveJoined[0] : (userJoinedDishes.length === 0 ? fallbackActiveJoined : null);
                 const previousJoined = realPreviousJoined.length > 0 ? realPreviousJoined : (userJoinedDishes.length === 0 ? fallbackPreviousJoined : []);
 
+                const spotsLeft = activeJoined ? (activeJoined.capacity?.unlimited ? '∞' : Math.max(0, (activeJoined.capacity?.max || activeJoined.capacity || 4) - (activeJoined.participants?.length || 0))) : 0;
+
                 return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
-                    {/* SECTION A: ACTIVE JOINED DISH ON TOP */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+                    {/* ACTIVE JOINED TICKET (Minimal, like a ticket from our feed) */}
                     {activeJoined && (
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#0284c7', display: 'inline-block', boxShadow: '0 0 0 3px rgba(2, 132, 199, 0.2)' }} />
-                            <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#0369a1', margin: 0 }}>
-                              Active Joined Dish
-                            </h4>
-                          </div>
-                          <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>
-                            🔥 Joined Session
-                          </span>
+                      <GlassContainer
+                        radius={28}
+                        style={{ width: '100%' }}
+                        innerStyle={{
+                          padding: '20px 22px',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 16,
+                          position: 'relative',
+                          color: '#000000',
+                          boxSizing: 'border-box',
+                          width: '100%'
+                        }}
+                      >
+                        {/* Left Icon: Wireframe Shopping Cart SVG */}
+                        <div style={{ paddingTop: 3, flexShrink: 0 }}>
+                          <svg
+                            width="42"
+                            height="42"
+                            viewBox="0 0 40 40"
+                            fill="none"
+                            stroke="#000000"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M4 6h5l3.5 17h18l3.5-12H11" />
+                            <line x1="14" y1="15" x2="31.5" y2="15" />
+                            <line x1="15.5" y1="19" x2="28" y2="19" />
+                            <line x1="19" y1="11" x2="18" y2="23" />
+                            <line x1="25" y1="11" x2="24" y2="23" />
+                            <circle cx="16" cy="29" r="2.8" fill="#000000" />
+                            <circle cx="28" cy="29" r="2.8" fill="#000000" />
+                          </svg>
                         </div>
 
-                        <GlassContainer
-                          radius={22}
-                          style={{ width: '100%' }}
-                          innerStyle={{
-                            padding: '24px 28px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 16,
-                            boxSizing: 'border-box'
-                          }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#0284c7', backgroundColor: 'rgba(2, 132, 199, 0.1)', padding: '3px 10px', borderRadius: 9999 }}>
-                                  {activeJoined.cuisine || activeJoined.category || 'Dine-In'}
-                                </span>
-                                <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>
-                                  Host: @{activeJoined.creator?.username || 'chef'}
-                                </span>
+                        {/* Right Card Content */}
+                        <div style={{ flex: 1, minWidth: 0, color: '#000000' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: '50%',
+                                  backgroundColor: '#9353d3',
+                                  color: '#ffffff',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: 13,
+                                  fontWeight: 'bold',
+                                  flexShrink: 0
+                                }}
+                              >
+                                {(activeJoined.creator?.name || activeJoined.creator?.username || 'A')[0].toUpperCase()}
                               </div>
-                              <h3 style={{ fontSize: 21, fontWeight: 800, margin: '0 0 6px 0', color: '#000000', letterSpacing: '-0.3px' }}>
-                                {activeJoined.title || activeJoined.description}
-                              </h3>
-                              <p style={{ fontSize: 14, color: '#4b5563', margin: 0, maxWidth: 680, lineHeight: 1.5 }}>
-                                {activeJoined.description || 'You are participating in this dish with the host chef.'}
-                              </p>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 'bold', fontSize: 14.5, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: 1.2 }}>
+                                  {activeJoined.creator?.name || 'Alex Rivera'}
+                                </div>
+                                <div style={{ fontSize: 11.5, color: '#4b5563', marginTop: 1 }}>
+                                  @{activeJoined.creator?.username || 'alex_cooks'} • <span style={{ textTransform: 'capitalize' }}>{activeJoined.category || 'sport'}</span>
+                                </div>
+                              </div>
                             </div>
-
-                            <FluidButton
-                              onClick={() => setActiveTab('messages')}
-                              style={{ padding: '8px 20px', fontSize: 13, fontWeight: 600, flexShrink: 0 }}
-                            >
-                              Message Host
-                            </FluidButton>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: 14, fontSize: 13, color: '#4b5563', flexWrap: 'wrap', gap: 12 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                              <span>👥 <strong>{activeJoined.participants?.length || 3}</strong>/{activeJoined.capacity?.max || activeJoined.capacity || 4} participants</span>
-                              <span>📍 {activeJoined.location?.landmark || activeJoined.location?.areaName || 'Campus kitchen'}</span>
-                            </div>
-                            <span style={{ fontSize: 12, color: '#0284c7', fontWeight: 600 }}>
-                              ✓ Confirmed Spot
+                            <span style={{ fontSize: 11, fontWeight: 600, color: '#0284c7', backgroundColor: 'rgba(2, 132, 199, 0.1)', padding: '3px 10px', borderRadius: 9999 }}>
+                              Joined
                             </span>
                           </div>
-                        </GlassContainer>
-                      </div>
+
+                          <div style={{ fontSize: 13.5, color: '#000000', lineHeight: 1.45, marginBottom: 8, wordBreak: 'break-word' }}>
+                            <span style={{ fontWeight: 600, color: '#000000' }}>Description: </span>
+                            {activeJoined.description}
+                          </div>
+
+                          <div style={{ fontSize: 11.5, color: '#4b5563', display: 'flex', flexWrap: 'wrap', gap: 10, fontWeight: '500' }}>
+                            <span>👥 {activeJoined.participants?.length || 2}/{activeJoined.capacity?.max || activeJoined.capacity || 4} spots ({spotsLeft} left)</span>
+                            <span>• {activeJoined.joinMode === 'auto' ? '⚡ Auto-join' : '⏳ Request approval'}</span>
+                            {activeJoined.timing?.cookStart && <span>• {activeJoined.timing.cookStart}</span>}
+                          </div>
+                        </div>
+                      </GlassContainer>
                     )}
 
-                    {/* SECTION B: PREVIOUS JOINED DISHES DOWN THE LINE */}
+                    {/* PREVIOUS JOINED DISHES */}
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                         <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
@@ -2512,14 +2545,14 @@ export default function App() {
                           <p style={{ fontSize: 14, margin: 0 }}>No past joined dishes yet.</p>
                         </div>
                       ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
                           {previousJoined.map((dish) => (
                             <GlassContainer
                               key={dish._id}
                               radius={18}
-                              style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
+                              style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'default', overflow: 'hidden' }}
                               innerStyle={{
-                                padding: 20,
+                                padding: 18,
                                 height: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -2530,21 +2563,18 @@ export default function App() {
                               <div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
-                                    {dish.cuisine || dish.category || 'Dine-In'}
+                                    {dish.category || 'Activity'}
                                   </span>
                                   <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)', color: '#4b5563' }}>
                                     ✓ Joined
                                   </span>
                                 </div>
-                                <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 6px 0', color: '#000000', lineHeight: 1.3 }}>
-                                  {dish.title || (dish.description ? (dish.description.length > 35 ? dish.description.slice(0, 35) + '...' : dish.description) : 'Dish Session')}
-                                </h4>
-                                <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                <p style={{ fontSize: 13, color: '#111827', margin: 0, lineHeight: 1.4, lineClamp: 4, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                   {dish.description}
                                 </p>
                               </div>
 
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#666666' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 11.5, color: '#666666' }}>
                                 <span>Host: @{dish.creator?.username || 'chef'}</span>
                                 <span>👥 {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4}</span>
                               </div>
@@ -2559,44 +2589,44 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 3: AWARDS (Award Library - Owned on top, Locked in B&W down the line) */}
+          {/* TAB 3: AWARDS (Award Library based on PRODUCT.md Section 20 Achievements) */}
           {profileActiveTab === 'awards' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
               {/* Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
                 <div>
-                  <h3 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px 0', color: '#000000', letterSpacing: '-0.3px' }}>
+                  <h3 style={{ fontSize: 19, fontWeight: 800, margin: '0 0 4px 0', color: '#000000', letterSpacing: '-0.3px' }}>
                     Award Library
                   </h3>
-                  <p style={{ fontSize: 13.5, color: '#6b7280', margin: 0 }}>
-                    Badges unlocked through campus cooking, hosting sessions, and culinary exploration.
+                  <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>
+                    Earned through real-world community coordination and activities on campus.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: 8, fontSize: 12, fontWeight: 700 }}>
-                  <span style={{ padding: '5px 12px', borderRadius: 9999, backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#15803d' }}>
+                  <span style={{ padding: '4px 12px', borderRadius: 9999, backgroundColor: 'rgba(34, 197, 94, 0.12)', color: '#15803d' }}>
                     ✓ 3 Unlocked
                   </span>
-                  <span style={{ padding: '5px 12px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)', color: '#4b5563' }}>
+                  <span style={{ padding: '4px 12px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)', color: '#4b5563' }}>
                     🔒 5 to Unlock
                   </span>
                 </div>
               </div>
 
-              {/* 1. OWNED / UNLOCKED AWARDS (Top Section - Full Color) */}
+              {/* 1. OWNED / UNLOCKED ACHIEVEMENTS (Top Section - Full Color) */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
                   <span style={{ fontSize: 14 }}>🏆</span>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#15803d', margin: 0 }}>
-                    Owned Awards
+                  <h4 style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#15803d', margin: 0 }}>
+                    Unlocked Achievements
                   </h4>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-                  {/* Owned 1: Master Chef */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+                  {/* Owned 1: Chef (PRODUCT.md Section 20) */}
                   <GlassContainer
                     radius={22}
                     innerStyle={{
-                      padding: '24px 20px',
+                      padding: '22px 18px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -2605,31 +2635,28 @@ export default function App() {
                       boxSizing: 'border-box'
                     }}
                   >
-                    <div style={{ width: 84, height: 84, borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(0, 0, 0, 0.08)' }}>
-                      <svg width="52" height="46" viewBox="0 0 64 64" fill="none">
-                        <path d="M18 36 C12 36 8 30 11 23 C13 18 19 16 23 18 C25 11 34 8 40 13 C46 9 55 12 56 19 C60 21 61 29 56 34 C54 36 51 36 49 36 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
-                        <path d="M25 21 C26 28 27 34 27 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
-                        <path d="M36 15 C36 24 36 32 36 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
-                        <path d="M46 19 C45 26 44 32 43 36" stroke="#e2e8f0" strokeWidth="2.2" strokeLinecap="round" />
-                        <rect x="17" y="36" width="33" height="13" rx="3" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" />
+                    <div style={{ width: 76, height: 76, borderRadius: '50%', backgroundColor: 'rgba(254, 243, 199, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(245, 158, 11, 0.3)' }}>
+                      <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" fill="#fef3c7" stroke="#f59e0b" strokeWidth="1.8" />
+                        <path d="M12 6.5l1.6 3.8 4.1.4-3.1 2.8.9 4-3.5-2.1-3.5 2.1.9-4-3.1-2.8 4.1-.4z" fill="#f59e0b" />
                       </svg>
                     </div>
                     <div>
-                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#15803d', backgroundColor: 'rgba(34, 197, 94, 0.1)', padding: '2px 8px', borderRadius: 9999, marginBottom: 6 }}>
+                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#b45309', backgroundColor: 'rgba(245, 158, 11, 0.12)', padding: '2px 8px', borderRadius: 9999, marginBottom: 5 }}>
                         ✓ Unlocked
                       </div>
-                      <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 4px 0', color: '#000000' }}>Master Chef</h4>
-                      <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
-                        Hosted and executed 10+ culinary sessions on campus.
+                      <h4 style={{ fontSize: 15.5, fontWeight: 800, margin: '0 0 3px 0', color: '#000000' }}>Chef</h4>
+                      <p style={{ fontSize: 12, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
+                        Created 10+ Dishes (Activities) for the community.
                       </p>
                     </div>
                   </GlassContainer>
 
-                  {/* Owned 2: Coffee Roast */}
+                  {/* Owned 2: Good Company (PRODUCT.md Section 20) */}
                   <GlassContainer
                     radius={22}
                     innerStyle={{
-                      padding: '24px 20px',
+                      padding: '22px 18px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -2638,32 +2665,30 @@ export default function App() {
                       boxSizing: 'border-box'
                     }}
                   >
-                    <div style={{ width: 84, height: 84, borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(0, 0, 0, 0.08)' }}>
-                      <svg width="54" height="46" viewBox="0 0 68 56" fill="none">
-                        <path d="M22 13 C20 9 24 6 22 2" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                        <path d="M30 11 C28 7 32 4 30 1" stroke="#92400e" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                        <ellipse cx="32" cy="49" rx="27" ry="5" fill="#fdfbf7" stroke="#78350f" strokeWidth="2" />
-                        <path d="M44 26 C53 26 55 38 43 41" stroke="#78350f" strokeWidth="3" fill="none" strokeLinecap="round" />
-                        <path d="M14 21 L18 43 C19 46 25 47 32 47 C39 47 45 46 46 43 L50 21 Z" fill="#6f4e37" stroke="#451a03" strokeWidth="2" />
-                        <ellipse cx="32" cy="21" rx="18" ry="4.5" fill="#3e2312" />
+                    <div style={{ width: 76, height: 76, borderRadius: '50%', backgroundColor: 'rgba(209, 250, 229, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(16, 185, 129, 0.3)' }}>
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                       </svg>
                     </div>
                     <div>
-                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#b45309', backgroundColor: 'rgba(245, 158, 11, 0.12)', padding: '2px 8px', borderRadius: 9999, marginBottom: 6 }}>
+                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#047857', backgroundColor: 'rgba(16, 185, 129, 0.12)', padding: '2px 8px', borderRadius: 9999, marginBottom: 5 }}>
                         ✓ Unlocked
                       </div>
-                      <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 4px 0', color: '#000000' }}>Coffee Roast</h4>
-                      <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
-                        Campus specialty coffee artisan • 20+ pour-overs brewed.
+                      <h4 style={{ fontSize: 15.5, fontWeight: 800, margin: '0 0 3px 0', color: '#000000' }}>Good Company</h4>
+                      <p style={{ fontSize: 12, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
+                        Joined and participated in 15+ community Dishes.
                       </p>
                     </div>
                   </GlassContainer>
 
-                  {/* Owned 3: Midnight Kitchen */}
+                  {/* Owned 3: Night Chef (PRODUCT.md Section 20) */}
                   <GlassContainer
                     radius={22}
                     innerStyle={{
-                      padding: '24px 20px',
+                      padding: '22px 18px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -2672,19 +2697,19 @@ export default function App() {
                       boxSizing: 'border-box'
                     }}
                   >
-                    <div style={{ width: 84, height: 84, borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(0, 0, 0, 0.08)' }}>
-                      <svg width="54" height="46" viewBox="0 0 68 56" fill="none">
-                        <path d="M37 7 C32 12 32 20 37 25 C40 28 44 29 47 28 C43 35 33 37 26 32 C19 26 20 15 27 9 C30 7 33 6 37 7 Z" fill="#fde047" stroke="#ca8a04" strokeWidth="2" />
-                        <path d="M18 43 C13 43 9 39 10 34 C11 29 16 28 19 29 C22 23 30 22 35 26 C38 24 43 24 45 27 C50 26 55 30 54 35 C57 37 57 42 52 43 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="2" />
+                    <div style={{ width: 76, height: 76, borderRadius: '50%', backgroundColor: 'rgba(254, 240, 138, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(202, 138, 4, 0.3)' }}>
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#fde047" stroke="#ca8a04" strokeWidth="1.8" />
+                        <path d="M19 5l.5 1.2 1.3.3-1.1.9.3 1.3-1-.7-1 .7.3-1.3-1.1-.9 1.3-.3z" fill="#ca8a04" />
                       </svg>
                     </div>
                     <div>
-                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#ca8a04', backgroundColor: 'rgba(234, 179, 8, 0.12)', padding: '2px 8px', borderRadius: 9999, marginBottom: 6 }}>
+                      <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#ca8a04', backgroundColor: 'rgba(234, 179, 8, 0.12)', padding: '2px 8px', borderRadius: 9999, marginBottom: 5 }}>
                         ✓ Unlocked
                       </div>
-                      <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 4px 0', color: '#000000' }}>Midnight Kitchen</h4>
-                      <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
-                        Late-night cooking champion • Prepared dishes after 11:00 PM.
+                      <h4 style={{ fontSize: 15.5, fontWeight: 800, margin: '0 0 3px 0', color: '#000000' }}>Night Chef</h4>
+                      <p style={{ fontSize: 12, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
+                        Organized late-night study or gaming activities past 11 PM.
                       </p>
                     </div>
                   </GlassContainer>
@@ -2695,65 +2720,63 @@ export default function App() {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: 14 }}>🔒</span>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
+                  <h4 style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
                     Yet to Unlock (Award Library)
                   </h4>
                 </div>
-                <p style={{ fontSize: 12.5, color: '#6b7280', margin: '0 0 16px 0' }}>
-                  These badges remain in black & white until unlock requirements are satisfied.
+                <p style={{ fontSize: 12, color: '#6b7280', margin: '0 0 14px 0' }}>
+                  These badges remain in black & white until activity milestones are achieved.
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
                   {[
                     {
-                      id: 'table-host',
-                      title: 'Campus Table Host',
-                      desc: 'Host dishes with 20 distinct students across campus.',
-                      progress: '14 / 20 students',
-                      progressPercent: 70,
+                      id: 'master-chef',
+                      title: 'MasterChef',
+                      desc: 'Create 25+ successful campus Dishes.',
+                      progress: '17 / 25 Dishes',
+                      progressPercent: 68,
                       icon: (
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M3 20h18" />
-                          <path d="M5 20v-8a7 7 0 0 1 14 0v8" />
-                          <path d="M12 4v1" />
-                          <circle cx="12" cy="4" r="1" />
-                        </svg>
-                      )
-                    },
-                    {
-                      id: 'flavor-explorer',
-                      title: 'Flavor Explorer',
-                      desc: 'Cook recipes across 5 distinct international cuisines.',
-                      progress: '3 / 5 cuisines',
-                      progressPercent: 60,
-                      icon: (
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10" />
-                          <line x1="2" y1="12" x2="22" y2="12" />
-                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                        </svg>
-                      )
-                    },
-                    {
-                      id: 'golden-apron',
-                      title: 'Golden Apron',
-                      desc: 'Achieve 5-star ratings on 10 completed cooking sessions.',
-                      progress: '6 / 10 sessions',
-                      progressPercent: 60,
-                      icon: (
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                         </svg>
                       )
                     },
                     {
-                      id: 'early-riser',
-                      title: 'Early Riser Baker',
-                      desc: 'Host an early morning breakfast session before 8:30 AM.',
+                      id: 'campus-connector',
+                      title: 'Campus Connector',
+                      desc: 'Coordinate activities with 20 distinct campus students.',
+                      progress: '14 / 20 students',
+                      progressPercent: 70,
+                      icon: (
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                          <circle cx="8.5" cy="7" r="4" />
+                          <polyline points="17 11 19 13 23 9" />
+                        </svg>
+                      )
+                    },
+                    {
+                      id: 'activity-explorer',
+                      title: 'Activity Explorer',
+                      desc: 'Host across 4 categories (Study, Sports, Gym, Social).',
+                      progress: '3 / 4 categories',
+                      progressPercent: 75,
+                      icon: (
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                        </svg>
+                      )
+                    },
+                    {
+                      id: 'early-bird',
+                      title: 'Early Bird',
+                      desc: 'Host an early morning activity (Gym / Run) before 8:30 AM.',
                       progress: '0 / 1 hosted',
                       progressPercent: 0,
                       icon: (
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M12 2v4" />
                           <path d="M4.93 10.93l2.83 2.83" />
                           <path d="M2 18h20" />
@@ -2763,14 +2786,14 @@ export default function App() {
                       )
                     },
                     {
-                      id: 'iron-pan',
-                      title: 'Iron Pan Master',
-                      desc: 'Lead a high-heat wok or cast-iron cooking session.',
-                      progress: '0 / 1 completed',
+                      id: 'squad-leader',
+                      title: 'Squad Leader',
+                      desc: 'Host a coordination ticket with a full squad of 6+ participants.',
+                      progress: '0 / 1 squad',
                       progressPercent: 0,
                       icon: (
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                         </svg>
                       )
                     }
@@ -2784,7 +2807,7 @@ export default function App() {
                         transition: 'opacity 0.2s ease'
                       }}
                       innerStyle={{
-                        padding: '24px 20px',
+                        padding: '22px 18px',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -2793,26 +2816,26 @@ export default function App() {
                         boxSizing: 'border-box'
                       }}
                     >
-                      <div style={{ width: 84, height: 84, borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px dashed rgba(0, 0, 0, 0.2)' }}>
+                      <div style={{ width: 76, height: 76, borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px dashed rgba(0, 0, 0, 0.25)' }}>
                         {locked.icon}
                       </div>
 
                       <div style={{ width: '100%' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#4b5563', backgroundColor: 'rgba(0, 0, 0, 0.08)', padding: '2px 8px', borderRadius: 9999, marginBottom: 6 }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#4b5563', backgroundColor: 'rgba(0, 0, 0, 0.08)', padding: '2px 8px', borderRadius: 9999, marginBottom: 5 }}>
                           <span>🔒</span> Locked
                         </div>
-                        <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 4px 0', color: '#000000' }}>
+                        <h4 style={{ fontSize: 15.5, fontWeight: 800, margin: '0 0 3px 0', color: '#000000' }}>
                           {locked.title}
                         </h4>
-                        <p style={{ fontSize: 12.5, color: '#4b5563', margin: '0 0 12px 0', lineHeight: 1.4 }}>
+                        <p style={{ fontSize: 12, color: '#4b5563', margin: '0 0 10px 0', lineHeight: 1.4 }}>
                           {locked.desc}
                         </p>
 
                         {/* Progress Bar in B&W */}
-                        <div style={{ width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.08)', borderRadius: 9999, height: 6, overflow: 'hidden', marginBottom: 6 }}>
+                        <div style={{ width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.08)', borderRadius: 9999, height: 5, overflow: 'hidden', marginBottom: 5 }}>
                           <div style={{ width: `${locked.progressPercent}%`, height: '100%', backgroundColor: '#4b5563', borderRadius: 9999 }} />
                         </div>
-                        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#4b5563' }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#4b5563' }}>
                           {locked.progress}
                         </span>
                       </div>
