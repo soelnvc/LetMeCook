@@ -117,7 +117,7 @@ export default function GlassContainer({
         position: 'relative',
         borderRadius: outerRadius,
         padding: `${borderWidth}px`,
-        background: borderBackground,
+        backgroundImage: borderBackground,
         boxSizing: 'border-box',
         ...(as === 'button'
           ? {

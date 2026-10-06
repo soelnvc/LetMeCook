@@ -54,9 +54,9 @@ const getDishes = async (userId, query = {}) => {
 
   const filter = {};
 
-  if (status) {
+  if (status && status !== 'all') {
     filter.status = status;
-  } else {
+  } else if (!status) {
     filter.status = { $in: ['lets_cook', 'cooking'] };
   }
 

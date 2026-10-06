@@ -11,6 +11,8 @@ import ProfileHeader from '@/components/profile/ProfileHeader';
 import AwardsLibrary from '@/components/profile/AwardsLibrary';
 import ConversationList from '@/components/messaging/ConversationList';
 import MessageArea from '@/components/messaging/MessageArea';
+import HomeDashboard from '@/components/home/HomeDashboard';
+import GlobalPage from '@/components/global/GlobalPage';
 import { dishService } from '@/services/dish.service';
 import { authService } from '@/services/auth.service';
 
@@ -130,7 +132,7 @@ export default function App() {
 
   const fetchDishes = async () => {
     try {
-      const res = await dishService.getDishes({ category: categoryFilter });
+      const res = await dishService.getDishes({ category: categoryFilter, status: 'all' });
       setDishes(res.data || []);
     } catch (err) {
       setError(err.message);
@@ -181,7 +183,7 @@ export default function App() {
 
   useEffect(() => {
     if (!user) return;
-    if (activeTab === 'home' || activeTab === 'dine-in') fetchDishes();
+    if (activeTab === 'home' || activeTab === 'dine-in' || activeTab === 'global') fetchDishes();
     if (activeTab === 'messages') fetchConversations();
     if (activeTab === 'profile') {
       fetchConnections();
@@ -628,81 +630,17 @@ export default function App() {
       {/* 1. HOME SCREEN (PRODUCT.md Section 13) */}
       {/* ========================================================= */}
       {activeTab === 'home' && (
-        <section style={{ width: '100%', maxWidth: 720 }}>
-          <h2 style={{ fontSize: 32, fontWeight: 800, margin: '0 0 20px 0', letterSpacing: '-0.5px' }}>Home (Personalized Dashboard)</h2>
-          
-          {/* Personalized Greeting */}
-          <GlassContainer radius={24} style={{ marginBottom: 16 }} innerStyle={{ padding: '18px 24px' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#4b5563' }}>Personalized Welcome</div>
-            <div style={{ fontSize: 20, fontWeight: 600, marginTop: 6, color: '#000000' }}>
-              "Evening, {user.name}. What's cooking?"
-            </div>
-          </GlassContainer>
-
-          {/* Current Cooking Banner */}
-          <GlassContainer radius={24} style={{ marginBottom: 16 }} innerStyle={{ padding: '18px 24px' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#4b5563' }}>Current Cooking</div>
-            {dishes.some(d => d.participants?.some(p => (p.user?._id || p.user) === user._id) && d.status !== 'cooked') ? (
-              <div style={{ marginTop: 8, color: '#15803d', fontWeight: 600, fontSize: 15 }}>
-                You have active dishes cooking! Check below or go to Dine-in.
-              </div>
-            ) : (
-              <div style={{ marginTop: 8, color: '#374151', fontSize: 15, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span>"Nothing cooking yet. Someone has to start the chaos."</span>
-                <FluidButton
-                  onClick={() => setShowKitchenModal(true)}
-                  style={{
-                    padding: '6px 16px',
-                    fontSize: 13,
-                    fontWeight: 600
-                  }}
-                >
-                  Create a Dish
-                </FluidButton>
-              </div>
-            )}
-          </GlassContainer>
-
-          {/* Cooking Stats & Dish History Summary */}
-          <GlassContainer radius={24} style={{ marginBottom: 16 }} innerStyle={{ padding: '18px 24px' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#4b5563' }}>Cooking Stats & History</div>
-            <div style={{ marginTop: 8, fontSize: 15, fontWeight: 500, color: '#000000' }}>
-              Dishes Created: <strong>{user.stats?.dishesCreated || 0}</strong> &nbsp;•&nbsp; Dishes Joined: <strong>{user.stats?.dishesJoined || 0}</strong> &nbsp;•&nbsp; People Cooked With: <strong>{user.stats?.peopleCookedWith || 0}</strong>
-            </div>
-          </GlassContainer>
-
-          {/* Top Relevant Dishes */}
-          <GlassContainer radius={24} innerStyle={{ padding: '20px 24px' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#4b5563' }}>Top Active Dishes (Summary)</div>
-            {dishes.slice(0, 3).length === 0 ? (
-              <p style={{ marginTop: 8, color: '#6b7280' }}>No dishes cooking right now.</p>
-            ) : (
-              <ul style={{ marginTop: 12, paddingLeft: 20 }}>
-                {dishes.slice(0, 3).map(d => (
-                  <li key={d._id} style={{ marginBottom: 10, fontSize: 14 }}>
-                    <strong>{d.description}</strong> ({d.category}) — Status: <span style={{ textTransform: 'capitalize' }}>{d.status}</span> | Spots: {d.participants?.length}/{d.capacity?.max}
-                    <button
-                      onClick={() => setActiveTab('dine-in')}
-                      style={{
-                        marginLeft: 12,
-                        backgroundColor: 'transparent',
-                        color: '#000000',
-                        border: '1px solid #000000',
-                        borderRadius: 9999,
-                        padding: '2px 10px',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Open in Dine-in
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </GlassContainer>
-        </section>
+        <HomeDashboard
+          user={user}
+          dishes={dishes}
+          onOpenKitchenModal={(category) => {
+            if (category) setCategoryFilter(category);
+            setShowKitchenModal(true);
+          }}
+          onJoinDish={handleJoinDish}
+          onExploreDineIn={() => setActiveTab('dine-in')}
+          onNavigateTab={(tab) => setActiveTab(tab)}
+        />
       )}
 
       {/* ========================================================= */}
@@ -721,7 +659,6 @@ export default function App() {
               {[
                 { key: 'join_to_cook', label: 'Join to Cook' },
                 { key: 'cooking', label: 'Cooking' },
-                { key: 'global', label: 'Global' },
                 { key: 'my_dishes', label: 'My Dishes' }
               ].map((tab) => {
                 const isActive = dineInTab === tab.key;
@@ -786,9 +723,6 @@ export default function App() {
               if (dineInTab === 'cooking') {
                 return dish.status === 'cooking';
               }
-              if (dineInTab === 'global') {
-                return dish.visibility === 'global';
-              }
               if (dineInTab === 'my_dishes') {
                 const isCreator = (dish.creator?._id || dish.creator) === user._id;
                 const isParticipant = dish.participants?.some((p) => (p.user?._id || p.user) === user._id);
@@ -832,6 +766,22 @@ export default function App() {
             );
           })()}
         </section>
+      )}
+
+      {/* ========================================================= */}
+      {/* 3. GLOBAL DISHES SCREEN (Location-based Within 5km)       */}
+      {/* ========================================================= */}
+      {activeTab === 'global' && (
+        <GlobalPage
+          user={user}
+          dishes={dishes}
+          onJoinDish={handleJoinDish}
+          onOpenKitchenModal={(category) => {
+            if (category) setCategoryFilter(category);
+            setShowKitchenModal(true);
+          }}
+          onNavigateTab={(tab) => setActiveTab(tab)}
+        />
       )}
 
 
