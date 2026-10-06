@@ -155,12 +155,37 @@ export default function DishCard({
             fontWeight: '500'
           }}
         >
-          <span>
-            👥 {dish.participants?.length || 1}/{dish.capacity?.max || 4} spots ({spotsLeft} left)
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            {dish.participants?.length || 1}/{dish.capacity?.max || 4} spots ({spotsLeft} left)
           </span>
-          <span>• {dish.joinMode === 'auto' ? '⚡ Auto-join' : '⏳ Request approval'}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            • {dish.joinMode === 'auto' ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+                Auto-join
+              </>
+            ) : (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                Request approval
+              </>
+            )}
+          </span>
           {dish.type === 'chefs_special' && (
-            <span style={{ color: '#8b0000', fontWeight: 'bold' }}>• ⭐ Chef's Special</span>
+            <span style={{ color: '#8b0000', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              • <svg width="12" height="12" viewBox="0 0 24 24" fill="#8b0000"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg> Chef's Special
+            </span>
           )}
         </div>
 
@@ -191,31 +216,46 @@ export default function DishCard({
                       <button
                         onClick={() => onApproveRequest && onApproveRequest(dish._id, r._id)}
                         style={{
-                          padding: '2px 6px',
+                          padding: '3px 8px',
                           fontSize: 11,
-                          marginRight: 4,
-                          color: '#000000',
-                          background: '#fff',
-                          border: '1px solid #000',
-                          borderRadius: 3,
-                          cursor: 'pointer'
+                          fontWeight: 600,
+                          marginRight: 6,
+                          color: '#15803d',
+                          background: 'rgba(34, 197, 94, 0.12)',
+                          border: '1px solid rgba(34, 197, 94, 0.3)',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4
                         }}
                       >
-                        [✓ Approve]
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Approve
                       </button>
                       <button
                         onClick={() => onRejectRequest && onRejectRequest(dish._id, r._id)}
                         style={{
-                          padding: '2px 6px',
+                          padding: '3px 8px',
                           fontSize: 11,
-                          color: '#000000',
-                          background: '#fff',
-                          border: '1px solid #000',
-                          borderRadius: 3,
-                          cursor: 'pointer'
+                          fontWeight: 600,
+                          color: '#b91c1c',
+                          background: 'rgba(239, 68, 68, 0.12)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4
                         }}
                       >
-                        [✕ Reject]
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                        Reject
                       </button>
                     </div>
                   </div>

@@ -635,7 +635,7 @@ export default function App() {
           <GlassContainer radius={24} style={{ marginBottom: 16 }} innerStyle={{ padding: '18px 24px' }}>
             <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#4b5563' }}>Personalized Welcome</div>
             <div style={{ fontSize: 20, fontWeight: 600, marginTop: 6, color: '#000000' }}>
-              "Evening, {user.name}. What's cooking?" 👀
+              "Evening, {user.name}. What's cooking?"
             </div>
           </GlassContainer>
 
@@ -910,6 +910,11 @@ export default function App() {
             onEditProfile={() => setShowEditProfile(true)}
             onOpenSettings={() => setShowSettings(true)}
             onTabChange={(tab) => setProfileActiveTab(tab)}
+            onTagClick={(tag) => {
+              const cleaned = tag.startsWith('#') ? tag.slice(1).toLowerCase() : tag.toLowerCase();
+              setCategoryFilter(cleaned);
+              setActiveTab('dine_in');
+            }}
           />
 
           {/* ========================================================= */}
@@ -1128,9 +1133,34 @@ export default function App() {
                           </div>
 
                           {/* Meta Info Bar: Capacity, Join Mode */}
-                          <div style={{ fontSize: 11.5, color: '#4b5563', display: 'flex', flexWrap: 'wrap', gap: 10, fontWeight: '500' }}>
-                            <span>👥 {activeDish.participants?.length || 3}/{activeDish.capacity?.max || activeDish.capacity || 4} spots ({spotsLeft} left)</span>
-                            <span>• {activeDish.joinMode === 'auto' ? '⚡ Auto-join' : '⏳ Request approval'}</span>
+                          <div style={{ fontSize: 11.5, color: '#4b5563', display: 'flex', flexWrap: 'wrap', gap: 10, fontWeight: '500', alignItems: 'center' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              </svg>
+                              {activeDish.participants?.length || 3}/{activeDish.capacity?.max || activeDish.capacity || 4} spots ({spotsLeft} left)
+                            </span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              • {activeDish.joinMode === 'auto' ? (
+                                <>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                  </svg>
+                                  Auto-join
+                                </>
+                              ) : (
+                                <>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                  </svg>
+                                  Request approval
+                                </>
+                              )}
+                            </span>
                             {activeDish.timing?.cookStart && <span>• {activeDish.timing.cookStart}</span>}
                           </div>
                         </div>
@@ -1173,8 +1203,11 @@ export default function App() {
                                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
                                     {dish.category || 'Activity'}
                                   </span>
-                                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)', color: '#4b5563' }}>
-                                    ✓ Cooked
+                                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)', color: '#4b5563', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                    Cooked
                                   </span>
                                 </div>
                                 <p style={{ fontSize: 13, color: '#111827', margin: 0, lineHeight: 1.4, lineClamp: 4, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
@@ -1183,7 +1216,15 @@ export default function App() {
                               </div>
 
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 11.5, color: '#666666' }}>
-                                <span>👥 {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4} spots</span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                  </svg>
+                                  {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4} spots
+                                </span>
                                 <span style={{ textTransform: 'capitalize' }}>{dish.category || 'Done'}</span>
                               </div>
                             </GlassContainer>
@@ -1333,9 +1374,34 @@ export default function App() {
                             {activeJoined.description}
                           </div>
 
-                          <div style={{ fontSize: 11.5, color: '#4b5563', display: 'flex', flexWrap: 'wrap', gap: 10, fontWeight: '500' }}>
-                            <span>👥 {activeJoined.participants?.length || 2}/{activeJoined.capacity?.max || activeJoined.capacity || 4} spots ({spotsLeft} left)</span>
-                            <span>• {activeJoined.joinMode === 'auto' ? '⚡ Auto-join' : '⏳ Request approval'}</span>
+                          <div style={{ fontSize: 11.5, color: '#4b5563', display: 'flex', flexWrap: 'wrap', gap: 10, fontWeight: '500', alignItems: 'center' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              </svg>
+                              {activeJoined.participants?.length || 2}/{activeJoined.capacity?.max || activeJoined.capacity || 4} spots ({spotsLeft} left)
+                            </span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              • {activeJoined.joinMode === 'auto' ? (
+                                <>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                  </svg>
+                                  Auto-join
+                                </>
+                              ) : (
+                                <>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                  </svg>
+                                  Request approval
+                                </>
+                              )}
+                            </span>
                             {activeJoined.timing?.cookStart && <span>• {activeJoined.timing.cookStart}</span>}
                           </div>
                         </div>
@@ -1378,8 +1444,11 @@ export default function App() {
                                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
                                     {dish.category || 'Activity'}
                                   </span>
-                                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)', color: '#4b5563' }}>
-                                    ✓ Joined
+                                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)', color: '#4b5563', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                    Joined
                                   </span>
                                 </div>
                                 <p style={{ fontSize: 13, color: '#111827', margin: 0, lineHeight: 1.4, lineClamp: 4, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
@@ -1389,7 +1458,15 @@ export default function App() {
 
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 11.5, color: '#666666' }}>
                                 <span>Host: @{dish.creator?.username || 'chef'}</span>
-                                <span>👥 {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4}</span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                  </svg>
+                                  {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4}
+                                </span>
                               </div>
                             </GlassContainer>
                           ))}
@@ -1438,12 +1515,17 @@ export default function App() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                   <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Edit Profile</h3>
-                  <button
+                  <FluidButton
+                    variant="icon"
                     onClick={() => setShowEditProfile(false)}
-                    style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#6b7280' }}
+                    style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
+                    title="Close"
                   >
-                    ✕
-                  </button>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </FluidButton>
                 </div>
 
                 <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1489,7 +1571,7 @@ export default function App() {
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
                       rows={3}
-                      placeholder="Tell the community what you like to cook, your specialties, and what inspires you..."
+                      placeholder="Tell campus what activities you're down for, hobbies, and ideas (e.g. #Badminton #Gym #Study #Gaming)..."
                       style={{
                         width: '100%',
                         padding: '10px 14px',
@@ -1505,39 +1587,26 @@ export default function App() {
                   {/* Tags Editor */}
                   <div>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Tags / Interests:</label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
                       {interests.map((tag, i) => (
-                        <span
+                        <FluidButton
                           key={i}
+                          type="button"
+                          onClick={() => setInterests(interests.filter((_, idx) => idx !== i))}
+                          title="Click to remove tag"
                           style={{
-                            backgroundColor: '#cdd5de',
-                            color: '#000000',
                             padding: '4px 12px',
-                            borderRadius: 9999,
-                            fontSize: 13,
+                            fontSize: 12.5,
                             fontWeight: 600,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 6
+                            color: '#111827'
                           }}
                         >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => setInterests(interests.filter((_, idx) => idx !== i))}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#4b5563',
-                              cursor: 'pointer',
-                              padding: 0,
-                              fontSize: 14,
-                              fontWeight: 700
-                            }}
-                          >
-                            ×
-                          </button>
-                        </span>
+                          <span>{tag.startsWith('#') ? tag.slice(1) : tag}</span>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, opacity: 0.6 }}>
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </FluidButton>
                       ))}
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
@@ -1554,17 +1623,17 @@ export default function App() {
                             }
                           }
                         }}
-                        placeholder="Add new tag (e.g. Baking, Tacos, Vegan)..."
+                        placeholder="Add new tag (e.g. Badminton, Gym, Study, Anime, Coffee)..."
                         style={{
                           flex: 1,
                           padding: '8px 12px',
-                          borderRadius: 8,
+                          borderRadius: 10,
                           border: '1px solid #d1d5db',
                           fontSize: 13,
                           color: '#000000'
                         }}
                       />
-                      <button
+                      <FluidButton
                         type="button"
                         onClick={() => {
                           if (newTagInput.trim() && !interests.includes(newTagInput.trim())) {
@@ -1573,18 +1642,13 @@ export default function App() {
                           }
                         }}
                         style={{
-                          backgroundColor: '#111827',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: 8,
-                          padding: '8px 14px',
+                          padding: '7px 18px',
                           fontSize: 13,
-                          fontWeight: 600,
-                          cursor: 'pointer'
+                          fontWeight: 600
                         }}
                       >
                         + Add
-                      </button>
+                      </FluidButton>
                     </div>
                   </div>
 
@@ -1727,16 +1791,23 @@ export default function App() {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 22 }}>⚙️</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
                 <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Settings & Privacy</h3>
               </div>
               <FluidButton
                 variant="icon"
                 onClick={() => setShowSettings(false)}
                 style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
+                title="Close"
               >
-                ✕
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </FluidButton>
             </div>
 
@@ -1941,8 +2012,12 @@ export default function App() {
                 variant="icon"
                 onClick={() => setShowAppearanceModal(false)}
                 style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
+                title="Close"
               >
-                ✕
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </FluidButton>
             </div>
 
@@ -2050,14 +2125,22 @@ export default function App() {
                   setReportSubmitted(false);
                 }}
                 style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
+                title="Close"
               >
-                ✕
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </FluidButton>
             </div>
 
             {reportSubmitted ? (
               <div style={{ textAlign: 'center', padding: '24px 8px' }}>
-                <div style={{ fontSize: 36, marginBottom: 12 }}>✓</div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: '50%', backgroundColor: 'rgba(34, 197, 94, 0.15)', color: '#16a34a', margin: '0 auto 16px auto' }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
                 <h4 style={{ margin: '0 0 8px 0', fontSize: 17, fontWeight: 700 }}>Thank you for your report!</h4>
                 <p style={{ margin: 0, fontSize: 13.5, color: '#52525b', lineHeight: 1.5 }}>
                   Our team has received your feedback and will look into it promptly.

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import FluidButton from '@/components/ui/FluidButton';
 
 export default function ProfileHeader({
   user,
@@ -12,7 +13,8 @@ export default function ProfileHeader({
   connectionsCount = 72,
   onEditProfile,
   onOpenSettings,
-  onTabChange
+  onTabChange,
+  onTagClick
 }) {
   const [bioExpanded, setBioExpanded] = useState(false);
 
@@ -84,47 +86,33 @@ export default function ProfileHeader({
             {user?.username || 'soelnvc'}
           </h2>
 
-          <button
+          <FluidButton
             onClick={onEditProfile}
             style={{
-              padding: '7px 18px',
-              borderRadius: 8,
-              fontSize: 14,
+              padding: '7px 20px',
+              fontSize: 13.5,
               fontWeight: 600,
-              backgroundColor: 'rgba(0, 0, 0, 0.08)',
-              border: 'none',
-              color: '#000000',
-              cursor: 'pointer',
-              transition: 'background 0.15s ease'
+              color: '#000000'
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.12)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.08)')}
           >
             Edit Profile
-          </button>
+          </FluidButton>
 
-          <button
+          <FluidButton
+            variant="icon"
             onClick={onOpenSettings}
             title="Settings & Privacy"
             style={{
               width: 34,
               height: 34,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#000000',
-              transition: 'background 0.15s ease'
+              minWidth: 34,
+              minHeight: 34,
+              color: '#000000'
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
             <svg
-              width="20"
-              height="20"
+              width="19"
+              height="19"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -135,7 +123,7 @@ export default function ProfileHeader({
               <circle cx="12" cy="12" r="3" />
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
-          </button>
+          </FluidButton>
         </div>
 
         {/* Row 2: Stats Row */}
@@ -171,7 +159,7 @@ export default function ProfileHeader({
             </span>
           </div>
 
-          {/* Institute with Verified Tick Badge */}
+          {/* Institute with Verified Tick Badge & SVG Cap Icon (No Emojis) */}
           <div
             style={{
               fontSize: 13.5,
@@ -182,8 +170,12 @@ export default function ProfileHeader({
               flexWrap: 'wrap'
             }}
           >
-            <span style={{ fontWeight: 600 }}>
-              🎓 {user?.institute?.name || instituteName || 'IIT MADRAS'}
+            <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                <path d="M6 12v5c3 3 9 3 12 0v-5" />
+              </svg>
+              {user?.institute?.name || instituteName || 'IIT MADRAS'}
             </span>
             <span
               title="Verified Institute Student"
@@ -246,31 +238,24 @@ export default function ProfileHeader({
             )}
           </div>
 
-          {/* Tags using Button Aesthetics */}
+          {/* Tags using FluidButton aesthetics */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
             {(interests && interests.length > 0
               ? interests
               : ['music', 'Gym', 'Sports', 'Anime', 'Coffee']
             ).map((tag, idx) => (
-              <button
+              <FluidButton
                 key={idx}
-                type="button"
+                onClick={() => onTagClick && onTagClick(tag)}
                 style={{
-                  padding: '6px 14px',
-                  borderRadius: 20,
+                  padding: '5px 14px',
                   fontSize: 12.5,
                   fontWeight: 600,
-                  backgroundColor: 'rgba(0, 0, 0, 0.06)',
-                  border: '1px solid rgba(0, 0, 0, 0.06)',
-                  color: '#111827',
-                  cursor: 'pointer',
-                  transition: 'background 0.15s ease'
+                  color: '#111827'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)')}
               >
-                {tag}
-              </button>
+                {tag.startsWith('#') ? tag.slice(1) : tag}
+              </FluidButton>
             ))}
           </div>
         </div>
