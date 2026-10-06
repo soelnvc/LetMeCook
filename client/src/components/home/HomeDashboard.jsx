@@ -22,83 +22,72 @@ export default function HomeDashboard({
     return 'Good evening';
   }, []);
 
-  const displayName = user?.name?.split(' ')[0] || user?.username || 'Chef';
+  const displayName = user?.name?.split(' ')[0] || user?.username || 'Sid';
   const instituteName = user?.institute?.name || 'IIT Madras';
 
-  // Check if current user is active in any dish
-  const activeUserDish = useMemo(() => {
-    if (!dishes || dishes.length === 0 || !user?._id) return null;
-    return dishes.find(
-      (d) =>
-        d.status !== 'cooked' &&
-        ((d.creator?._id || d.creator) === user._id ||
-          d.participants?.some((p) => (p.user?._id || p.user) === user._id))
-    );
-  }, [dishes, user]);
+  // Top Picks for the user: "Things you might actually want to do."
+  // Relevant dishes where creator interacted with user, close to location, or time is close
+  const topPicks = useMemo(() => {
+    const active = dishes.filter((d) => d.status !== 'cooked');
 
-  // Curated Selection of around 3 Top Dishes: "Things you might actually want to do."
-  // Prioritizes: ACTIVITY -> TIME -> AVAILABILITY -> LOCATION -> PEOPLE
-  // The activity itself visually dominates, not the user's profile.
-  const topCuratedDishes = useMemo(() => {
-    return [
+    const defaultTopPicks = [
       {
-        _id: 'top-curated-1',
-        activity: 'BADMINTON',
-        time: 'Tonight · 7:00 PM',
-        spotsLeft: 2,
-        capacity: 4,
-        distance: '~1.2 km away',
-        locationName: 'Indoor Court 2',
-        pitch: '“Looking for two people for doubles.”',
-        creator: { name: 'Arjun', username: 'arjun' },
+        _id: 'top-pick-1',
+        description: 'Casual badminton doubles rally followed by protein smoothies at campus indoor court.',
         category: 'sport',
-        icon: (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24" />
-          </svg>
-        )
+        status: 'lets_cook',
+        joinMode: 'auto',
+        badgeText: `${instituteName} • Starts in 45m`,
+        creator: { name: 'Arjun Sharma', username: 'arjun', institute: { name: instituteName } },
+        capacity: { max: 4 },
+        participants: [{ user: '1' }, { user: '2' }]
       },
       {
-        _id: 'top-curated-2',
-        activity: 'DSA STUDY SESSION',
-        time: 'Tonight · 8:30 PM',
-        spotsLeft: 1,
-        capacity: 4,
-        distance: '~0.4 km away',
-        locationName: 'Central Library Room 4',
-        pitch: '“Dynamic Programming & Graphs mock interview whiteboarding.”',
-        creator: { name: 'Meera', username: 'meera' },
+        _id: 'top-pick-2',
+        description: 'DSA Trees & Graphs mock technical interview session in Central Library Study Room 4.',
         category: 'study',
-        icon: (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          </svg>
-        )
+        status: 'lets_cook',
+        joinMode: 'auto',
+        badgeText: `${instituteName} • Interacted before`,
+        creator: { name: 'Meera Patel', username: 'meera', institute: { name: instituteName } },
+        capacity: { max: 4 },
+        participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
       },
       {
-        _id: 'top-curated-3',
-        activity: 'CAB TO CAMPUS',
-        time: 'Tonight · 9:15 PM',
-        spotsLeft: 2,
-        capacity: 4,
-        distance: '~2.8 km away',
-        locationName: 'Airport / Central Station',
-        pitch: '“Sharing Uber Premier to campus main gate. Splitting fare.”',
-        creator: { name: 'Kabir', username: 'kabir' },
-        category: 'travel',
-        icon: (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="4" />
-            <circle cx="8" cy="16" r="1.5" />
-            <circle cx="16" cy="16" r="1.5" />
-            <path d="M5 10h14" />
-          </svg>
-        )
+        _id: 'top-pick-3',
+        description: 'Campus Square Cafe evening cold brew & casual startup chit-chat after classes.',
+        category: 'social',
+        status: 'lets_cook',
+        joinMode: 'approval',
+        badgeText: `${instituteName} • Close to you`,
+        creator: { name: 'Kabir Roy', username: 'kabir', institute: { name: instituteName } },
+        capacity: { max: 4 },
+        participants: [{ user: '1' }, { user: '2' }]
       }
     ];
-  }, []);
+
+    if (active.length >= 3) {
+      return active.slice(0, 3).map((d, idx) => ({
+        ...d,
+        badgeText:
+          idx === 0
+            ? `${d.creator?.institute?.name || instituteName} • Starts soon`
+            : idx === 1
+            ? `${d.creator?.institute?.name || instituteName} • Interacted before`
+            : `${d.creator?.institute?.name || instituteName} • Close to you`
+      }));
+    } else if (active.length > 0) {
+      return [
+        ...active.map((d) => ({
+          ...d,
+          badgeText: `${d.creator?.institute?.name || instituteName} • Verified`
+        })),
+        ...defaultTopPicks.slice(active.length)
+      ];
+    }
+
+    return defaultTopPicks;
+  }, [dishes, instituteName]);
 
   // Network Dishes (institution verified peers)
   const networkDishes = useMemo(() => {
@@ -212,6 +201,199 @@ export default function HomeDashboard({
     });
   }, [dishes, user, historyFilter]);
 
+  // Helper to render normal dish card without any lifting/jumping effect
+  const renderDishCard = (dish) => {
+    const creatorName = dish.creator?.name || 'Peer';
+    const creatorUsername = dish.creator?.username || 'user';
+    const isCreator = (dish.creator?._id || dish.creator) === user?._id;
+    const isParticipant = dish.participants?.some(
+      (p) => (p.user?._id || p.user) === user?._id
+    );
+    const spotsLeft = dish.capacity?.unlimited
+      ? '∞'
+      : Math.max(0, (dish.capacity?.max || 4) - (dish.participants?.length || 0));
+
+    const badgeLabel = dish.badgeText || `${dish.creator?.institute?.name || instituteName} • Verified`;
+
+    return (
+      <GlassContainer
+        key={dish._id}
+        radius={22}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
+        }}
+        innerStyle={{
+          padding: '20px 22px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          gap: 16,
+          height: '100%',
+          boxSizing: 'border-box'
+        }}
+      >
+        <div>
+          {/* Top: Creator Info + Category Pill */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: '50%',
+                  backgroundColor: '#f97316',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 14,
+                  fontWeight: 700
+                }}
+              >
+                {creatorName[0].toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#09090b', lineHeight: 1.2 }}>
+                  {creatorName}
+                </div>
+                <div style={{ fontSize: 11.5, color: '#71717a' }}>
+                  @{creatorUsername}
+                </div>
+              </div>
+            </div>
+
+            <span
+              style={{
+                fontSize: 10.5,
+                fontWeight: 700,
+                letterSpacing: '0.4px',
+                textTransform: 'uppercase',
+                padding: '3px 8px',
+                borderRadius: 9999,
+                backgroundColor: 'rgba(0, 0, 0, 0.06)',
+                color: '#3f3f46'
+              }}
+            >
+              {dish.category || 'ACTIVITY'}
+            </span>
+          </div>
+
+          {/* Badge: Minimized color in text */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.05)', marginBottom: 10 }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="#0095f6">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+            </svg>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#3f3f46' }}>
+              {badgeLabel}
+            </span>
+          </div>
+
+          {/* Description */}
+          <p
+            style={{
+              fontSize: 14,
+              color: '#18181b',
+              margin: '0 0 12px 0',
+              lineHeight: 1.45,
+              fontWeight: 500,
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}
+          >
+            {dish.description}
+          </p>
+        </div>
+
+        {/* Meta & Actions */}
+        <div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingTop: 12,
+              borderTop: '1px solid rgba(0, 0, 0, 0.06)',
+              fontSize: 12,
+              color: '#71717a',
+              fontWeight: 500,
+              marginBottom: 12
+            }}
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              {dish.participants?.length || 1}/{dish.capacity?.max || 4} spots ({spotsLeft} left)
+            </span>
+
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              {dish.joinMode === 'auto' ? (
+                <>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                  </svg>
+                  Auto-join
+                </>
+              ) : (
+                <>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  Approval
+                </>
+              )}
+            </span>
+          </div>
+
+          {/* Action Button */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            {isCreator ? (
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: '#ea580c',
+                  backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                  padding: '6px 14px',
+                  borderRadius: 9999
+                }}
+              >
+                You are Hosting
+              </span>
+            ) : isParticipant ? (
+              <FluidButton
+                onClick={() => onNavigateTab && onNavigateTab('messages')}
+                style={{ padding: '5px 16px', fontSize: 12.5, fontWeight: 600 }}
+              >
+                Chat & Joined
+              </FluidButton>
+            ) : (
+              <FluidButton
+                onClick={() => onJoinDish && onJoinDish(dish._id)}
+                style={{
+                  padding: '6px 18px',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: '#000000'
+                }}
+              >
+                Join Dish
+              </FluidButton>
+            )}
+          </div>
+        </div>
+      </GlassContainer>
+    );
+  };
+
   return (
     <div style={{ width: '100%', maxWidth: 940, margin: '0 auto', color: '#000000', fontFamily: "'Inter', sans-serif" }}>
       
@@ -252,212 +434,111 @@ export default function HomeDashboard({
       </div>
 
       {/* ========================================================= */}
-      {/* 2. HERO SPOTLIGHT CARD (Featured Banner)                  */}
+      {/* 2. CAMPUS COORDINATION HERO BANNER (3D Visual Asset)      */}
+      {/* Always shown, clean, original real-world coordination     */}
       {/* ========================================================= */}
       <div style={{ marginBottom: 32 }}>
-        {activeUserDish ? (
-          /* State A: Currently Cooking Live Spotlight */
-          <GlassContainer
-            radius={28}
+        <GlassContainer
+          radius={28}
+          style={{
+            overflow: 'hidden',
+            position: 'relative',
+            color: '#ffffff'
+          }}
+          innerStyle={{
+            padding: 0,
+            minHeight: 220,
+            display: 'flex',
+            position: 'relative',
+            backgroundColor: '#09090b'
+          }}
+        >
+          {/* Visual Background Asset */}
+          <div
             style={{
-              overflow: 'hidden',
-              border: '1.5px solid rgba(249, 115, 22, 0.35)',
-              boxShadow: '0 12px 32px rgba(249, 115, 22, 0.08)'
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '60%',
+              height: '100%',
+              backgroundImage: 'url(/images/campus-hero.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center right',
+              opacity: 0.78,
+              maskImage: 'linear-gradient(to right, transparent, black 40%)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent, black 40%)'
             }}
-            innerStyle={{
-              padding: '26px 28px',
+          />
+
+          {/* Left Content Column */}
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 2,
+              padding: '34px 36px',
+              maxWidth: 480,
               display: 'flex',
               flexDirection: 'column',
-              gap: 16
+              justifyContent: 'center',
+              gap: 12
             }}
           >
-            {/* Header: Beacon + Category */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '3px 10px',
-                    borderRadius: 9999,
-                    backgroundColor: 'rgba(249, 115, 22, 0.12)',
-                    color: '#ea580c',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: '0.4px',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      backgroundColor: '#ea580c'
-                    }}
-                  />
-                  Live Cooking Session
-                </span>
-                <span style={{ fontSize: 12, color: '#71717a', fontWeight: 600 }}>
-                  • {activeUserDish.category?.toUpperCase() || 'ACTIVITY'}
-                </span>
-              </div>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.8px',
+                textTransform: 'uppercase',
+                color: '#f97316'
+              }}
+            >
+              Real-World Coordination
+            </span>
+            <h2
+              style={{
+                fontSize: 24,
+                fontWeight: 800,
+                margin: 0,
+                letterSpacing: '-0.4px',
+                lineHeight: 1.25,
+                color: '#ffffff'
+              }}
+            >
+              Start the chaos on campus.
+            </h2>
+            <p
+              style={{
+                fontSize: 13.5,
+                color: 'rgba(255, 255, 255, 0.72)',
+                margin: 0,
+                lineHeight: 1.45
+              }}
+            >
+              Looking for a badminton partner, late-night study room group, or cafe run? Drop a dish in 30 seconds.
+            </p>
 
-              <span style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>
-                {activeUserDish.timing?.cookStart || 'Starting soon'}
-              </span>
-            </div>
-
-            {/* Description & Details */}
-            <div>
-              <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 6px 0', color: '#09090b', lineHeight: 1.35 }}>
-                {activeUserDish.description}
-              </h3>
-              <div style={{ fontSize: 13, color: '#71717a', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>Host: @{activeUserDish.creator?.username || user?.username}</span>
-                <span>•</span>
-                <span>
-                  {activeUserDish.participants?.length || 1}/{activeUserDish.capacity?.max || 4} spots filled
-                </span>
-              </div>
-            </div>
-
-            {/* Action Bar */}
-            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+            <div style={{ marginTop: 6 }}>
               <FluidButton
-                onClick={() => onNavigateTab && onNavigateTab('messages')}
+                onClick={() => onOpenKitchenModal && onOpenKitchenModal()}
                 style={{
-                  padding: '7px 20px',
-                  fontSize: 13,
+                  padding: '8px 22px',
+                  fontSize: 13.5,
                   fontWeight: 600,
+                  backgroundColor: '#ffffff',
+                  color: '#09090b',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 6
                 }}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                 </svg>
-                Open Activity Chat
-              </FluidButton>
-
-              <FluidButton
-                onClick={() => onNavigateTab && onNavigateTab('dine-in')}
-                style={{
-                  padding: '7px 18px',
-                  fontSize: 13,
-                  fontWeight: 600
-                }}
-              >
-                View Ticket
+                Drop a Dish Now
               </FluidButton>
             </div>
-          </GlassContainer>
-        ) : (
-          /* State B: Aesthetic Campus Hero Banner with 3D Visual Asset */
-          <GlassContainer
-            radius={28}
-            style={{
-              overflow: 'hidden',
-              position: 'relative',
-              color: '#ffffff'
-            }}
-            innerStyle={{
-              padding: 0,
-              minHeight: 220,
-              display: 'flex',
-              position: 'relative',
-              backgroundColor: '#09090b'
-            }}
-          >
-            {/* Visual Background Asset */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                right: 0,
-                width: '60%',
-                height: '100%',
-                backgroundImage: 'url(/images/campus-hero.jpg)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center right',
-                opacity: 0.78,
-                maskImage: 'linear-gradient(to right, transparent, black 40%)',
-                WebkitMaskImage: 'linear-gradient(to right, transparent, black 40%)'
-              }}
-            />
-
-            {/* Left Content Column */}
-            <div
-              style={{
-                position: 'relative',
-                zIndex: 2,
-                padding: '34px 36px',
-                maxWidth: 480,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                gap: 12
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: '0.8px',
-                  textTransform: 'uppercase',
-                  color: '#f97316'
-                }}
-              >
-                Real-World Coordination
-              </span>
-              <h2
-                style={{
-                  fontSize: 24,
-                  fontWeight: 800,
-                  margin: 0,
-                  letterSpacing: '-0.4px',
-                  lineHeight: 1.25,
-                  color: '#ffffff'
-                }}
-              >
-                Start the chaos on campus.
-              </h2>
-              <p
-                style={{
-                  fontSize: 13.5,
-                  color: 'rgba(255, 255, 255, 0.72)',
-                  margin: 0,
-                  lineHeight: 1.45
-                }}
-              >
-                Looking for a badminton partner, late-night study room group, or cafe run? Drop a dish in 30 seconds.
-              </p>
-
-              <div style={{ marginTop: 6 }}>
-                <FluidButton
-                  onClick={() => onOpenKitchenModal && onOpenKitchenModal()}
-                  style={{
-                    padding: '8px 22px',
-                    fontSize: 13.5,
-                    fontWeight: 600,
-                    backgroundColor: '#ffffff',
-                    color: '#09090b',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                  </svg>
-                  Drop a Dish Now
-                </FluidButton>
-              </div>
-            </div>
-          </GlassContainer>
-        )}
+          </div>
+        </GlassContainer>
       </div>
 
       {/* ========================================================= */}
@@ -472,7 +553,7 @@ export default function HomeDashboard({
           },
           {
             label: 'JOINED',
-            value: user?.stats?.dishesJoined ?? 19,
+            value: user?.stats?.dishesJoined ?? 20,
             desc: 'Participated sessions'
           },
           {
@@ -567,15 +648,6 @@ export default function HomeDashboard({
               as="button"
               radius={18}
               onClick={() => onOpenKitchenModal && onOpenKitchenModal(starter.category)}
-              style={{
-                transition: 'all 0.18s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
               innerStyle={{
                 padding: '16px 18px',
                 display: 'flex',
@@ -612,184 +684,19 @@ export default function HomeDashboard({
       </div>
 
       {/* ========================================================= */}
-      {/* 5. DISCOVER / TOP DISHES (Most Important Section)         */}
-      {/* “Things you might actually want to do.”                    */}
-      {/* Hierarchy: ACTIVITY -> TIME -> AVAILABILITY -> LOCATION -> PEOPLE */}
-      {/* Activity visually dominates, NOT user's profile           */}
+      {/* 5. TOP PICKS: “Things you might actually want to do.”     */}
+      {/* Normal dish cards representing top picks for the user     */}
       {/* ========================================================= */}
       <div style={{ marginBottom: 44 }}>
         <div style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
-            <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', color: '#ea580c' }}>
-              DISCOVER / TOP DISHES
-            </span>
-            <span style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: '#ea580c' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#71717a' }}>CURATED</span>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 10 }}>
-            <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-              Things you might actually want to do.
-            </h2>
-            <span style={{ fontSize: 12.5, color: '#71717a', fontWeight: 500 }}>
-              Immediate coordination • High relevance
-            </span>
-          </div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+            Things you might actually want to do.
+          </h2>
         </div>
 
-        {/* 3 Curated Compact Activity Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(275px, 1fr))', gap: 16 }}>
-          {topCuratedDishes.map((dish) => (
-            <GlassContainer
-              key={dish._id}
-              radius={22}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                border: '1.5px solid rgba(0, 0, 0, 0.08)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 14px 34px rgba(0, 0, 0, 0.08)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-              innerStyle={{
-                padding: '22px 24px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                gap: 16,
-                height: '100%',
-                boxSizing: 'border-box'
-              }}
-            >
-              <div>
-                {/* 1. ACTIVITY (Visually Dominates!) */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <h3
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 900,
-                      letterSpacing: '0.4px',
-                      textTransform: 'uppercase',
-                      color: '#09090b',
-                      margin: 0,
-                      lineHeight: 1.2
-                    }}
-                  >
-                    {dish.activity}
-                  </h3>
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 10,
-                      backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#09090b',
-                      flexShrink: 0
-                    }}
-                  >
-                    {dish.icon}
-                  </div>
-                </div>
-
-                {/* 2. TIME */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: '#18181b', marginBottom: 6 }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                  <span>{dish.time}</span>
-                </div>
-
-                {/* 3. AVAILABILITY & 4. LOCATION */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 14, flexWrap: 'wrap' }}>
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '2px 8px',
-                      borderRadius: 9999,
-                      backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                      color: '#ea580c',
-                      fontWeight: 700
-                    }}
-                  >
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#ea580c' }} />
-                    {dish.spotsLeft} spots left
-                  </span>
-                  <span>•</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                    {dish.distance}
-                  </span>
-                </div>
-
-                {/* Pitch / Quoted Callout */}
-                <p
-                  style={{
-                    fontSize: 13.5,
-                    fontStyle: 'italic',
-                    color: '#27272a',
-                    lineHeight: 1.45,
-                    margin: 0,
-                    fontWeight: 500
-                  }}
-                >
-                  {dish.pitch}
-                </p>
-              </div>
-
-              {/* 5. PEOPLE & CTA (Subtle footer row) */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingTop: 14,
-                  borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-                  marginTop: 6
-                }}
-              >
-                {/* Creator info: secondary, institute verified */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#71717a' }}>
-                  <span style={{ fontWeight: 600, color: '#09090b' }}>@{dish.creator.username}</span>
-                  <span>·</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#0284c7', fontWeight: 600, fontSize: 11.5 }}>
-                    Institute Verified
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="#0095f6">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                    </svg>
-                  </span>
-                </div>
-
-                {/* [Join] CTA */}
-                <FluidButton
-                  onClick={() => onJoinDish && onJoinDish(dish._id)}
-                  style={{
-                    padding: '6px 18px',
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: '#000000'
-                  }}
-                >
-                  Join
-                </FluidButton>
-              </div>
-            </GlassContainer>
-          ))}
+        {/* 3 Top Picks Normal Dish Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 16 }}>
+          {topPicks.map(renderDishCard)}
         </div>
       </div>
 
@@ -845,204 +752,7 @@ export default function HomeDashboard({
 
         {/* Network Cards Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 16 }}>
-          {networkDishes.map((dish) => {
-            const creatorName = dish.creator?.name || 'Peer';
-            const creatorUsername = dish.creator?.username || 'user';
-            const isCreator = (dish.creator?._id || dish.creator) === user?._id;
-            const isParticipant = dish.participants?.some(
-              (p) => (p.user?._id || p.user) === user?._id
-            );
-            const spotsLeft = dish.capacity?.unlimited
-              ? '∞'
-              : Math.max(0, (dish.capacity?.max || 4) - (dish.participants?.length || 0));
-
-            return (
-              <GlassContainer
-                key={dish._id}
-                radius={22}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.07)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-                innerStyle={{
-                  padding: '20px 22px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  gap: 16,
-                  height: '100%',
-                  boxSizing: 'border-box'
-                }}
-              >
-                <div>
-                  {/* Top: Creator Info + Verified Institute Pill */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div
-                        style={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: '50%',
-                          backgroundColor: '#f97316',
-                          color: '#ffffff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 14,
-                          fontWeight: 700
-                        }}
-                      >
-                        {creatorName[0].toUpperCase()}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: '#09090b', lineHeight: 1.2 }}>
-                          {creatorName}
-                        </div>
-                        <div style={{ fontSize: 11.5, color: '#71717a' }}>
-                          @{creatorUsername}
-                        </div>
-                      </div>
-                    </div>
-
-                    <span
-                      style={{
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        letterSpacing: '0.4px',
-                        textTransform: 'uppercase',
-                        padding: '3px 8px',
-                        borderRadius: 9999,
-                        backgroundColor: 'rgba(0, 0, 0, 0.06)',
-                        color: '#3f3f46'
-                      }}
-                    >
-                      {dish.category || 'ACTIVITY'}
-                    </span>
-                  </div>
-
-                  {/* Network Trust Badge */}
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 9999, backgroundColor: 'rgba(0, 149, 246, 0.08)', marginBottom: 10 }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="#0095f6">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                    </svg>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#0284c7' }}>
-                      {dish.creator?.institute?.name || instituteName} • Verified
-                    </span>
-                  </div>
-
-                  {/* Description */}
-                  <p
-                    style={{
-                      fontSize: 14,
-                      color: '#18181b',
-                      margin: '0 0 12px 0',
-                      lineHeight: 1.45,
-                      fontWeight: 500,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {dish.description}
-                  </p>
-                </div>
-
-                {/* Meta & Actions */}
-                <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      paddingTop: 12,
-                      borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-                      fontSize: 12,
-                      color: '#71717a',
-                      fontWeight: 500,
-                      marginBottom: 12
-                    }}
-                  >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                      </svg>
-                      {dish.participants?.length || 1}/{dish.capacity?.max || 4} spots ({spotsLeft} left)
-                    </span>
-
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      {dish.joinMode === 'auto' ? (
-                        <>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                          </svg>
-                          Auto-join
-                        </>
-                      ) : (
-                        <>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                          </svg>
-                          Approval
-                        </>
-                      )}
-                    </span>
-                  </div>
-
-                  {/* Action Button */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                    {isCreator ? (
-                      <span
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: '#ea580c',
-                          backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                          padding: '6px 14px',
-                          borderRadius: 9999
-                        }}
-                      >
-                        You are Hosting
-                      </span>
-                    ) : isParticipant ? (
-                      <FluidButton
-                        onClick={() => onNavigateTab && onNavigateTab('messages')}
-                        style={{ padding: '5px 16px', fontSize: 12.5, fontWeight: 600 }}
-                      >
-                        Chat & Joined
-                      </FluidButton>
-                    ) : (
-                      <FluidButton
-                        onClick={() => onJoinDish && onJoinDish(dish._id)}
-                        style={{
-                          padding: '6px 18px',
-                          fontSize: 12.5,
-                          fontWeight: 600,
-                          color: '#000000'
-                        }}
-                      >
-                        Join Dish
-                      </FluidButton>
-                    )}
-                  </div>
-                </div>
-              </GlassContainer>
-            );
-          })}
+          {networkDishes.map(renderDishCard)}
         </div>
       </div>
 
@@ -1122,15 +832,6 @@ export default function HomeDashboard({
                 <GlassContainer
                   key={dish._id}
                   radius={18}
-                  style={{
-                    transition: 'transform 0.18s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
                   innerStyle={{
                     padding: '16px 20px',
                     display: 'flex',
@@ -1214,7 +915,7 @@ export default function HomeDashboard({
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                         <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                       </svg>
-                      {participantCount} {participantCount === 1 ? 'cook participated' : 'cooks participated'}
+                      {participantCount} {participantCount === 1 ? 'peer participated' : 'peers participated'}
                     </span>
 
                     {!isOwner && dish.creator?.name && (

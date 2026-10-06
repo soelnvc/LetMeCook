@@ -306,16 +306,7 @@ export default function GlobalPage({
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.07)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
+                  justifyContent: 'space-between'
                 }}
                 innerStyle={{
                   padding: '20px 22px',
@@ -368,13 +359,18 @@ export default function GlobalPage({
 
                   {/* Public Venue & Time */}
                   <div style={{ fontSize: 11.5, color: '#71717a', fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span>{dish.locationName || 'Public Venue'}</span>
-                    {dish.timing && (
-                      <>
-                        <span>•</span>
-                        <span>{dish.timing}</span>
-                      </>
-                    )}
+                    <span>{dish.locationName || dish.location?.areaName || 'Public Venue'}</span>
+                    {(() => {
+                      const timingText = typeof dish.timing === 'string'
+                        ? dish.timing
+                        : (dish.timing?.cookStart || dish.timing?.cookingStart || '');
+                      return timingText ? (
+                        <>
+                          <span>•</span>
+                          <span>{timingText}</span>
+                        </>
+                      ) : null;
+                    })()}
                   </div>
 
                   {/* Description */}
