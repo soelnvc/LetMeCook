@@ -282,8 +282,16 @@ export default function GlobalPage({
       {/* 3. FILTERS BAR (Distance & Category)                      */}
       {/* ========================================================= */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 22 }}>
-        {/* Distance Range Filter */}
-        <div style={{ display: 'inline-flex', padding: 3, backgroundColor: 'rgba(0, 0, 0, 0.05)', borderRadius: 9999 }}>
+        {/* Distance Range Filter with GlassContainer & FluidButton */}
+        <GlassContainer
+          radius={9999}
+          innerStyle={{
+            display: 'inline-flex',
+            padding: 4,
+            gap: 4,
+            boxSizing: 'border-box'
+          }}
+        >
           {[
             { id: 'all', label: 'All (< 5 km)' },
             { id: '1km', label: '< 1.5 km' },
@@ -292,51 +300,80 @@ export default function GlobalPage({
           ].map((tab) => {
             const isActive = distanceFilter === tab.id;
             return (
-              <button
+              <FluidButton
                 key={tab.id}
                 onClick={() => setDistanceFilter(tab.id)}
                 style={{
                   padding: '5px 14px',
                   borderRadius: 9999,
                   fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: 'none',
+                  fontWeight: isActive ? 700 : 500,
                   backgroundColor: isActive ? '#09090b' : 'transparent',
-                  color: isActive ? '#ffffff' : '#71717a',
-                  transition: 'all 0.15s ease'
+                  color: isActive ? '#ffffff' : '#52525b',
+                  boxShadow: isActive ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none'
                 }}
               >
                 {tab.label}
-              </button>
+              </FluidButton>
             );
           })}
-        </div>
+        </GlassContainer>
 
-        {/* Category Filter */}
+        {/* Category Filter with GlassContainer custom selector */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: '#71717a' }}>Category:</span>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            style={{
-              padding: '5px 12px',
-              fontSize: 12.5,
-              fontWeight: 600,
-              color: '#09090b',
-              backgroundColor: 'rgba(255, 255, 255, 0.85)',
-              border: '1px solid rgba(0, 0, 0, 0.12)',
-              borderRadius: 8,
-              cursor: 'pointer'
+          <GlassContainer
+            radius={14}
+            innerStyle={{
+              padding: '0 12px',
+              height: 36,
+              display: 'flex',
+              alignItems: 'center',
+              position: 'relative',
+              boxSizing: 'border-box'
             }}
           >
-            <option value="all">All Categories</option>
-            <option value="sport">Sports & Fitness</option>
-            <option value="social">Cafe & Social</option>
-            <option value="gaming">Gaming</option>
-            <option value="study">Study & Deep Work</option>
-            <option value="travel">Travel & Outdoors</option>
-          </select>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              style={{
+                width: '100%',
+                height: '100%',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: '#09090b',
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                paddingRight: 22
+              }}
+            >
+              <option value="all">All Categories</option>
+              <option value="sport">Sports & Fitness</option>
+              <option value="social">Cafe & Social</option>
+              <option value="gaming">Gaming</option>
+              <option value="study">Study & Deep Work</option>
+              <option value="travel">Travel & Outdoors</option>
+            </select>
+            <div
+              style={{
+                position: 'absolute',
+                right: 10,
+                pointerEvents: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                color: '#71717a'
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+          </GlassContainer>
         </div>
       </div>
 

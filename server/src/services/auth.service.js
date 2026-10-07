@@ -1,6 +1,29 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Dish = require('../models/Dish');
+const Connection = require('../models/Connection');
+
+const calculateUserStats = async (userId) => {
+  try {
+    const [createdCount, joinedCount, connectionsCount] = await Promise.all([
+      Dish.countDocuments({ creator: userId }),
+      Dish.countDocuments({ 'participants.user': userId, creator: { $ne: userId } }),
+      Connection.countDocuments({
+        $or: [{ requester: userId }, { recipient: userId }],
+        status: 'accepted'
+      })
+    ]);
+    return {
+      dishesCreated: createdCount,
+      dishesJoined: joinedCount,
+      connections: connectionsCount,
+      peopleCookedWith: connectionsCount
+    };
+  } catch {
+    return { dishesCreated: 0, dishesJoined: 0, connections: 0, peopleCookedWith: 0 };
+  }
+};
 
 const register = async ({ username, name, email, mobile, password, age, institute }) => {
   if (!username || !name || !email || !mobile || !password || age === undefined || age === null || age === '') {
@@ -96,6 +119,8 @@ const login = async ({ identifier, password }) => {
     { expiresIn: '7d' }
   );
 
+  const stats = await calculateUserStats(user._id);
+
   return {
     user: {
       _id: user._id,
@@ -109,7 +134,7 @@ const login = async ({ identifier, password }) => {
       institute: user.institute,
       verification: user.verification,
       privacy: user.privacy,
-      stats: user.stats,
+      stats,
       isDeactivated: user.isDeactivated
     },
     token,
@@ -148,7 +173,10 @@ const getCurrentUser = async (userId) => {
   if (!user) {
     throw new Error('User not found');
   }
-  return user;
+  const stats = await calculateUserStats(user._id);
+  const userObj = user.toObject();
+  userObj.stats = stats;
+  return userObj;
 };
 
 module.exports = {

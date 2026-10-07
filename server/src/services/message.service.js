@@ -110,18 +110,17 @@ const getConversations = async (userId) => {
 
     // Instagram / WhatsApp Rule: Strictly 1 conversation per person
     if (!conversationMap.has(otherUserId)) {
-      const isRecipientRequest =
-        msg.isRequest && msg.requestStatus === 'pending' && !isSender;
+      const isPendingRequest = Boolean(msg.isRequest || msg.requestStatus === 'pending');
 
       conversationMap.set(otherUserId, {
         conversationId: msg.conversationId,
         user: otherUser,
         lastMessage: { content: msg.content, createdAt: msg.createdAt },
         updatedAt: msg.createdAt,
-        isRequest: isRecipientRequest,
+        isRequest: isPendingRequest,
         requestStatus: msg.requestStatus,
         requestSender: msg.sender?.username,
-        needsResponse: isRecipientRequest
+        needsResponse: isPendingRequest && !isSender
       });
     }
   }

@@ -18,6 +18,7 @@ const notificationSchema = new mongoose.Schema(
         'message_request',
         'connection_request',
         'connection_accepted',
+        'connection_added',
         'dish_status_change',
         'verification_update'
       ],

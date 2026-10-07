@@ -29,15 +29,44 @@ const sendConnectionRequest = async (requesterId, recipientId) => {
     if (connection.status === 'pending') {
       throw new Error('Connection request already pending');
     }
+    // If previously rejected or other status, reactivate as pending request
+    connection.requester = requesterId;
+    connection.recipient = recipientId;
+    connection.status = 'pending';
+    await connection.save();
+  } else {
+    connection = await Connection.create({
+      requester: requesterId,
+      recipient: recipientId,
+      status: 'pending'
+    });
   }
 
-  connection = await Connection.create({
-    requester: requesterId,
-    recipient: recipientId,
-    status: 'pending'
-  });
+  try {
+    const Notification = require('../models/Notification');
+    await Notification.create({
+      recipient: recipientId,
+      type: 'connection_request',
+      actor: requesterId,
+      reference: connection._id,
+      metadata: { connectionId: connection._id }
+    });
+  } catch (notifErr) {
+    console.error('Failed to create connection_request notification:', notifErr);
+  }
 
   return connection;
+};
+
+const getConnectionRequests = async (userId) => {
+  const requests = await Connection.find({
+    recipient: userId,
+    status: 'pending'
+  })
+    .populate('requester', 'username name avatar institute')
+    .sort({ createdAt: -1 });
+
+  return requests;
 };
 
 const getConnections = async (userId) => {
@@ -75,6 +104,30 @@ const respondToConnection = async (connectionId, userId, responseStatus) => {
   connection.status = responseStatus;
   await connection.save();
 
+  if (responseStatus === 'accepted') {
+    try {
+      const Notification = require('../models/Notification');
+      // "Pankaj has accepted your Connection request"
+      await Notification.create({
+        recipient: connection.requester,
+        type: 'connection_accepted',
+        actor: userId,
+        reference: connection._id,
+        metadata: { connectionId: connection._id }
+      });
+      // "Priya Gupta was added as your connection"
+      await Notification.create({
+        recipient: userId,
+        type: 'connection_added',
+        actor: connection.requester,
+        reference: connection._id,
+        metadata: { connectionId: connection._id }
+      });
+    } catch (notifErr) {
+      console.error('Failed to create accepted notifications:', notifErr);
+    }
+  }
+
   return connection;
 };
 
@@ -104,9 +157,33 @@ const blockUser = async (userId, targetUserId) => {
   return { blocked: true };
 };
 
+const getSentConnectionRequests = async (userId) => {
+  const requests = await Connection.find({
+    requester: userId,
+    status: 'pending'
+  })
+    .populate('recipient', 'username name avatar institute')
+    .sort({ createdAt: -1 });
+
+  return requests;
+};
+
+const removeConnection = async (userId, targetUserId) => {
+  const connection = await Connection.findOneAndDelete({
+    $or: [
+      { requester: userId, recipient: targetUserId },
+      { requester: targetUserId, recipient: userId }
+    ]
+  });
+  return { success: true };
+};
+
 module.exports = {
   sendConnectionRequest,
+  getConnectionRequests,
+  getSentConnectionRequests,
   getConnections,
   respondToConnection,
+  removeConnection,
   blockUser
 };

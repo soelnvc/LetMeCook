@@ -167,35 +167,6 @@ export default function GlobalSearchModal({
         const res = await apiFetch(`/users/search?q=${encodeURIComponent(trimmed)}`);
         let apiUsers = res?.data || [];
 
-        // Also search in demo peer profiles if any are available client-side
-        if (demoProfiles && typeof demoProfiles === 'object') {
-          const lowerQ = trimmed.toLowerCase();
-          const demoMatches = Object.entries(demoProfiles)
-            .filter(([uname, profile]) => {
-              const matchesUser = uname.toLowerCase().includes(lowerQ);
-              const matchesName = profile.name && profile.name.toLowerCase().includes(lowerQ);
-              return matchesUser || matchesName;
-            })
-            .map(([uname, profile]) => ({
-              username: uname,
-              name: profile.name || uname,
-              avatar: profile.avatar || null,
-              institute: profile.institute || null,
-              pronouns: profile.pronouns || null,
-              bio: profile.bio || null,
-              interests: profile.interests || []
-            }));
-
-          // Merge without duplicates
-          const seen = new Set(apiUsers.map((u) => u.username?.toLowerCase()));
-          for (const d of demoMatches) {
-            if (!seen.has(d.username.toLowerCase())) {
-              apiUsers.push(d);
-              seen.add(d.username.toLowerCase());
-            }
-          }
-        }
-
         // Filter out current logged in user if desired
         if (currentUser?.username) {
           const myU = currentUser.username.toLowerCase();
@@ -212,7 +183,7 @@ export default function GlobalSearchModal({
     }, 220);
 
     return () => clearTimeout(timeout);
-  }, [query, currentUser, demoProfiles]);
+  }, [query, currentUser]);
 
   // Select user and navigate
   const handleSelectUser = (userItem) => {

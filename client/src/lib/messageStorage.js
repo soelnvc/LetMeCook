@@ -88,6 +88,7 @@ export const deduplicateConversations = (conversations = []) => {
 
   for (const c of conversations) {
     if (!c) continue;
+    if (String(c.conversationId).startsWith('demo-') || String(c.user?._id).startsWith('demo-')) continue;
     const userKey = getUserKey(c) || String(c.conversationId);
 
     if (!map.has(userKey)) {

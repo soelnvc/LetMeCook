@@ -7,12 +7,12 @@ import GlassContainer from '@/components/ui/GlassContainer';
 export default function ProfileHeader({
   user,
   isSelf = true,
-  pronouns = 'He/Him',
-  instituteName = 'IIT MADRAS',
-  instituteYear = '2029',
+  pronouns = '',
+  instituteName = '',
+  instituteYear = '',
   bio = '',
-  interests = ['music', 'Gym', 'Sports', 'Anime', 'Coffee'],
-  connectionsCount = 72,
+  interests = [],
+  connectionsCount = 0,
   onEditProfile,
   onOpenSettings,
   onTabChange,
@@ -75,15 +75,10 @@ export default function ProfileHeader({
     reader.readAsDataURL(file);
   };
 
-  const rawBio =
-    user?.bio ||
-    bio ||
-    (isSelf
-      ? "Always down for badminton, late night study sessions, gym workouts, or grabbing coffee at the campus cafe. Let's cook! #Badminton #Gym #Study #Gaming #Coffee"
-      : "Campus peer active in live dish cooking, study sprints, and sports sessions. Let's cook! #Badminton #Study #Campus");
+  const rawBio = user?.bio || bio || '';
   const isLong = rawBio.length > 90;
   const displayBio = isLong && !bioExpanded ? rawBio.slice(0, 90) + '...' : rawBio;
-  const bioParts = displayBio.split(/(#[a-zA-Z0-9_]+)/g);
+  const bioParts = displayBio ? displayBio.split(/(#[a-zA-Z0-9_]+)/g) : [];
 
   const hasAvatar = Boolean(
     user && (user.avatar || user.profilePhoto || user.profilePicture || user.avatarUrl)
@@ -95,10 +90,10 @@ export default function ProfileHeader({
   const displayInterests =
     (user?.interests && user.interests.length > 0)
       ? user.interests
-      : (interests && interests.length > 0 ? interests : ['music', 'Gym', 'Sports', 'Anime', 'Coffee']);
+      : (interests && interests.length > 0 ? interests : []);
 
-  const displayInstitute = user?.institute?.name || (typeof user?.institute === 'string' ? user.institute : instituteName) || 'IIT MADRAS';
-  const displayYear = user?.institute?.year || instituteYear || '2028';
+  const displayInstitute = user?.institute?.name || (typeof user?.institute === 'string' ? user.institute : instituteName) || '';
+  const displayYear = user?.institute?.year || instituteYear || '';
 
   return (
     <div style={{ display: 'flex', gap: 64, alignItems: 'flex-start', marginBottom: 44, position: 'relative' }}>
@@ -449,13 +444,13 @@ export default function ProfileHeader({
             style={{ cursor: 'pointer' }}
             onClick={() => onTabChange && onTabChange('dishes')}
           >
-            <strong>{user?.stats?.dishesCreated ?? 17}</strong> cooked
+            <strong>{user?.stats?.dishesCreated ?? 0}</strong> cooked
           </span>
           <span
             style={{ cursor: 'pointer' }}
             onClick={() => onTabChange && onTabChange('joined')}
           >
-            <strong>{user?.stats?.dishesJoined ?? 19}</strong> joined
+            <strong>{user?.stats?.dishesJoined ?? 0}</strong> joined
           </span>
           <span
             style={{ cursor: isSelf ? 'pointer' : 'default' }}
@@ -466,7 +461,7 @@ export default function ProfileHeader({
               }
             }}
           >
-            <strong>{connectionsCount}</strong> connections
+            <strong>{connectionsCount ?? 0}</strong> connections
           </span>
         </div>
 
@@ -474,109 +469,127 @@ export default function ProfileHeader({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14, lineHeight: 1.45 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <span style={{ fontWeight: 700, fontSize: 15, color: '#000000' }}>
-              {user?.name || (isSelf ? 'Sid G' : 'Campus Peer')}
+              {user?.name || user?.username || ''}
             </span>
-            <span style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>
-              {pronouns || user?.pronouns || 'He/Him'}
-            </span>
-          </div>
-
-          {/* Institute with Verified Tick Badge & SVG Cap Icon (No Emojis) */}
-          <div
-            style={{
-              fontSize: 13.5,
-              color: '#374151',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              flexWrap: 'wrap'
-            }}
-          >
-            <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-                <path d="M6 12v5c3 3 9 3 12 0v-5" />
-              </svg>
-              {displayInstitute}
-            </span>
-            <span
-              title="Verified Institute Student"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#0095f6'
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="#0095f6">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-            </span>
-            <span style={{ color: '#6b7280', fontWeight: 500 }}>
-              • Batch of {displayYear}
-            </span>
-          </div>
-
-          {/* Bio with Blue Hashtags Inside */}
-          <div style={{ color: '#111827', marginTop: 4, maxWidth: 540 }}>
-            <span>
-              {bioParts.map((part, i) => {
-                if (part.startsWith('#')) {
-                  return (
-                    <span
-                      key={i}
-                      style={{
-                        color: '#0095f6',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'opacity 0.15s ease'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.75')}
-                      onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-                    >
-                      {part}
-                    </span>
-                  );
-                }
-                return part;
-              })}
-            </span>
-            {isLong && (
-              <button
-                onClick={() => setBioExpanded(!bioExpanded)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#6b7280',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  marginLeft: 6,
-                  padding: 0
-                }}
-              >
-                {bioExpanded ? 'show less' : 'more'}
-              </button>
+            {(pronouns || user?.pronouns) && (
+              <span style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>
+                {user?.pronouns || pronouns}
+              </span>
             )}
           </div>
 
+          {/* Institute with Verified Tick Badge & SVG Cap Icon (Only when institute exists) */}
+          {displayInstitute && (
+            <div
+              style={{
+                fontSize: 13.5,
+                color: '#374151',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                flexWrap: 'wrap'
+              }}
+            >
+              <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                  <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                </svg>
+                {displayInstitute}
+              </span>
+              {user?.institute?.verified && (
+                <span
+                  title="Verified Institute Student"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0095f6'
+                  }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="#0095f6">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
+                </span>
+              )}
+              {displayYear && (
+                <span style={{ color: '#6b7280', fontWeight: 500 }}>
+                  • Batch of {displayYear}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Bio with Blue Hashtags Inside */}
+          {rawBio ? (
+            <div style={{ color: '#111827', marginTop: 4, maxWidth: 540 }}>
+              <span>
+                {bioParts.map((part, i) => {
+                  if (part.startsWith('#')) {
+                    return (
+                      <span
+                        key={i}
+                        style={{
+                          color: '#0095f6',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'opacity 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.75')}
+                        onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                      >
+                        {part}
+                      </span>
+                    );
+                  }
+                  return part;
+                })}
+              </span>
+              {isLong && (
+                <button
+                  onClick={() => setBioExpanded(!bioExpanded)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#6b7280',
+                    fontWeight: 600,
+                    fontSize: 13,
+                    marginLeft: 6,
+                    padding: 0
+                  }}
+                >
+                  {bioExpanded ? 'show less' : 'more'}
+                </button>
+              )}
+            </div>
+          ) : (
+            isSelf && (
+              <div style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: 13, marginTop: 4 }}>
+                No bio added yet.
+              </div>
+            )
+          )}
+
           {/* Tags using FluidButton aesthetics */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-            {displayInterests.map((tag, idx) => (
-              <FluidButton
-                key={idx}
-                onClick={() => onTagClick && onTagClick(tag)}
-                style={{
-                  padding: '5px 14px',
-                  fontSize: 12.5,
-                  fontWeight: 600,
-                  color: '#111827'
-                }}
-              >
-                {tag.startsWith('#') ? tag.slice(1) : tag}
-              </FluidButton>
-            ))}
-          </div>
+          {displayInterests && displayInterests.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+              {displayInterests.map((tag, idx) => (
+                <FluidButton
+                  key={idx}
+                  onClick={() => onTagClick && onTagClick(tag)}
+                  style={{
+                    padding: '5px 14px',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: '#111827'
+                  }}
+                >
+                  {tag.startsWith('#') ? tag.slice(1) : tag}
+                </FluidButton>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

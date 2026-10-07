@@ -5,8 +5,11 @@ const authMiddleware = require('../middleware/auth.middleware');
 
 router.use(authMiddleware);
 
-router.post('/:userId', connectionController.sendRequest);
+router.get('/requests', connectionController.getRequests);
+router.get('/sent', connectionController.getSentRequests);
 router.get('/', connectionController.getConnections);
+router.post('/:userId', connectionController.sendRequest);
+router.delete('/:userId', connectionController.removeConnection);
 router.post('/:id/respond', connectionController.respond);
 router.post('/:userId/block', connectionController.block);
 

@@ -91,219 +91,36 @@ export default function HomeDashboard({
   const instituteName = user?.institute?.name || 'IIT Madras';
 
   // Top Picks for the user: "Things you might actually want to do."
-  // Relevant dishes where creator interacted with user, close to location, or time is close
   const topPicks = useMemo(() => {
     const active = dishes.filter((d) => d.status !== 'cooked');
-
-    const defaultTopPicks = [
-      {
-        _id: 'top-pick-1',
-        description: 'Casual badminton doubles rally followed by protein smoothies at campus indoor court.',
-        category: 'sport',
-        status: 'lets_cook',
-        joinMode: 'auto',
-        badgeText: `${instituteName} • Starts in 45m`,
-        creator: {
-          name: 'Arjun Sharma',
-          username: 'arjun',
-          avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
-          institute: { name: instituteName }
-        },
-        capacity: { max: 4 },
-        participants: [{ user: '1' }, { user: '2' }]
-      },
-      {
-        _id: 'top-pick-2',
-        description: 'DSA Trees & Graphs mock technical interview session in Central Library Study Room 4.',
-        category: 'study',
-        status: 'lets_cook',
-        joinMode: 'auto',
-        badgeText: `${instituteName} • Interacted before`,
-        creator: {
-          name: 'Meera Patel',
-          username: 'meera',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-          institute: { name: instituteName }
-        },
-        capacity: { max: 4 },
-        participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
-      },
-      {
-        _id: 'top-pick-3',
-        description: 'Campus Square Cafe evening cold brew & casual startup chit-chat after classes.',
-        category: 'social',
-        status: 'lets_cook',
-        joinMode: 'approval',
-        badgeText: `${instituteName} • Close to you`,
-        creator: {
-          name: 'Kabir Roy',
-          username: 'kabir',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-          institute: { name: instituteName }
-        },
-        capacity: { max: 4 },
-        participants: [{ user: '1' }, { user: '2' }]
-      }
-    ];
-
-    if (active.length >= 3) {
-      return active.slice(0, 3).map((d, idx) => ({
-        ...d,
-        badgeText:
-          idx === 0
-            ? `${d.creator?.institute?.name || instituteName} • Starts soon`
-            : idx === 1
-            ? `${d.creator?.institute?.name || instituteName} • Interacted before`
-            : `${d.creator?.institute?.name || instituteName} • Close to you`
-      }));
-    } else if (active.length > 0) {
-      return [
-        ...active.map((d) => ({
-          ...d,
-          badgeText: `${d.creator?.institute?.name || instituteName} • Verified`
-        })),
-        ...defaultTopPicks.slice(active.length)
-      ];
-    }
-
-    return defaultTopPicks;
+    return active.slice(0, 3).map((d, idx) => ({
+      ...d,
+      badgeText:
+        idx === 0
+          ? `${d.creator?.institute?.name || instituteName || 'Campus'} • Starts soon`
+          : idx === 1
+          ? `${d.creator?.institute?.name || instituteName || 'Campus'} • Interacted before`
+          : `${d.creator?.institute?.name || instituteName || 'Campus'} • Close to you`
+    }));
   }, [dishes, instituteName]);
 
   // Network Dishes (institution verified peers)
   const networkDishes = useMemo(() => {
     const active = dishes.filter((d) => d.status !== 'cooked');
-    const networkFromDb = active.filter(
+    return active.filter(
       (d) => d.visibility !== 'global' && d.location?.scope !== 'nearby'
     );
-
-    const defaultNetwork = [
-      {
-        _id: 'net-fallback-1',
-        description: 'DSA Trees & Graphs mock technical interview session in Central Library Study Room 4.',
-        category: 'study',
-        status: 'lets_cook',
-        joinMode: 'auto',
-        visibility: 'institute',
-        creator: {
-          name: 'Aman Sharma',
-          username: 'amans',
-          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-          institute: { name: instituteName }
-        },
-        capacity: { max: 4 },
-        participants: [{ user: '1' }, { user: '2' }]
-      },
-      {
-        _id: 'net-fallback-2',
-        description: 'Casual badminton doubles rally followed by protein smoothies at campus indoor court.',
-        category: 'sport',
-        status: 'lets_cook',
-        joinMode: 'approval',
-        visibility: 'institute',
-        creator: {
-          name: 'Priya Patel',
-          username: 'priyap',
-          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-          institute: { name: instituteName }
-        },
-        capacity: { max: 4 },
-        participants: [{ user: '1' }]
-      },
-      {
-        _id: 'net-fallback-3',
-        description: 'Hostel 4 lounge FIFA 24 & Smash Ultimate chill session after evening lectures.',
-        category: 'gaming',
-        status: 'cooking',
-        joinMode: 'auto',
-        visibility: 'institute',
-        creator: {
-          name: 'Rohan Verma',
-          username: 'rohanv',
-          avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
-          institute: { name: instituteName }
-        },
-        capacity: { max: 6 },
-        participants: [{ user: '1' }, { user: '2' }, { user: '3' }]
-      }
-    ];
-
-    return networkFromDb.length > 0 ? networkFromDb : defaultNetwork;
-  }, [dishes, instituteName]);
+  }, [dishes]);
 
   // Cooking History: Completed / previous dishes (own or joined)
   const completedDishes = useMemo(() => {
     const realCooked = (dishes || []).filter((d) => d.status === 'cooked');
 
-    const fallbackHistory = [
-      {
-        _id: 'history-1',
-        description: 'Late night Super Smash Bros Ultimate mini-tournament in student center lounge.',
-        category: 'gaming',
-        status: 'cooked',
-        isOwner: true,
-        creator: {
-          name: user?.name || 'Sid G',
-          username: user?.username || 'soelnvc',
-          avatar: user?.avatar || null
-        },
-        capacity: { max: 6 },
-        participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }, { user: '5' }, { user: '6' }],
-        completedAt: 'Yesterday'
-      },
-      {
-        _id: 'history-2',
-        description: 'Deep work study session: preparing for System Design & distributed consensus algorithms.',
-        category: 'study',
-        status: 'cooked',
-        isOwner: false,
-        creator: {
-          name: 'Maya Lin',
-          username: 'mayachef',
-          avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80'
-        },
-        capacity: { max: 3 },
-        participants: [{ user: '1' }, { user: user?._id }, { user: '3' }],
-        completedAt: '3 days ago'
-      },
-      {
-        _id: 'history-3',
-        description: 'Evening walk to Campus Cafe for iced coffee & casual chit-chat after classes.',
-        category: 'social',
-        status: 'cooked',
-        isOwner: true,
-        creator: {
-          name: user?.name || 'Sid G',
-          username: user?.username || 'soelnvc',
-          avatar: user?.avatar || null
-        },
-        capacity: { max: 4 },
-        participants: [{ user: '1' }, { user: '2' }, { user: '3' }, { user: '4' }],
-        completedAt: '5 days ago'
-      },
-      {
-        _id: 'history-4',
-        description: 'Casual badminton doubles match followed by protein shakes at campus indoor court.',
-        category: 'sport',
-        status: 'cooked',
-        isOwner: false,
-        creator: {
-          name: 'Priya Patel',
-          username: 'priyabakes',
-          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80'
-        },
-        capacity: { max: 4 },
-        participants: [{ user: '1' }, { user: user?._id }, { user: '3' }, { user: '4' }],
-        completedAt: '1 week ago'
-      }
-    ];
-
-    const source = realCooked.length > 0
-      ? realCooked.map((d) => ({
-          ...d,
-          isOwner: (d.creator?._id || d.creator) === user?._id,
-          completedAt: d.updatedAt ? new Date(d.updatedAt).toLocaleDateString() : 'Completed'
-        }))
-      : fallbackHistory;
+    const source = realCooked.map((d) => ({
+      ...d,
+      isOwner: (d.creator?._id || d.creator) === user?._id,
+      completedAt: d.updatedAt ? new Date(d.updatedAt).toLocaleDateString() : 'Completed'
+    }));
 
     return source.filter((item) => {
       if (historyFilter === 'hosted') return item.isOwner;
@@ -994,10 +811,26 @@ export default function HomeDashboard({
           </h2>
         </div>
 
-        {/* 3 Top Picks Normal Dish Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 16 }}>
-          {topPicks.map(renderDishCard)}
-        </div>
+        {/* Top Picks Dish Cards or Clean Empty State */}
+        {topPicks.length === 0 ? (
+          <GlassContainer radius={22} innerStyle={{ padding: '36px 20px', textAlign: 'center' }}>
+            <div style={{ fontSize: 14.5, fontWeight: 600, color: '#71717a' }}>
+              No active dishes near you right now.
+            </div>
+            <div style={{ marginTop: 14 }}>
+              <FluidButton
+                onClick={() => onOpenKitchenModal && onOpenKitchenModal()}
+                style={{ padding: '7px 20px', fontSize: 13, fontWeight: 600, color: '#000000' }}
+              >
+                Let&apos;s Cook
+              </FluidButton>
+            </div>
+          </GlassContainer>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 16 }}>
+            {topPicks.map(renderDishCard)}
+          </div>
+        )}
       </div>
 
       {/* ========================================================= */}
@@ -1028,18 +861,16 @@ export default function HomeDashboard({
             </p>
           </div>
 
-          <button
+          <FluidButton
             onClick={() => onExploreDineIn && onExploreDineIn()}
             style={{
-              background: 'none',
-              border: 'none',
-              fontSize: 13,
+              padding: '6px 16px',
+              fontSize: 12.5,
               fontWeight: 600,
               color: '#09090b',
-              cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 4
+              gap: 6
             }}
           >
             <span>Explore Dine-In</span>
@@ -1047,13 +878,21 @@ export default function HomeDashboard({
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
             </svg>
-          </button>
+          </FluidButton>
         </div>
 
-        {/* Network Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 16 }}>
-          {networkDishes.map(renderDishCard)}
-        </div>
+        {/* Network Cards Grid or Clean Empty State */}
+        {networkDishes.length === 0 ? (
+          <GlassContainer radius={22} innerStyle={{ padding: '36px 20px', textAlign: 'center' }}>
+            <div style={{ fontSize: 14.5, fontWeight: 600, color: '#71717a' }}>
+              No campus network dishes right now.
+            </div>
+          </GlassContainer>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 16 }}>
+            {networkDishes.map(renderDishCard)}
+          </div>
+        )}
       </div>
 
       {/* ========================================================= */}
@@ -1084,8 +923,16 @@ export default function HomeDashboard({
             </p>
           </div>
 
-          {/* History Sub-Filter (All / Hosted / Joined) */}
-          <div style={{ display: 'inline-flex', padding: 3, backgroundColor: 'rgba(0, 0, 0, 0.05)', borderRadius: 9999 }}>
+          {/* History Sub-Filter (All / Hosted / Joined) with GlassContainer & FluidButton */}
+          <GlassContainer
+            radius={9999}
+            innerStyle={{
+              display: 'inline-flex',
+              padding: 4,
+              gap: 4,
+              boxSizing: 'border-box'
+            }}
+          >
             {[
               { id: 'all', label: 'All History' },
               { id: 'hosted', label: 'Hosted' },
@@ -1093,26 +940,24 @@ export default function HomeDashboard({
             ].map((tab) => {
               const isActive = historyFilter === tab.id;
               return (
-                <button
+                <FluidButton
                   key={tab.id}
                   onClick={() => setHistoryFilter(tab.id)}
                   style={{
                     padding: '5px 14px',
                     borderRadius: 9999,
                     fontSize: 12,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    border: 'none',
+                    fontWeight: isActive ? 700 : 500,
                     backgroundColor: isActive ? '#09090b' : 'transparent',
-                    color: isActive ? '#ffffff' : '#71717a',
-                    transition: 'all 0.15s ease'
+                    color: isActive ? '#ffffff' : '#52525b',
+                    boxShadow: isActive ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none'
                   }}
                 >
                   {tab.label}
-                </button>
+                </FluidButton>
               );
             })}
-          </div>
+          </GlassContainer>
         </div>
 
         {/* Cooking History List */}

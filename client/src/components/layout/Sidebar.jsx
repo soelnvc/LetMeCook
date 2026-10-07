@@ -15,6 +15,7 @@ export default function Sidebar({
   setShowSettings,
   setShowAppearanceModal,
   setShowReportModal,
+  unreadNotificationsCount = 0,
   onLogout
 }) {
   const [navHovered, setNavHovered] = useState(false);
@@ -47,6 +48,15 @@ export default function Sidebar({
       )
     },
     {
+      id: 'messages',
+      label: 'Messages',
+      icon: (isActive) => (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill={isActive ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={isActive ? '2' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        </svg>
+      )
+    },
+    {
       id: 'search',
       label: 'Search',
       icon: (isActive) => (
@@ -57,6 +67,40 @@ export default function Sidebar({
       )
     },
     {
+      id: 'notifications',
+      label: 'Notifications',
+      icon: (isActive) => (
+        <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill={isActive ? '#ef4444' : 'none'}
+            stroke={isActive ? '#ef4444' : 'currentColor'}
+            strokeWidth={isActive ? '2' : '1.9'}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          {unreadNotificationsCount > 0 && (
+            <span
+              style={{
+                position: 'absolute',
+                top: -2,
+                right: -2,
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                backgroundColor: '#ef4444',
+                boxShadow: '0 0 0 1.5px #e6dfe4'
+              }}
+            />
+          )}
+        </span>
+      )
+    },
+    {
       id: 'kitchen',
       label: 'Cook',
       icon: (isActive) => (
@@ -64,15 +108,6 @@ export default function Sidebar({
           <circle cx="12" cy="12" r="9" />
           <line x1="12" y1="8" x2="12" y2="16" />
           <line x1="8" y1="12" x2="16" y2="12" />
-        </svg>
-      )
-    },
-    {
-      id: 'messages',
-      label: 'Messages',
-      icon: (isActive) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill={isActive ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={isActive ? '2' : '1.9'} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
         </svg>
       )
     },

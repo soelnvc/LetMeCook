@@ -5,6 +5,10 @@ export const connectionService = {
     return apiFetch('/connections');
   },
 
+  getRequests: async () => {
+    return apiFetch('/connections/requests');
+  },
+
   sendRequest: async (userId) => {
     return apiFetch(`/connections/${userId}`, {
       method: 'POST'
@@ -14,7 +18,7 @@ export const connectionService = {
   respondToRequest: async (connectionId, action) => {
     return apiFetch(`/connections/${connectionId}/respond`, {
       method: 'POST',
-      body: JSON.stringify({ action })
+      body: JSON.stringify({ status: action, action })
     });
   },
 

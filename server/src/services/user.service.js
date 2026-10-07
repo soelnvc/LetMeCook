@@ -87,6 +87,16 @@ const getPublicProfile = async (username, requesterId) => {
     return false;
   };
 
+  // Calculate real accurate counts from DB collections
+  const [createdCount, joinedCount, connectionsCount] = await Promise.all([
+    Dish.countDocuments({ creator: targetUser._id }),
+    Dish.countDocuments({ 'participants.user': targetUser._id, creator: { $ne: targetUser._id } }),
+    Connection.countDocuments({
+      $or: [{ requester: targetUser._id }, { recipient: targetUser._id }],
+      status: 'accepted'
+    })
+  ]);
+
   // Build sanitized profile respecting privacy settings
   const publicProfile = {
     _id: targetUser._id,
@@ -107,9 +117,10 @@ const getPublicProfile = async (username, requesterId) => {
       invitePermission: privacy.invitePermission || 'everyone'
     },
     stats: {
-      dishesCreated: targetUser.stats?.dishesCreated || 0,
-      dishesJoined: targetUser.stats?.dishesJoined || 0,
-      peopleCookedWith: targetUser.stats?.peopleCookedWith || 0
+      dishesCreated: createdCount,
+      dishesJoined: joinedCount,
+      connections: connectionsCount,
+      peopleCookedWith: connectionsCount
     },
     currentDish: privacy.activityVisibility ? targetUser.currentDish : null
   };

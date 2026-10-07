@@ -13,7 +13,7 @@ const createNotification = async ({ recipient, type, actor, reference, metadata 
 
 const getNotifications = async (userId) => {
   const notifications = await Notification.find({ recipient: userId })
-    .populate('actor', 'username name avatar')
+    .populate('actor', 'username name avatar institute')
     .sort({ createdAt: -1 })
     .limit(50);
   return notifications;
