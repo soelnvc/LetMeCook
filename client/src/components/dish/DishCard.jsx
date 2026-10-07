@@ -190,6 +190,7 @@ function getGenreIcon(category = '') {
 export default function DishCard({
   dish,
   currentUser,
+  connections = [],
   onJoin,
   onLeave,
   onStartCooking,
@@ -217,6 +218,51 @@ export default function DishCard({
   const spotsLeft = dish.capacity?.unlimited
     ? '∞'
     : Math.max(0, (dish.capacity?.max || 4) - (dish.participants?.length || 0));
+
+  // Determine institution and connection relationship for the badge
+  const getInstName = (inst) => {
+    if (!inst) return '';
+    if (typeof inst === 'string') return inst.trim();
+    if (typeof inst === 'object' && inst.name) return String(inst.name).trim();
+    return '';
+  };
+
+  const userInst = getInstName(currentUser?.institute);
+  const creatorInst = getInstName(creatorObj.institute || dish.institute);
+  const displayInst = creatorInst || userInst || 'Campus';
+
+  const isSameInstitute = Boolean(
+    userInst && creatorInst && userInst.toLowerCase() === creatorInst.toLowerCase()
+  );
+
+  const isFriend = Boolean(
+    !isCreator &&
+    connections &&
+    connections.some((c) => {
+      const u = c.user || c;
+      const targetId = creatorObj._id || creatorObj.id || dish.creator;
+      const targetUsername = creatorObj.username;
+      return (
+        (u._id && targetId && String(u._id) === String(targetId)) ||
+        (u.username && targetUsername && u.username.toLowerCase() === targetUsername.toLowerCase())
+      );
+    })
+  );
+
+  // Exact prompt requirements:
+  // - "From <institutename>"
+  // - "from Connections"
+  // - If the person is both use: "a friend from <institutename>"
+  let sourceText = '';
+  if (isFriend && isSameInstitute) {
+    sourceText = `a friend from ${displayInst}`;
+  } else if (isFriend) {
+    sourceText = 'from Connections';
+  } else if (isSameInstitute || creatorInst) {
+    sourceText = `From ${displayInst}`;
+  } else if (isCreator) {
+    sourceText = `From ${displayInst}`;
+  }
 
   return (
     <GlassContainer
@@ -294,20 +340,47 @@ export default function DishCard({
               {(creatorName || 'U')[0].toUpperCase()}
             </div>
           )}
-          <div style={{ minWidth: 0 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <div
               style={{
-                fontWeight: 'bold',
-                fontSize: 15,
-                color: '#000000',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
+                display: 'flex',
+                alignItems: 'baseline',
+                flexWrap: 'wrap',
+                gap: '4px 8px',
                 lineHeight: 1.2
               }}
             >
-              {creatorName}
+              <span
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: 15,
+                  color: '#000000',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                {creatorName}
+              </span>
+
+              {sourceText && (
+                <span
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 500,
+                    color: '#52525b',
+                    letterSpacing: 'normal',
+                    textTransform: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5
+                  }}
+                >
+                  <span style={{ color: '#a1a1aa' }}>•</span>
+                  <span>{sourceText}</span>
+                </span>
+              )}
             </div>
-            <div style={{ fontSize: 11, color: '#111111', marginTop: 1 }}>
+            <div style={{ fontSize: 11, color: '#52525b', marginTop: 2 }}>
               @{creatorUsername} • <span style={{ textTransform: 'capitalize' }}>{dish.category}</span>
             </div>
           </div>

@@ -7,6 +7,7 @@ import FluidButton from '@/components/ui/FluidButton';
 export default function HomeDashboard({
   user,
   dishes = [],
+  connections = [],
   onOpenKitchenModal,
   onJoinDish,
   onExploreDineIn,
@@ -266,6 +267,38 @@ export default function HomeDashboard({
 
     const badgeLabel = dish.badgeText || `${dish.creator?.institute?.name || instituteName} • Verified`;
 
+    // Affiliation source badge text
+    const creatorInst = dish.creator?.institute?.name || dish.institute?.name || '';
+    const userInst = user?.institute?.name || instituteName || '';
+    const displayInst = creatorInst || userInst || 'Campus';
+    const isSameInstitute = Boolean(
+      userInst && creatorInst && userInst.toLowerCase() === creatorInst.toLowerCase()
+    );
+    const isFriend = Boolean(
+      !isCreator &&
+      connections &&
+      connections.some((c) => {
+        const u = c.user || c;
+        const targetId = dish.creator?._id || dish.creator?.id || dish.creator;
+        const targetUsername = dish.creator?.username;
+        return (
+          (u._id && targetId && String(u._id) === String(targetId)) ||
+          (u.username && targetUsername && u.username.toLowerCase() === targetUsername.toLowerCase())
+        );
+      })
+    );
+
+    let sourceText = '';
+    if (isFriend && isSameInstitute) {
+      sourceText = `a friend from ${displayInst}`;
+    } else if (isFriend) {
+      sourceText = 'from Connections';
+    } else if (isSameInstitute || creatorInst) {
+      sourceText = `From ${displayInst}`;
+    } else if (isCreator) {
+      sourceText = `From ${displayInst}`;
+    }
+
     return (
       <GlassContainer
         key={dish._id}
@@ -340,10 +373,17 @@ export default function HomeDashboard({
                 </div>
               )}
               <div>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#09090b', lineHeight: 1.2 }}>
-                  {creatorName}
+                <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '3px 6px', lineHeight: 1.2 }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: '#09090b' }}>
+                    {creatorName}
+                  </span>
+                  {sourceText && (
+                    <span style={{ fontSize: 11, fontWeight: 500, color: '#71717a' }}>
+                      • {sourceText}
+                    </span>
+                  )}
                 </div>
-                <div style={{ fontSize: 11.5, color: '#71717a' }}>
+                <div style={{ fontSize: 11.5, color: '#71717a', marginTop: 1 }}>
                   @{creatorUsername}
                 </div>
               </div>

@@ -8,6 +8,7 @@ import DishCard from '@/components/dish/DishCard';
 export default function DineInFeed({
   user,
   dishes = [],
+  connections = [],
   fetchDishes,
   onJoinDish,
   onLeaveDish,
@@ -21,17 +22,48 @@ export default function DineInFeed({
   initialCategory = ''
 }) {
   const [activeSubTab, setActiveSubTab] = useState(initialTab); // 'join_to_cook' | 'cooking' | 'my_dishes'
+  const [feedScope, setFeedScope] = useState('all'); // 'all' | 'institution' | 'connections'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [autoJoinOnly, setAutoJoinOnly] = useState(false);
   const [openSpotsOnly, setOpenSpotsOnly] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Institution and connection matching helpers
+  const getInstName = (inst) => {
+    if (!inst) return '';
+    if (typeof inst === 'string') return inst.trim();
+    if (typeof inst === 'object' && inst.name) return String(inst.name).trim();
+    return '';
+  };
+
+  const userInstituteName = getInstName(user?.institute);
+
+  const isDishFromSameInstitute = (dish) => {
+    const creatorInst = getInstName(dish.creator?.institute || dish.institute);
+    if (!userInstituteName) return Boolean(creatorInst);
+    return creatorInst.toLowerCase() === userInstituteName.toLowerCase();
+  };
+
+  const isDishFromConnections = (dish) => {
+    const creatorId = dish.creator?._id || dish.creator?.id || dish.creator;
+    const creatorUsername = dish.creator?.username;
+    return connections.some((c) => {
+      const u = c.user || c;
+      return (
+        (u._id && creatorId && String(u._id) === String(creatorId)) ||
+        (u.username && creatorUsername && u.username.toLowerCase() === creatorUsername.toLowerCase())
+      );
+    });
+  };
+
   // Tab count badges calculated dynamically from the full dishes feed
   const counts = useMemo(() => {
     let joinCount = 0;
     let cookingCount = 0;
     let myCount = 0;
+    let sameInstCount = 0;
+    let connCount = 0;
 
     dishes.forEach((dish) => {
       if (dish.status === 'lets_cook') joinCount++;
@@ -42,14 +74,20 @@ export default function DineInFeed({
         (p) => (p.user?._id || p.user) === user?._id
       );
       if (isCreator || isParticipant) myCount++;
+
+      if (isDishFromSameInstitute(dish)) sameInstCount++;
+      if (isDishFromConnections(dish)) connCount++;
     });
 
     return {
       join_to_cook: joinCount,
       cooking: cookingCount,
-      my_dishes: myCount
+      my_dishes: myCount,
+      allFeed: dishes.length,
+      sameInstFeed: sameInstCount,
+      connFeed: connCount
     };
-  }, [dishes, user]);
+  }, [dishes, user, connections, userInstituteName]);
 
   // Categories list with custom clean SVGs (strictly zero emojis)
   const categories = [
@@ -165,7 +203,15 @@ export default function DineInFeed({
   // Filtered dishes pipeline
   const filteredDishes = useMemo(() => {
     return dishes.filter((dish) => {
-      // 1. Sub-tab filtering
+      // 1. Feed Scope filtering: Same Institution vs The Connections vs All
+      if (feedScope === 'institution' && !isDishFromSameInstitute(dish)) {
+        return false;
+      }
+      if (feedScope === 'connections' && !isDishFromConnections(dish)) {
+        return false;
+      }
+
+      // 2. Sub-tab filtering
       if (activeSubTab === 'join_to_cook' && dish.status !== 'lets_cook') {
         return false;
       }
@@ -180,12 +226,12 @@ export default function DineInFeed({
         if (!isCreator && !isParticipant) return false;
       }
 
-      // 2. Category filtering
+      // 3. Category filtering
       if (selectedCategory && (dish.category || '').toLowerCase() !== selectedCategory.toLowerCase()) {
         return false;
       }
 
-      // 3. Quick toggles
+      // 4. Quick toggles
       if (autoJoinOnly && dish.joinMode !== 'auto') {
         return false;
       }
@@ -196,7 +242,7 @@ export default function DineInFeed({
         if (spotsLeft <= 0) return false;
       }
 
-      // 4. Instant search query
+      // 5. Instant search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const desc = (dish.description || '').toLowerCase();
@@ -210,11 +256,12 @@ export default function DineInFeed({
 
       return true;
     });
-  }, [dishes, activeSubTab, selectedCategory, autoJoinOnly, openSpotsOnly, searchQuery, user]);
+  }, [dishes, feedScope, activeSubTab, selectedCategory, autoJoinOnly, openSpotsOnly, searchQuery, user, connections, userInstituteName]);
 
-  const hasActiveFilters = Boolean(searchQuery || selectedCategory || autoJoinOnly || openSpotsOnly);
+  const hasActiveFilters = Boolean(searchQuery || selectedCategory || autoJoinOnly || openSpotsOnly || feedScope !== 'all');
 
   const resetFilters = () => {
+    setFeedScope('all');
     setSearchQuery('');
     setSelectedCategory('');
     setAutoJoinOnly(false);
@@ -317,7 +364,101 @@ export default function DineInFeed({
       </div>
 
       {/* ========================================================= */}
-      {/* 2. SEGMENTED SUB-TAB SWITCHER (Wrapped in GlassContainer) */}
+      {/* 2. FEED TYPE SELECTOR (Same Institution vs Connections vs All) */}
+      {/* ========================================================= */}
+      <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            color: '#71717a'
+          }}
+        >
+          Feed:
+        </span>
+        <GlassContainer
+          radius={9999}
+          style={{ display: 'inline-flex' }}
+          innerStyle={{
+            display: 'inline-flex',
+            padding: 4,
+            gap: 4,
+            boxSizing: 'border-box'
+          }}
+        >
+          {[
+            {
+              id: 'all',
+              label: 'All Dine In',
+              count: counts.allFeed
+            },
+            {
+              id: 'institution',
+              label: userInstituteName ? `Same Institution (${userInstituteName})` : 'Same Institution',
+              count: counts.sameInstFeed
+            },
+            {
+              id: 'connections',
+              label: 'The Connections',
+              count: counts.connFeed
+            }
+          ].map((feed) => {
+            const isSelected = feedScope === feed.id;
+            return (
+              <button
+                key={feed.id}
+                onClick={() => setFeedScope(feed.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '7px 14px',
+                  borderRadius: 9999,
+                  border: 'none',
+                  fontSize: 12.5,
+                  fontWeight: isSelected ? 600 : 500,
+                  cursor: 'pointer',
+                  background: isSelected ? '#09090b' : 'transparent',
+                  color: isSelected ? '#ffffff' : '#52525b',
+                  boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none',
+                  transition: 'all 0.18s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                    e.currentTarget.style.color = '#18181b';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#52525b';
+                  }
+                }}
+              >
+                <span>{feed.label}</span>
+                <span
+                  style={{
+                    padding: '2px 7px',
+                    borderRadius: 9999,
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    background: isSelected ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)',
+                    color: isSelected ? '#ffffff' : '#71717a'
+                  }}
+                >
+                  {feed.count}
+                </span>
+              </button>
+            );
+          })}
+        </GlassContainer>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 3. SEGMENTED SUB-TAB SWITCHER (Wrapped in GlassContainer) */}
       {/* ========================================================= */}
       <div style={{ marginBottom: 20 }}>
         <GlassContainer
@@ -807,6 +948,7 @@ export default function DineInFeed({
               key={dish._id}
               dish={dish}
               currentUser={user}
+              connections={connections}
               onJoin={onJoinDish}
               onLeave={onLeaveDish}
               onStartCooking={onStartCooking}

@@ -675,18 +675,17 @@ export default function App() {
   // Age restriction check: Only 18+ users can access Global features and tickets
   const isAdult = Boolean(user && user.age !== undefined && user.age !== null && Number(user.age) >= 18);
 
-  // Guard: If an underaged user attempts to access the Global tab, redirect them to Home
+  // Global routing disconnected for now per user request. Fallback any 'global' tab access to 'dine-in'.
   useEffect(() => {
-    if (user && !isAdult && activeTab === 'global') {
-      setActiveTab('home');
+    if (activeTab === 'global') {
+      setActiveTab('dine-in');
     }
-  }, [user, isAdult, activeTab]);
+  }, [activeTab]);
 
-  // Filter global tickets for underage users across the app
+  // All tickets listed in Dine-in
   const visibleDishes = useMemo(() => {
-    if (isAdult) return dishes;
-    return dishes.filter((d) => d.visibility !== 'global' && d.location?.scope !== 'nearby');
-  }, [dishes, isAdult]);
+    return dishes;
+  }, [dishes]);
 
   // Auth Handlers
   const handleAuth = async (e) => {
@@ -1565,6 +1564,7 @@ export default function App() {
         <HomeDashboard
           user={user}
           dishes={visibleDishes}
+          connections={connections}
           onOpenKitchenModal={(category) => {
             if (category) setCategoryFilter(category);
             setShowKitchenModal(true);
@@ -1583,6 +1583,7 @@ export default function App() {
         <DineInFeed
           user={user}
           dishes={visibleDishes}
+          connections={connections}
           fetchDishes={fetchDishes}
           onJoinDish={handleJoinDish}
           onLeaveDish={handleLeaveDish}
@@ -1601,21 +1602,8 @@ export default function App() {
       )}
 
       {/* ========================================================= */}
-      {/* 3. GLOBAL DISHES SCREEN (Location-based Within 5km)       */}
+      {/* 3. GLOBAL DISHES (Routing disconnected for now per request) */}
       {/* ========================================================= */}
-      {activeTab === 'global' && isAdult && (
-        <GlobalPage
-          user={user}
-          dishes={dishes}
-          onJoinDish={handleJoinDish}
-          onOpenKitchenModal={(category) => {
-            if (category) setCategoryFilter(category);
-            setShowKitchenModal(true);
-          }}
-          onNavigateTab={(tab) => setActiveTab(tab)}
-          onViewProfile={(profile) => handleNavigateToProfile(profile, 'global')}
-        />
-      )}
 
 
 
