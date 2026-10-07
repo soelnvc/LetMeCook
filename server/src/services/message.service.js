@@ -103,16 +103,17 @@ const getConversations = async (userId) => {
   const conversationMap = new Map();
 
   for (const msg of messages) {
-    if (!conversationMap.has(msg.conversationId)) {
-      const isSender = msg.sender._id.toString() === userId.toString();
-      const otherUser = isSender ? msg.receiver : msg.sender;
+    if (!msg.sender || !msg.receiver) continue;
+    const isSender = msg.sender._id.toString() === userId.toString();
+    const otherUser = isSender ? msg.receiver : msg.sender;
+    const otherUserId = otherUser._id.toString();
 
-      // Instagram Rule: Message requests ONLY appear in the "Requests" tab for the recipient!
-      // For the sender, it appears in their primary Messages inbox with pending status.
+    // Instagram / WhatsApp Rule: Strictly 1 conversation per person
+    if (!conversationMap.has(otherUserId)) {
       const isRecipientRequest =
         msg.isRequest && msg.requestStatus === 'pending' && !isSender;
 
-      conversationMap.set(msg.conversationId, {
+      conversationMap.set(otherUserId, {
         conversationId: msg.conversationId,
         user: otherUser,
         lastMessage: { content: msg.content, createdAt: msg.createdAt },

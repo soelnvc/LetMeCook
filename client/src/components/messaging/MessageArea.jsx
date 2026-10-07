@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
+import EmojiPicker from './EmojiPicker';
 
 export default function MessageArea({
   currentUser,
@@ -18,6 +19,24 @@ export default function MessageArea({
   onBlockUser
 }) {
   const [isViewingRecipientScreen, setIsViewingRecipientScreen] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const inputRef = useRef(null);
+
+  const handleInsertEmoji = (emoji) => {
+    const input = inputRef.current;
+    if (!input) {
+      setMessageText((prev) => prev + emoji);
+      return;
+    }
+    const start = input.selectionStart ?? messageText.length;
+    const end = input.selectionEnd ?? messageText.length;
+    const next = messageText.substring(0, start) + emoji + messageText.substring(end);
+    setMessageText(next);
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(start + emoji.length, start + emoji.length);
+    }, 0);
+  };
 
   const isPending = conversation?.requestStatus === 'pending';
   const mySentMessages = messages.filter(
@@ -110,17 +129,18 @@ export default function MessageArea({
               <div style={{ minWidth: 0 }}>
                 <div
                   style={{
-                    fontSize: 20,
-                    fontWeight: 700,
-                    color: '#000000',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
+                    fontSize: 16.5,
+                    fontWeight: 600,
+                    color: '#09090b',
+                    letterSpacing: '-0.3px',
+                    lineHeight: '20px'
                   }}
                 >
-                  {activeUser.name || 'NAME'}
+                  {activeUser.name || activeUser.username || 'User'}
                 </div>
-                <div style={{ fontSize: 13, color: '#555555', marginTop: 2 }}>
+                <div style={{ fontSize: 12.5, color: '#71717a', marginTop: 2, fontWeight: 400 }}>
                   @{activeUser.username || 'username'}
+                  {activeUser.institute?.name && ` · ${activeUser.institute.name}`}
                 </div>
               </div>
             </div>
@@ -445,34 +465,64 @@ export default function MessageArea({
             </div>
           ) : (
             /* Normal Input Form (either accepted, or sending the 1 invitation message) */
-            <div style={{ padding: '16px 24px', backgroundColor: 'transparent' }}>
+            <div style={{ padding: '16px 24px', backgroundColor: 'transparent', position: 'relative' }}>
+              <EmojiPicker
+                isOpen={showEmojiPicker}
+                onClose={() => setShowEmojiPicker(false)}
+                onSelectEmoji={handleInsertEmoji}
+              />
               <form onSubmit={onSendMessage}>
                 <GlassContainer
                   radius={9999}
                   innerStyle={{
-                    padding: '6px 14px 6px 18px',
+                    padding: '6px 14px 6px 16px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 12
                   }}
                 >
-                  <svg
-                    width="26"
-                    height="26"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#000000"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ flexShrink: 0 }}
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      padding: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: showEmojiPicker ? 1 : 0.75,
+                      transition: 'transform 0.15s ease, opacity 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.1)';
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      if (!showEmojiPicker) e.currentTarget.style.opacity = '0.75';
+                    }}
+                    title="Choose emoji (Ctrl+Cmd+Space for system picker)"
                   >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                    <line x1="9" y1="9" x2="9.01" y2="9" />
-                    <path d="M15 8.5a1.5 1.5 0 0 1 1.5 1.5" />
-                  </svg>
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={showEmojiPicker ? '#09090b' : '#3f3f46'}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                      <line x1="9" y1="9" x2="9.01" y2="9" />
+                      <path d="M15 8.5a1.5 1.5 0 0 1 1.5 1.5" />
+                    </svg>
+                  </button>
                   <input
+                    ref={inputRef}
                     type="text"
                     required
                     value={messageText}
@@ -486,9 +536,9 @@ export default function MessageArea({
                       border: 'none',
                       background: 'transparent',
                       outline: 'none',
-                      fontSize: 15,
+                      fontSize: 14.5,
                       flex: 1,
-                      color: '#000000',
+                      color: '#09090b',
                       fontFamily: 'inherit'
                     }}
                   />
