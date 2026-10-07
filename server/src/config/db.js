@@ -1,5 +1,14 @@
+const dns = require('dns');
 const mongoose = require('mongoose');
 const seedPeers = require('../utils/seedPeers');
+
+// Configure reliable DNS resolvers for MongoDB Atlas SRV / shard lookups
+// Prevents ENOTFOUND errors on networks whose local DNS fails on CNAME/SRV records
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1', '1.0.0.1']);
+} catch (e) {
+  // Ignore in environments where setServers is restricted
+}
 
 let isConnecting = false;
 
