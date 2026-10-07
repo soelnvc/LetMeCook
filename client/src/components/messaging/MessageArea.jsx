@@ -28,9 +28,11 @@ export default function MessageArea({
   const hasSentOneMessage = mySentMessages.length >= 1;
 
   // The sender is the user who initiated this request
-  const isSender = conversation?.requestSender
-    ? String(conversation.requestSender).toLowerCase() === String(currentUser?.username || '').toLowerCase()
-    : true;
+  const isSender = conversation?.isRequest
+    ? false
+    : conversation?.requestSender
+      ? String(conversation.requestSender).toLowerCase() === String(currentUser?.username || '').toLowerCase()
+      : true;
 
   // Determine which UI mode to render
   const showRecipientView = isPending && (!isSender || isViewingRecipientScreen);

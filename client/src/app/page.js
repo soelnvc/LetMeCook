@@ -17,6 +17,16 @@ import GlobalPage from '@/components/global/GlobalPage';
 import SettingsPage from '@/components/settings/SettingsPage';
 import { dishService } from '@/services/dish.service';
 import { authService } from '@/services/auth.service';
+import {
+  loadLocalConversations,
+  saveLocalConversations,
+  loadLocalMessagesMap,
+  saveLocalMessagesMap,
+  loadActiveConvId,
+  saveActiveConvId,
+  loadMessagesTab,
+  saveMessagesTab
+} from '@/lib/messageStorage';
 
 const DEMO_PEER_PROFILES = {
   arjun: {
@@ -350,6 +360,56 @@ export default function App() {
   const [messagesTab, setMessagesTab] = useState('message'); // 'message' | 'requests'
   const [searchMsgQuery, setSearchMsgQuery] = useState('');
 
+  // Hydrate persistent messaging cache on client mount (Instagram/WhatsApp style persistence)
+  useEffect(() => {
+    const cachedConvs = loadLocalConversations();
+    const cachedMap = loadLocalMessagesMap();
+    const cachedActiveId = loadActiveConvId();
+    const cachedTab = loadMessagesTab();
+
+    if (cachedConvs && cachedConvs.length > 0) {
+      setConversations(cachedConvs);
+    }
+    if (cachedMap && Object.keys(cachedMap).length > 0) {
+      setConvMessagesMap(cachedMap);
+    }
+    if (cachedActiveId) {
+      setSelectedConvId(cachedActiveId);
+      selectedConvIdRef.current = cachedActiveId;
+      if (cachedMap && cachedMap[cachedActiveId]) {
+        setConvMessages(cachedMap[cachedActiveId]);
+      }
+    }
+    if (cachedTab) {
+      setMessagesTab(cachedTab);
+    }
+  }, []);
+
+  // Sync state changes to localStorage
+  useEffect(() => {
+    if (conversations && conversations.length > 0) {
+      saveLocalConversations(conversations);
+    }
+  }, [conversations]);
+
+  useEffect(() => {
+    if (convMessagesMap && Object.keys(convMessagesMap).length > 0) {
+      saveLocalMessagesMap(convMessagesMap);
+    }
+  }, [convMessagesMap]);
+
+  useEffect(() => {
+    if (selectedConvId) {
+      saveActiveConvId(selectedConvId);
+    }
+  }, [selectedConvId]);
+
+  useEffect(() => {
+    if (messagesTab) {
+      saveMessagesTab(messagesTab);
+    }
+  }, [messagesTab]);
+
   // Profile & Settings states
   const [bio, setBio] = useState('');
   const [instituteName, setInstituteName] = useState('IIT MADRAS');
@@ -514,13 +574,40 @@ export default function App() {
         ];
       }
       setConversations((prev) => {
-        const clientCreated = prev.filter(c => String(c.conversationId).startsWith('conv-'));
-        const existingIds = new Set(data.map(d => String(d.conversationId)));
-        const toKeep = clientCreated.filter(c => !existingIds.has(String(c.conversationId)));
-        return [...toKeep, ...data];
+        const local = loadLocalConversations();
+        const mergedMap = new Map();
+
+        // 1. Add incoming server data
+        for (const item of data) {
+          mergedMap.set(String(item.conversationId), item);
+        }
+
+        // 2. Overlay locally cached conversations (persisting newly created threads)
+        const localPool = [...local, ...prev];
+        for (const item of localPool) {
+          const key = String(item.conversationId);
+          if (!mergedMap.has(key)) {
+            mergedMap.set(key, item);
+          } else {
+            const existing = mergedMap.get(key);
+            mergedMap.set(key, {
+              ...existing,
+              ...item,
+              user: item.user || existing.user
+            });
+          }
+        }
+
+        const mergedList = Array.from(mergedMap.values());
+        saveLocalConversations(mergedList);
+        return mergedList;
       });
-      const targetId = forceConvId || selectedConvIdRef.current || selectedConvId;
-      if (!targetId && data.length > 0) {
+
+      const targetId = forceConvId || selectedConvIdRef.current || selectedConvId || loadActiveConvId();
+      if (targetId) {
+        selectedConvIdRef.current = targetId;
+        setSelectedConvId(targetId);
+      } else if (data.length > 0) {
         const first = data.find(c => !c.isRequest) || data[0];
         if (first) {
           handleOpenConversation(first.conversationId);
@@ -740,89 +827,90 @@ export default function App() {
     setError('');
     setMessage('');
 
-    if (
-      selectedConvId &&
-      (String(selectedConvId).startsWith('demo-') || String(selectedConvId).startsWith('conv-'))
-    ) {
-      const activeConv = conversations.find((c) => c.conversationId === selectedConvId);
-      const isPending = activeConv?.requestStatus === 'pending';
-      const currentList = convMessagesMap[selectedConvId] || convMessages || [];
-      const mySent = currentList.filter(
-        (m) =>
-          (m.sender?._id || m.sender?.username || m.sender) ===
-          (user?._id || user?.username)
-      );
+    const activeConv = conversations.find((c) => c.conversationId === selectedConvId);
+    const targetUser = activeConv?.user;
+    const isPending = activeConv?.requestStatus === 'pending';
+    const currentList = convMessagesMap[selectedConvId] || convMessages || [];
+    const mySent = currentList.filter(
+      (m) =>
+        (m.sender?._id || m.sender?.username || m.sender) ===
+        (user?._id || user?.username)
+    );
 
-      // If pending invitation, strictly allow only 1 message from sender
-      if (isPending && mySent.length >= 1) {
-        setMessage(`Wait till @${activeConv?.user?.username || 'user'} accepts your message.`);
-        return;
-      }
-
-      const newMsg = {
-        _id: `msg-${Date.now()}`,
-        sender: user,
-        content: msgContent,
-        createdAt: new Date().toISOString()
-      };
-
-      const updated = [...currentList, newMsg];
-      setConvMessages(updated);
-      setConvMessagesMap((prev) => ({ ...prev, [selectedConvId]: updated }));
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.conversationId === selectedConvId
-            ? {
-                ...c,
-                lastMessage: { content: msgContent, createdAt: new Date().toISOString() },
-                updatedAt: new Date().toISOString()
-              }
-            : c
-        )
-      );
-      setMsgContent('');
+    // Instagram Rule: If pending invitation, strictly allow only 1 message from sender
+    if (isPending && mySent.length >= 1) {
+      setMessage(`Wait till @${targetUser?.username || 'user'} accepts your message.`);
       return;
     }
 
-    let targetReceiverId = msgReceiverId;
-    if (selectedConvId) {
-      const activeConv = conversations.find((c) => c.conversationId === selectedConvId);
-      if (activeConv && activeConv.user) {
-        targetReceiverId = activeConv.user._id || activeConv.user;
-      }
-    }
+    const optimisticMsg = {
+      _id: `msg-${Date.now()}`,
+      sender: user,
+      content: msgContent.trim(),
+      createdAt: new Date().toISOString()
+    };
 
-    if (!targetReceiverId) {
-      setError('Please select a conversation to reply to.');
-      return;
-    }
+    const updated = [...currentList, optimisticMsg];
+    setConvMessages(updated);
+    setConvMessagesMap((prev) => {
+      const nextMap = { ...prev, [selectedConvId]: updated };
+      saveLocalMessagesMap(nextMap);
+      return nextMap;
+    });
 
-    try {
-      await apiFetch('/messages', {
-        method: 'POST',
-        body: JSON.stringify({ receiverId: targetReceiverId, content: msgContent })
-      });
-      setMsgContent('');
-      if (selectedConvId) {
-        handleOpenConversation(selectedConvId);
+    setConversations((prev) => {
+      const nextList = prev.map((c) =>
+        c.conversationId === selectedConvId
+          ? {
+              ...c,
+              lastMessage: { content: msgContent.trim(), createdAt: new Date().toISOString() },
+              updatedAt: new Date().toISOString()
+            }
+          : c
+      );
+      saveLocalConversations(nextList);
+      return nextList;
+    });
+
+    const sentText = msgContent.trim();
+    setMsgContent('');
+
+    // Persist to backend MongoDB
+    const targetReceiver = targetUser?._id || targetUser?.username || msgReceiverId;
+    if (targetReceiver) {
+      try {
+        await apiFetch('/messages', {
+          method: 'POST',
+          body: JSON.stringify({ receiverId: targetReceiver, content: sentText })
+        });
+      } catch (err) {
+        console.warn('Backend message sync error (persisted locally):', err.message);
       }
-      fetchConversations(selectedConvId);
-    } catch (err) {
-      setError(err.message);
     }
   };
 
   const handleOpenConversation = async (convId) => {
     selectedConvIdRef.current = convId;
     setSelectedConvId(convId);
-    if (convMessagesMap[convId]) {
+    saveActiveConvId(convId);
+
+    if (convMessagesMap[convId] && convMessagesMap[convId].length > 0) {
       setConvMessages(convMessagesMap[convId]);
       return;
     }
+
+    const cachedMap = loadLocalMessagesMap();
+    if (cachedMap[convId] && cachedMap[convId].length > 0) {
+      setConvMessages(cachedMap[convId]);
+      setConvMessagesMap((prev) => ({ ...prev, [convId]: cachedMap[convId] }));
+      return;
+    }
+
     if (String(convId).startsWith('conv-')) {
       setConvMessages([]);
       return;
     }
+
     if (String(convId).startsWith('demo-req-')) {
       const conv = conversations.find((c) => c.conversationId === convId);
       const reqMessages = [
@@ -834,9 +922,14 @@ export default function App() {
         }
       ];
       setConvMessages(reqMessages);
-      setConvMessagesMap((prev) => ({ ...prev, [convId]: reqMessages }));
+      setConvMessagesMap((prev) => {
+        const next = { ...prev, [convId]: reqMessages };
+        saveLocalMessagesMap(next);
+        return next;
+      });
       return;
     }
+
     if (String(convId).startsWith('demo-')) {
       const conv = conversations.find((c) => c.conversationId === convId);
       const demoUser = conv?.user || {
@@ -859,14 +952,26 @@ export default function App() {
         }
       ];
       setConvMessages(initialDemo);
-      setConvMessagesMap((prev) => ({ ...prev, [convId]: initialDemo }));
+      setConvMessagesMap((prev) => {
+        const next = { ...prev, [convId]: initialDemo };
+        saveLocalMessagesMap(next);
+        return next;
+      });
       return;
     }
+
     try {
       const res = await apiFetch(`/messages/conversations/${convId}`);
-      setConvMessages(res.data || []);
+      if (res.data) {
+        setConvMessages(res.data);
+        setConvMessagesMap((prev) => {
+          const next = { ...prev, [convId]: res.data };
+          saveLocalMessagesMap(next);
+          return next;
+        });
+      }
     } catch (err) {
-      setError(err.message);
+      // Keep existing messages
     }
   };
 
@@ -900,33 +1005,63 @@ export default function App() {
     }
   };
 
-  const handleAcceptMessageRequest = (convId) => {
-    setConversations((prev) =>
-      prev.map((c) =>
+  const handleAcceptMessageRequest = async (convId) => {
+    setConversations((prev) => {
+      const next = prev.map((c) =>
         c.conversationId === convId
           ? { ...c, isRequest: false, requestStatus: 'accepted' }
           : c
-      )
-    );
+      );
+      saveLocalConversations(next);
+      return next;
+    });
     const conv = conversations.find((c) => c.conversationId === convId);
     setMessage(`Accepted message request from @${conv?.user?.username || 'user'}. You can now chat freely!`);
+    try {
+      await apiFetch(`/messages/requests/${convId}/respond`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'accepted' })
+      });
+    } catch {}
   };
 
-  const handleRejectMessageRequest = (convId) => {
+  const handleRejectMessageRequest = async (convId) => {
     const conv = conversations.find((c) => c.conversationId === convId);
-    setConversations((prev) => prev.filter((c) => c.conversationId !== convId));
+    setConversations((prev) => {
+      const next = prev.filter((c) => c.conversationId !== convId);
+      saveLocalConversations(next);
+      return next;
+    });
     setSelectedConvId(null);
+    saveActiveConvId(null);
     setConvMessages([]);
     setMessage(`Declined message request from @${conv?.user?.username || 'user'}.`);
+    try {
+      await apiFetch(`/messages/requests/${convId}/respond`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'rejected' })
+      });
+    } catch {}
   };
 
-  const handleBlockMessageRequest = (convId, targetUsername) => {
+  const handleBlockMessageRequest = async (convId, targetUsername) => {
     if (targetUsername) {
       handleBlockUser(targetUsername);
     }
-    setConversations((prev) => prev.filter((c) => c.conversationId !== convId));
+    setConversations((prev) => {
+      const next = prev.filter((c) => c.conversationId !== convId);
+      saveLocalConversations(next);
+      return next;
+    });
     setSelectedConvId(null);
+    saveActiveConvId(null);
     setConvMessages([]);
+    try {
+      await apiFetch(`/messages/requests/${convId}/respond`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'blocked' })
+      });
+    } catch {}
   };
 
   // Profile & Settings
@@ -1039,7 +1174,10 @@ export default function App() {
     if (existing) {
       selectedConvIdRef.current = existing.conversationId;
       setSelectedConvId(existing.conversationId);
-      setMessagesTab(existing.isRequest ? 'requests' : 'message');
+      saveActiveConvId(existing.conversationId);
+      const tab = existing.isRequest ? 'requests' : 'message';
+      setMessagesTab(tab);
+      saveMessagesTab(tab);
       handleOpenConversation(existing.conversationId);
     } else {
       const uname = targetUser.username || targetUser.name?.replace(/\s+/g, '_').toLowerCase() || 'user';
@@ -1054,11 +1192,21 @@ export default function App() {
         requestSender: user?.username || 'soelnvc'
       };
       selectedConvIdRef.current = newConvId;
-      setConversations((prev) => [newConv, ...prev.filter(c => c.conversationId !== newConvId)]);
+      saveActiveConvId(newConvId);
+      setConversations((prev) => {
+        const next = [newConv, ...prev.filter(c => c.conversationId !== newConvId)];
+        saveLocalConversations(next);
+        return next;
+      });
       setSelectedConvId(newConvId);
       setMessagesTab('message');
+      saveMessagesTab('message');
       setConvMessages([]);
-      setConvMessagesMap((prev) => ({ ...prev, [newConvId]: [] }));
+      setConvMessagesMap((prev) => {
+        const next = { ...prev, [newConvId]: [] };
+        saveLocalMessagesMap(next);
+        return next;
+      });
     }
     setActiveTab('messages');
   };
