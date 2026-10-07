@@ -15,6 +15,7 @@ import HomeDashboard from '@/components/home/HomeDashboard';
 import DineInFeed from '@/components/dinein/DineInFeed';
 import GlobalPage from '@/components/global/GlobalPage';
 import SettingsPage from '@/components/settings/SettingsPage';
+import GlobalSearchModal from '@/components/search/GlobalSearchModal';
 import { dishService } from '@/services/dish.service';
 import { authService } from '@/services/auth.service';
 import {
@@ -319,7 +320,9 @@ export default function App() {
   const [profileHistory, setProfileHistory] = useState([]);
   const [convMessagesMap, setConvMessagesMap] = useState({});
   const [showSettings, setShowSettings] = useState(false);
+  const [settingsSection, setSettingsSection] = useState('privacy');
   const [showKitchenModal, setShowKitchenModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -492,6 +495,17 @@ export default function App() {
 
   useEffect(() => {
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowSearchModal((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
 
   const fetchDishes = async () => {
@@ -1587,6 +1601,9 @@ export default function App() {
         }}
         showKitchenModal={showKitchenModal}
         setShowKitchenModal={setShowKitchenModal}
+        showSearchModal={showSearchModal}
+        setShowSearchModal={setShowSearchModal}
+        onOpenSearch={() => setShowSearchModal(true)}
         setShowSettings={setShowSettings}
         setShowAppearanceModal={setShowAppearanceModal}
         setShowReportModal={setShowReportModal}
@@ -1594,7 +1611,21 @@ export default function App() {
       />
 
       {/* Main App Container */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '100vh', padding: activeTab === 'profile' ? '54px 24px 80px' : '40px 32px', minWidth: 0, boxSizing: 'border-box', color: '#000000' }}>
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        minHeight: '100vh',
+        height: activeTab === 'settings' ? '100vh' : 'auto',
+        maxHeight: activeTab === 'settings' ? '100vh' : 'none',
+        overflow: activeTab === 'settings' ? 'hidden' : 'visible',
+        padding: activeTab === 'settings' ? '20px 32px' : (activeTab === 'profile' ? '54px 24px 80px' : '40px 32px'),
+        minWidth: 0,
+        boxSizing: 'border-box',
+        color: '#000000'
+      }}>
         {/* Global Feedback */}
         {error && <div style={{ border: '1px solid red', padding: 10, marginBottom: 16, color: '#b91c1c', backgroundColor: '#fef2f2', borderRadius: 6 }}>Error: {error}</div>}
         {message && <div style={{ border: '1px solid green', padding: 10, marginBottom: 16, color: '#15803d', backgroundColor: '#f0fdf4', borderRadius: 6 }}>{message}</div>}
@@ -1785,7 +1816,10 @@ export default function App() {
               bio={activeProfile?.bio || (isViewingPeer ? activeProfile?.bio : bio)}
               interests={activeProfile?.interests || (isViewingPeer ? (activeProfile?.interests || ['Campus', 'DSA', 'Study']) : interests)}
               connectionsCount={isViewingPeer ? (activeProfile?.stats?.connections || 84) : (connections.length > 0 ? connections.length : 72)}
-              onEditProfile={() => setShowEditProfile(true)}
+              onEditProfile={() => {
+                setSettingsSection('edit_profile');
+                setActiveTab('settings');
+              }}
               onOpenSettings={() => setActiveTab('settings')}
               onTabChange={(tab) => setProfileActiveTab(tab)}
               onTagClick={(tag) => {
@@ -2552,370 +2586,7 @@ export default function App() {
             {/* TAB 3: AWARDS (Award Library based on PRODUCT.md Section 20 Achievements) */}
             {profileActiveTab === 'awards' && <AwardsLibrary user={activeProfile} isSelf={!isViewingPeer} />}
 
-
-          {/* EDIT PROFILE MODAL (Triggered by pill button) */}
-          {showEditProfile && (
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.55)',
-                backdropFilter: 'blur(3px)',
-                zIndex: 1000,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 16
-              }}
-              onClick={() => setShowEditProfile(false)}
-            >
-              <GlassContainer
-                radius={28}
-                style={{ width: '100%', maxWidth: 540 }}
-                innerStyle={{
-                  padding: 28,
-                  maxHeight: '90vh',
-                  overflowY: 'auto',
-                  color: '#000000'
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Edit Profile</h3>
-                  <FluidButton
-                    variant="icon"
-                    onClick={() => setShowEditProfile(false)}
-                    style={{ width: 32, height: 32, minWidth: 32, minHeight: 32 }}
-                    title="Close"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </FluidButton>
-                </div>
-
-                <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {/* Profile Photo Upload */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingBottom: 14, borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
-                    <div
-                      style={{
-                        width: 60,
-                        height: 60,
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        backgroundColor: '#f97316',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#ffffff',
-                        fontSize: 22,
-                        fontWeight: 800,
-                        flexShrink: 0,
-                        border: '1.5px solid rgba(0, 0, 0, 0.1)'
-                      }}
-                    >
-                      {editAvatar || user?.avatar ? (
-                        <img
-                          src={editAvatar || user?.avatar}
-                          alt="Avatar preview"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : (
-                        (profileName || user?.name || 'U')[0]?.toUpperCase()
-                      )}
-                    </div>
-                    <div>
-                      <label
-                        style={{
-                          display: 'inline-block',
-                          cursor: 'pointer',
-                          padding: '6px 14px',
-                          borderRadius: 9999,
-                          border: '1px solid rgba(0, 0, 0, 0.15)',
-                          fontSize: 12.5,
-                          fontWeight: 600,
-                          backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                          color: '#09090b'
-                        }}
-                      >
-                        Change Photo
-                        <input
-                          type="file"
-                          accept="image/*"
-                          style={{ display: 'none' }}
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                              const img = new Image();
-                              img.onload = () => {
-                                const canvas = document.createElement('canvas');
-                                const maxDim = 400;
-                                let w = img.width;
-                                let h = img.height;
-                                if (w > h) {
-                                  if (w > maxDim) {
-                                    h = Math.round((h * maxDim) / w);
-                                    w = maxDim;
-                                  }
-                                } else {
-                                  if (h > maxDim) {
-                                    w = Math.round((w * maxDim) / h);
-                                    h = maxDim;
-                                  }
-                                }
-                                canvas.width = w;
-                                canvas.height = h;
-                                const ctx = canvas.getContext('2d');
-                                ctx.drawImage(img, 0, 0, w, h);
-                                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                                setEditAvatar(dataUrl);
-                                handleUpdateUser({ avatar: dataUrl }).catch(() => {});
-                              };
-                              img.src = ev.target.result;
-                            };
-                            reader.readAsDataURL(file);
-                          }}
-                        />
-                      </label>
-                      <div style={{ fontSize: 11, color: '#71717a', marginTop: 4 }}>
-                        Square JPG or PNG. Syncs across all campus activities.
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Display Name:</label>
-                    <input
-                      type="text"
-                      value={profileName}
-                      onChange={(e) => setProfileName(e.target.value)}
-                      placeholder="e.g. Sid G"
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        borderRadius: 10,
-                        border: '1px solid #d1d5db',
-                        fontSize: 14,
-                        color: '#000000'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Pronouns:</label>
-                    <input
-                      type="text"
-                      value={pronouns}
-                      onChange={(e) => setPronouns(e.target.value)}
-                      placeholder="e.g. He/Him, She/Her, They/Them"
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        borderRadius: 10,
-                        border: '1px solid #d1d5db',
-                        fontSize: 14,
-                        color: '#000000'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Bio:</label>
-                    <textarea
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      rows={3}
-                      placeholder="Tell campus what activities you're down for, hobbies, and ideas (e.g. #Badminton #Gym #Study #Gaming)..."
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        borderRadius: 10,
-                        border: '1px solid #d1d5db',
-                        fontSize: 14,
-                        color: '#000000',
-                        resize: 'vertical'
-                      }}
-                    />
-                  </div>
-
-                  {/* Tags Editor */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Tags / Interests:</label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-                      {interests.map((tag, i) => (
-                        <FluidButton
-                          key={i}
-                          type="button"
-                          onClick={() => setInterests(interests.filter((_, idx) => idx !== i))}
-                          title="Click to remove tag"
-                          style={{
-                            padding: '4px 12px',
-                            fontSize: 12.5,
-                            fontWeight: 600,
-                            color: '#111827'
-                          }}
-                        >
-                          <span>{tag.startsWith('#') ? tag.slice(1) : tag}</span>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, opacity: 0.6 }}>
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                        </FluidButton>
-                      ))}
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input
-                        type="text"
-                        value={newTagInput}
-                        onChange={(e) => setNewTagInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            if (newTagInput.trim() && !interests.includes(newTagInput.trim())) {
-                              setInterests([...interests, newTagInput.trim()]);
-                              setNewTagInput('');
-                            }
-                          }
-                        }}
-                        placeholder="Add new tag (e.g. Badminton, Gym, Study, Anime, Coffee)..."
-                        style={{
-                          flex: 1,
-                          padding: '8px 12px',
-                          borderRadius: 10,
-                          border: '1px solid #d1d5db',
-                          fontSize: 13,
-                          color: '#000000'
-                        }}
-                      />
-                      <FluidButton
-                        type="button"
-                        onClick={() => {
-                          if (newTagInput.trim() && !interests.includes(newTagInput.trim())) {
-                            setInterests([...interests, newTagInput.trim()]);
-                            setNewTagInput('');
-                          }
-                        }}
-                        style={{
-                          padding: '7px 18px',
-                          fontSize: 13,
-                          fontWeight: 600
-                        }}
-                      >
-                        + Add
-                      </FluidButton>
-                    </div>
-                  </div>
-
-                  {/* Institutes Editor */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Primary Institute:</label>
-                      <input
-                        type="text"
-                        value={instituteName}
-                        onChange={(e) => setInstituteName(e.target.value)}
-                        placeholder="e.g. IIT MADRAS"
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          borderRadius: 8,
-                          border: '1px solid #d1d5db',
-                          fontSize: 13,
-                          color: '#000000'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Primary Batch Year:</label>
-                      <input
-                        type="number"
-                        value={instituteYear}
-                        onChange={(e) => setInstituteYear(e.target.value)}
-                        placeholder="2029"
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          borderRadius: 8,
-                          border: '1px solid #d1d5db',
-                          fontSize: 13,
-                          color: '#000000'
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Secondary Institute:</label>
-                      <input
-                        type="text"
-                        value={secondaryInstituteName}
-                        onChange={(e) => setSecondaryInstituteName(e.target.value)}
-                        placeholder="e.g. SST"
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          borderRadius: 8,
-                          border: '1px solid #d1d5db',
-                          fontSize: 13,
-                          color: '#000000'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Secondary Batch Year:</label>
-                      <input
-                        type="number"
-                        value={secondaryInstituteYear}
-                        onChange={(e) => setSecondaryInstituteYear(e.target.value)}
-                        placeholder="2029"
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          borderRadius: 8,
-                          border: '1px solid #d1d5db',
-                          fontSize: 13,
-                          color: '#000000'
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
-                    <FluidButton
-                      type="button"
-                      onClick={() => setShowEditProfile(false)}
-                      style={{
-                        padding: '8px 22px',
-                        fontSize: 14,
-                        fontWeight: 600
-                      }}
-                    >
-                      Cancel
-                    </FluidButton>
-                    <FluidButton
-                      type="submit"
-                      style={{
-                        padding: '8px 26px',
-                        fontSize: 14,
-                        fontWeight: 600
-                      }}
-                    >
-                      Save Profile
-                    </FluidButton>
-                  </div>
-                </form>
-              </GlassContainer>
-            </div>
-          )}
-
-        </section>
+          </section>
         );
       })()}
 
@@ -2925,6 +2596,8 @@ export default function App() {
       {activeTab === 'settings' && (
         <SettingsPage
           user={user}
+          initialSection={settingsSection}
+          onSectionChange={(sec) => setSettingsSection(sec)}
           onLogout={handleLogout}
           onUpdateUser={async (updatedFields) => {
             try {
@@ -2933,17 +2606,38 @@ export default function App() {
                 body: JSON.stringify(updatedFields)
               });
               setUser(res.data);
+              if (res.data.name !== undefined) setProfileName(res.data.name);
+              if (res.data.pronouns !== undefined) setPronouns(res.data.pronouns);
+              if (res.data.bio !== undefined) setBio(res.data.bio);
+              if (res.data.interests !== undefined) setInterests(res.data.interests);
+              if (res.data.avatar !== undefined) setEditAvatar(res.data.avatar);
+              if (res.data.institute?.name !== undefined) setInstituteName(res.data.institute.name);
+              if (res.data.institute?.year !== undefined) setInstituteYear(String(res.data.institute.year));
+              if (res.data.secondaryInstitute?.name !== undefined) setSecondaryInstituteName(res.data.secondaryInstitute.name);
+              if (res.data.secondaryInstitute?.year !== undefined) setSecondaryInstituteYear(String(res.data.secondaryInstitute.year));
               setMessage('Settings saved successfully');
             } catch (err) {
               setError(err.message);
+              throw err;
             }
           }}
-          onOpenEditProfile={() => setShowEditProfile(true)}
+          onOpenEditProfile={() => setSettingsSection('edit_profile')}
           themePreference={themePreference}
           onThemeChange={(newTheme) => setThemePreference(newTheme)}
           onViewProfile={(profile) => handleNavigateToProfile(profile, 'settings')}
         />
       )}
+
+      {/* ========================================================= */}
+      {/* GLOBAL SEARCH MODAL (Triggered by Search lens in Sidebar) */}
+      {/* ========================================================= */}
+      <GlobalSearchModal
+        isOpen={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+        onViewProfile={(profile) => handleNavigateToProfile(profile, activeTab)}
+        currentUser={user}
+        demoProfiles={DEMO_PEER_PROFILES}
+      />
 
       {/* ========================================================= */}
       {/* APPEARANCE MODAL (Built with GlassContainer) */}

@@ -9,6 +9,9 @@ export default function Sidebar({
   setActiveTab,
   showKitchenModal,
   setShowKitchenModal,
+  showSearchModal,
+  setShowSearchModal,
+  onOpenSearch,
   setShowSettings,
   setShowAppearanceModal,
   setShowReportModal,
@@ -40,6 +43,16 @@ export default function Sidebar({
           <line x1="6" y1="1" x2="6" y2="4" />
           <line x1="10" y1="1" x2="10" y2="4" />
           <line x1="14" y1="1" x2="14" y2="4" />
+        </svg>
+      )
+    },
+    {
+      id: 'search',
+      label: 'Search',
+      icon: (isActive) => (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isActive ? '2.5' : '2'} strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
       )
     },
@@ -187,12 +200,17 @@ export default function Sidebar({
           {navItems
             .filter((item) => item.id !== 'global' || isAdult)
             .map((item) => {
-            const isActive = item.id === 'kitchen' ? showKitchenModal : activeTab === item.id;
+            const isActive = item.id === 'search'
+              ? Boolean(showSearchModal)
+              : (item.id === 'kitchen' ? showKitchenModal : activeTab === item.id);
             return (
               <button
                 key={item.id}
                 onClick={() => {
-                  if (item.id === 'kitchen') {
+                  if (item.id === 'search') {
+                    if (onOpenSearch) onOpenSearch();
+                    else if (setShowSearchModal) setShowSearchModal(true);
+                  } else if (item.id === 'kitchen') {
                     if (setShowKitchenModal) setShowKitchenModal(true);
                   } else {
                     if (setActiveTab) setActiveTab(item.id);

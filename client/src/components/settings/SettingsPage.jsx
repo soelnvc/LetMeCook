@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import { apiFetch } from '@/lib/api';
@@ -58,6 +58,55 @@ function CustomInput({
     </GlassContainer>
   );
 }
+
+/**
+ * Custom Textarea wrapped in GlassContainer to eliminate browser default appearance
+ */
+function CustomTextarea({
+  value,
+  onChange,
+  placeholder,
+  rows = 3,
+  style = {},
+  radius = 16,
+  maxLength,
+  ...props
+}) {
+  return (
+    <GlassContainer
+      radius={radius}
+      style={{ width: '100%', ...style }}
+      innerStyle={{
+        padding: '12px 14px',
+        display: 'flex',
+        alignItems: 'stretch',
+        boxSizing: 'border-box'
+      }}
+    >
+      <textarea
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        rows={rows}
+        maxLength={maxLength}
+        style={{
+          width: '100%',
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          fontSize: 13,
+          lineHeight: '1.5',
+          color: '#09090b',
+          fontFamily: 'inherit',
+          resize: 'vertical',
+          minHeight: 68
+        }}
+        {...props}
+      />
+    </GlassContainer>
+  );
+}
+
 
 /**
  * Custom Select wrapped in GlassContainer with SVG arrow to eliminate browser default appearance
@@ -197,16 +246,121 @@ export default function SettingsPage({
   onLogout,
   onUpdateUser,
   onOpenEditProfile,
+  initialSection = 'privacy',
+  onSectionChange,
   themePreference = 'system',
   onThemeChange,
   onViewProfile
 }) {
   // Navigation active section
-  const [activeSection, setActiveSection] = useState('privacy');
+  const [activeSection, setActiveSection] = useState(initialSection || 'privacy');
   const [searchQuery, setSearchQuery] = useState('');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
+  useEffect(() => {
+    if (initialSection) {
+      setActiveSection(initialSection);
+    }
+  }, [initialSection]);
+
+  const handleSelectSection = (secId) => {
+    setActiveSection(secId);
+    if (onSectionChange) onSectionChange(secId);
+  };
+
   const isAdult = Boolean(user && user.age !== undefined && user.age !== null && Number(user.age) >= 18);
+
+  // Profile Settings States
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [pronouns, setPronouns] = useState(user?.pronouns || 'He/Him');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [interests, setInterests] = useState(user?.interests || ['music', 'Gym', 'Sports', 'Anime', 'Coffee']);
+  const [newTagInput, setNewTagInput] = useState('');
+  const [editAvatar, setEditAvatar] = useState(user?.avatar || '');
+  const [instituteName, setInstituteName] = useState(user?.institute?.name || 'IIT MADRAS');
+  const [instituteYear, setInstituteYear] = useState(user?.institute?.year ? String(user.institute.year) : '2029');
+  const [secondaryInstituteName, setSecondaryInstituteName] = useState(user?.secondaryInstitute?.name || 'SST');
+  const [secondaryInstituteYear, setSecondaryInstituteYear] = useState(user?.secondaryInstitute?.year ? String(user.secondaryInstitute.year) : '2029');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const avatarFileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (user) {
+      if (user.name !== undefined) setProfileName(user.name);
+      if (user.pronouns !== undefined) setPronouns(user.pronouns || 'He/Him');
+      if (user.bio !== undefined) setBio(user.bio || '');
+      if (user.interests !== undefined) setInterests(user.interests || ['music', 'Gym', 'Sports', 'Anime', 'Coffee']);
+      if (user.avatar !== undefined) setEditAvatar(user.avatar || '');
+      if (user.institute?.name !== undefined) setInstituteName(user.institute.name);
+      if (user.institute?.year !== undefined) setInstituteYear(String(user.institute.year));
+      if (user.secondaryInstitute?.name !== undefined) setSecondaryInstituteName(user.secondaryInstitute.name);
+      if (user.secondaryInstitute?.year !== undefined) setSecondaryInstituteYear(String(user.secondaryInstitute.year));
+    }
+  }, [user]);
+
+  const handleAvatarFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 400;
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          }
+        } else {
+          if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setEditAvatar(dataUrl);
+        triggerSuccess('Photo selected! Click "Apply Changes" to save.');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleApplyProfileChanges = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setIsSavingProfile(true);
+    try {
+      const payload = {
+        name: profileName,
+        pronouns,
+        bio,
+        interests,
+        avatar: editAvatar || user?.avatar || null,
+        institute: { name: instituteName, year: Number(instituteYear) || 2029 },
+        secondaryInstitute: { name: secondaryInstituteName, year: Number(secondaryInstituteYear) || 2029 }
+      };
+      if (onUpdateUser) {
+        await onUpdateUser(payload);
+      } else {
+        await apiFetch('/users/me', {
+          method: 'PATCH',
+          body: JSON.stringify(payload)
+        });
+      }
+      triggerSuccess('Profile changes applied successfully');
+    } catch (err) {
+      triggerSuccess(err.message || 'Failed to update profile');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   // 1. Privacy Settings States
   const [bioVisibility, setBioVisibility] = useState(user?.privacy?.bioVisibility || 'everyone');
@@ -284,6 +438,16 @@ export default function SettingsPage({
     {
       group: 'Your Account',
       items: [
+        {
+          id: 'edit_profile',
+          label: 'Edit Profile',
+          icon: (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          )
+        },
         {
           id: 'account',
           label: 'Account & Verification',
@@ -603,11 +767,16 @@ export default function SettingsPage({
     <div
       style={{
         width: '100%',
-        maxWidth: 1040,
+        maxWidth: 1060,
+        height: '100%',
+        maxHeight: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         margin: '0 auto',
-        padding: '16px 12px 64px 12px',
+        padding: '0 12px',
         color: '#09090b',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        overflow: 'hidden'
       }}
     >
       {/* Toast Feedback */}
@@ -637,34 +806,47 @@ export default function SettingsPage({
         </div>
       )}
 
-      {/* Main Split Layout (Instagram Settings Alignment) */}
+      {/* Main Split Layout (Static Nav, Independently Scrollable Right Panel) */}
       <div
         style={{
           display: 'flex',
           flexDirection: 'row',
           gap: 24,
-          alignItems: 'flex-start',
-          flexWrap: 'wrap'
+          alignItems: 'stretch',
+          flex: 1,
+          minHeight: 0,
+          height: '100%',
+          overflow: 'hidden'
         }}
       >
         {/* ========================================================= */}
-        {/* LEFT COLUMN: SETTINGS NAVIGATION (Instagram Sidebar Style) */}
+        {/* LEFT COLUMN: SETTINGS NAVIGATION (Static / Fixed Menu)   */}
         {/* ========================================================= */}
         <aside
           style={{
-            width: '100%',
+            width: 270,
             maxWidth: 270,
-            flex: '0 0 270px'
+            flex: '0 0 270px',
+            height: '100%',
+            maxHeight: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
           }}
         >
           <GlassContainer
             radius={24}
+            style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
             innerStyle={{
               padding: '20px 16px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 16
+              gap: 16,
+              height: '100%',
+              boxSizing: 'border-box',
+              overflowY: 'auto'
             }}
+            className="custom-scrollbar"
           >
             {/* Header */}
             <div>
@@ -748,7 +930,7 @@ export default function SettingsPage({
                       return (
                         <button
                           key={item.id}
-                          onClick={() => setActiveSection(item.id)}
+                          onClick={() => handleSelectSection(item.id)}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -786,14 +968,288 @@ export default function SettingsPage({
         </aside>
 
         {/* ========================================================= */}
-        {/* RIGHT COLUMN: ACTIVE SETTINGS PANEL                        */}
+        {/* RIGHT COLUMN: ACTIVE SETTINGS PANEL (Scrolls smoothly)    */}
         {/* ========================================================= */}
         <main
+          className="custom-scrollbar"
           style={{
-            flex: '1 1 560px',
-            minWidth: 320
+            flex: 1,
+            minWidth: 320,
+            height: '100%',
+            maxHeight: '100%',
+            overflowY: 'auto',
+            paddingRight: 10,
+            paddingBottom: 48,
+            boxSizing: 'border-box'
           }}
         >
+          {/* SECTION 0: EDIT PROFILE */}
+          {activeSection === 'edit_profile' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div>
+                <h2 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                  Edit Profile
+                </h2>
+                <p style={{ fontSize: 13, color: '#71717a', margin: 0 }}>
+                  Customize your personal identity, campus credentials, and interests across LetMeCook.
+                </p>
+              </div>
+
+              <form onSubmit={handleApplyProfileChanges} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* 1. Identity & Public Info */}
+                <GlassContainer radius={22} innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
+                    Public Identity
+                  </h3>
+
+                  {/* Avatar section */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 18, paddingBottom: 16, borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
+                    <div
+                      style={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        backgroundColor: '#f97316',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#ffffff',
+                        fontSize: 24,
+                        fontWeight: 800,
+                        flexShrink: 0,
+                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.12)'
+                      }}
+                    >
+                      {editAvatar || user?.avatar ? (
+                        <img
+                          src={editAvatar || user?.avatar}
+                          alt="Avatar preview"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        (profileName || user?.name || user?.username || 'U')[0]?.toUpperCase()
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <input
+                        ref={avatarFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleAvatarFileSelect}
+                      />
+                      <FluidButton
+                        type="button"
+                        onClick={() => avatarFileInputRef.current?.click()}
+                        style={{
+                          padding: '7px 18px',
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          alignSelf: 'flex-start'
+                        }}
+                      >
+                        Change Photo
+                      </FluidButton>
+                      <span style={{ fontSize: 11.5, color: '#71717a' }}>
+                        Square JPG or PNG. Syncs across all campus activities.
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Display Name */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
+                      Display Name:
+                    </label>
+                    <CustomInput
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                      placeholder="e.g. Sid G"
+                    />
+                  </div>
+
+                  {/* Pronouns */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
+                      Pronouns:
+                    </label>
+                    <CustomInput
+                      value={pronouns}
+                      onChange={(e) => setPronouns(e.target.value)}
+                      placeholder="e.g. He/Him, She/Her, They/Them"
+                    />
+                  </div>
+
+                  {/* Bio */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
+                      Bio:
+                    </label>
+                    <CustomTextarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      rows={3}
+                      placeholder="Tell campus what activities you're down for, hobbies, and ideas (e.g. #Badminton #Gym #Study #Gaming)..."
+                    />
+                  </div>
+                </GlassContainer>
+
+                {/* 2. Tags & Interests Card */}
+                <GlassContainer radius={22} innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px 0' }}>
+                      Tags / Interests:
+                    </h3>
+                    <p style={{ fontSize: 12, color: '#71717a', margin: 0 }}>
+                      Highlight activities you love to help campus peers connect with you for cooking & dishes.
+                    </p>
+                  </div>
+
+                  {/* Active tags pills */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {interests.map((tag, i) => (
+                      <FluidButton
+                        key={i}
+                        type="button"
+                        onClick={() => setInterests(interests.filter((_, idx) => idx !== i))}
+                        title="Click to remove tag"
+                        style={{
+                          padding: '5px 12px',
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          color: '#111827',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6
+                        }}
+                      >
+                        <span>{tag.startsWith('#') ? tag.slice(1) : tag}</span>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6 }}>
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </FluidButton>
+                    ))}
+                  </div>
+
+                  {/* Add new tag */}
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}>
+                      <CustomInput
+                        value={newTagInput}
+                        onChange={(e) => setNewTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const val = newTagInput.trim();
+                            if (val && !interests.includes(val)) {
+                              setInterests([...interests, val]);
+                              setNewTagInput('');
+                            }
+                          }
+                        }}
+                        placeholder="Add new tag (e.g. Badminton, Gym, Study, Anime, Coffee)..."
+                      />
+                    </div>
+                    <FluidButton
+                      type="button"
+                      onClick={() => {
+                        const val = newTagInput.trim();
+                        if (val && !interests.includes(val)) {
+                          setInterests([...interests, val]);
+                          setNewTagInput('');
+                        }
+                      }}
+                      style={{
+                        padding: '0 20px',
+                        height: 42,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        flexShrink: 0
+                      }}
+                    >
+                      + Add
+                    </FluidButton>
+                  </div>
+                </GlassContainer>
+
+                {/* 3. Campus & Academic Affiliation */}
+                <GlassContainer radius={22} innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
+                    Campus & Academic Details
+                  </h3>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
+                        Primary Institute:
+                      </label>
+                      <CustomInput
+                        value={instituteName}
+                        onChange={(e) => setInstituteName(e.target.value)}
+                        placeholder="e.g. IIT MADRAS"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
+                        Primary Batch Year:
+                      </label>
+                      <CustomInput
+                        type="number"
+                        value={instituteYear}
+                        onChange={(e) => setInstituteYear(e.target.value)}
+                        placeholder="2029"
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
+                        Secondary Institute:
+                      </label>
+                      <CustomInput
+                        value={secondaryInstituteName}
+                        onChange={(e) => setSecondaryInstituteName(e.target.value)}
+                        placeholder="e.g. SST"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
+                        Secondary Batch Year:
+                      </label>
+                      <CustomInput
+                        type="number"
+                        value={secondaryInstituteYear}
+                        onChange={(e) => setSecondaryInstituteYear(e.target.value)}
+                        placeholder="2029"
+                      />
+                    </div>
+                  </div>
+                </GlassContainer>
+
+                {/* Apply Changes Button */}
+                <div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: 6, paddingBottom: 16 }}>
+                  <FluidButton
+                    type="submit"
+                    disabled={isSavingProfile}
+                    style={{
+                      padding: '11px 34px',
+                      fontSize: 13.5,
+                      fontWeight: 700,
+                      background: '#09090b',
+                      color: '#ffffff'
+                    }}
+                  >
+                    {isSavingProfile ? 'Applying Changes...' : 'Apply Changes'}
+                  </FluidButton>
+                </div>
+              </form>
+            </div>
+          )}
+
           {/* SECTION 1: PRIVACY */}
           {activeSection === 'privacy' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -1637,7 +2093,7 @@ export default function SettingsPage({
                 </div>
 
                 <FluidButton
-                  onClick={() => onOpenEditProfile && onOpenEditProfile()}
+                  onClick={() => handleSelectSection('edit_profile')}
                   style={{ padding: '6px 16px', fontSize: 12, fontWeight: 600 }}
                 >
                   Edit Profile

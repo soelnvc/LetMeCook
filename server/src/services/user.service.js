@@ -274,6 +274,38 @@ const unrestrictUser = async (userId, targetUsername) => {
   return updatedUser.restrictedUsers;
 };
 
+const searchUsers = async (query, currentUserId) => {
+  if (!query || typeof query !== 'string' || !query.trim()) {
+    return [];
+  }
+  const cleanQuery = query.trim().replace(/^@/, '');
+  const escapedQuery = cleanQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(escapedQuery, 'i');
+
+  const filter = {
+    $or: [{ username: regex }, { name: regex }],
+    isDeactivated: { $ne: true }
+  };
+
+  if (currentUserId) {
+    try {
+      const currentUser = await User.findById(currentUserId).select('blockedUsers');
+      if (currentUser?.blockedUsers?.length > 0) {
+        filter._id = { $nin: currentUser.blockedUsers };
+      }
+    } catch {
+      // Proceed without blocked filter if query fails
+    }
+  }
+
+  const users = await User.find(filter)
+    .select('username name avatar institute pronouns bio interests')
+    .limit(15)
+    .lean();
+
+  return users;
+};
+
 module.exports = {
   updateProfile,
   getPublicProfile,
@@ -283,5 +315,7 @@ module.exports = {
   blockUser,
   unblockUser,
   restrictUser,
-  unrestrictUser
+  unrestrictUser,
+  searchUsers
 };
+

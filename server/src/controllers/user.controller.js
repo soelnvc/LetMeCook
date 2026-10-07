@@ -113,6 +113,20 @@ const unrestrictUser = async (req, res, next) => {
   }
 };
 
+const searchUsers = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    const requesterId = req.user ? req.user.userId : null;
+    const users = await userService.searchUsers(q, requesterId);
+    res.status(200).json({
+      success: true,
+      data: users
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   updateProfile,
   getPublicProfile,
@@ -122,5 +136,7 @@ module.exports = {
   blockUser,
   unblockUser,
   restrictUser,
-  unrestrictUser
+  unrestrictUser,
+  searchUsers
 };
+

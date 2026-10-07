@@ -12,6 +12,15 @@ router.delete('/me/block/:username', authMiddleware, userController.unblockUser)
 router.post('/me/restrict', authMiddleware, userController.restrictUser);
 router.delete('/me/restrict/:username', authMiddleware, userController.unrestrictUser);
 
+// Search users by username or name
+router.get('/search', (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authMiddleware(req, res, next);
+  }
+  next();
+}, userController.searchUsers);
+
 // Public profile retrieval with optional auth context to resolve view permissions
 router.get('/:username', (req, res, next) => {
   const authHeader = req.headers.authorization;
