@@ -113,12 +113,20 @@ export default function App() {
   const [messagesTab, setMessagesTab] = useState('message'); // 'message' | 'requests'
   const [searchMsgQuery, setSearchMsgQuery] = useState('');
 
-  // Hydrate persistent messaging cache on client mount (Instagram/WhatsApp style persistence)
+  // Hydrate persistent messaging cache per logged-in user
   useEffect(() => {
-    const cachedConvs = loadLocalConversations();
-    const cachedMap = loadLocalMessagesMap();
-    const cachedActiveId = loadActiveConvId();
-    const cachedTab = loadMessagesTab();
+    if (!user?._id) {
+      setConversations([]);
+      setConvMessagesMap({});
+      setConvMessages([]);
+      setSelectedConvId(null);
+      return;
+    }
+
+    const cachedConvs = loadLocalConversations(user._id);
+    const cachedMap = loadLocalMessagesMap(user._id);
+    const cachedActiveId = loadActiveConvId(user._id);
+    const cachedTab = loadMessagesTab(user._id);
 
     if (cachedConvs && cachedConvs.length > 0) {
       setConversations(cachedConvs);
@@ -127,7 +135,7 @@ export default function App() {
       setConvMessagesMap(cachedMap);
     }
     if (cachedActiveId) {
-      const matchingConv = cachedConvs.find(
+      const matchingConv = (cachedConvs || []).find(
         (c) =>
           c.conversationId === cachedActiveId ||
           getUserKey(c) === getUserKey({ conversationId: cachedActiveId })
@@ -135,7 +143,7 @@ export default function App() {
       const canonicalActiveId = matchingConv ? matchingConv.conversationId : cachedActiveId;
       setSelectedConvId(canonicalActiveId);
       selectedConvIdRef.current = canonicalActiveId;
-      saveActiveConvId(canonicalActiveId);
+      saveActiveConvId(canonicalActiveId, user._id);
       if (cachedMap) {
         const msgs = cachedMap[canonicalActiveId] || cachedMap[cachedActiveId] || [];
         setConvMessages(msgs);
@@ -144,32 +152,32 @@ export default function App() {
     if (cachedTab) {
       setMessagesTab(cachedTab);
     }
-  }, []);
+  }, [user?._id]);
 
-  // Sync state changes to localStorage
+  // Sync state changes to localStorage (isolated per user)
   useEffect(() => {
-    if (conversations && conversations.length > 0) {
-      saveLocalConversations(conversations);
+    if (user?._id && conversations && conversations.length > 0) {
+      saveLocalConversations(conversations, user._id);
     }
-  }, [conversations]);
-
-  useEffect(() => {
-    if (convMessagesMap && Object.keys(convMessagesMap).length > 0) {
-      saveLocalMessagesMap(convMessagesMap);
-    }
-  }, [convMessagesMap]);
+  }, [conversations, user?._id]);
 
   useEffect(() => {
-    if (selectedConvId) {
-      saveActiveConvId(selectedConvId);
+    if (user?._id && convMessagesMap && Object.keys(convMessagesMap).length > 0) {
+      saveLocalMessagesMap(convMessagesMap, user._id);
     }
-  }, [selectedConvId]);
+  }, [convMessagesMap, user?._id]);
 
   useEffect(() => {
-    if (messagesTab) {
-      saveMessagesTab(messagesTab);
+    if (user?._id && selectedConvId) {
+      saveActiveConvId(selectedConvId, user._id);
     }
-  }, [messagesTab]);
+  }, [selectedConvId, user?._id]);
+
+  useEffect(() => {
+    if (user?._id && messagesTab) {
+      saveMessagesTab(messagesTab, user._id);
+    }
+  }, [messagesTab, user?._id]);
 
   // Profile & Settings states
   const [bio, setBio] = useState('');
@@ -187,6 +195,7 @@ export default function App() {
   const [profileActiveTab, setProfileActiveTab] = useState('dishes'); // 'dishes' | 'joined' | 'awards'
   const [searchUsername, setSearchUsername] = useState('');
   const [connections, setConnections] = useState([]);
+  const [sentConnectionIds, setSentConnectionIds] = useState([]);
   const [showConnectionsModal, setShowConnectionsModal] = useState(false);
   const [recipes, setRecipes] = useState([]);
   const [selectedRecipeForKitchen, setSelectedRecipeForKitchen] = useState(null);
@@ -281,21 +290,19 @@ export default function App() {
   };
 
   const fetchConversations = async (forceConvId) => {
+    if (!user?._id) return;
     try {
       const res = await apiFetch('/messages/conversations');
       const data = res.data || [];
-      setConversations((prev) => {
-        const local = loadLocalConversations();
-        const mergedList = deduplicateConversations([...data, ...local, ...prev]);
-        saveLocalConversations(mergedList);
-        return mergedList;
-      });
+      const local = loadLocalConversations(user._id);
+      const mergedList = deduplicateConversations([...data, ...local]);
+      setConversations(mergedList);
+      saveLocalConversations(mergedList, user._id);
 
-      const rawTargetId = forceConvId || selectedConvIdRef.current || selectedConvId || loadActiveConvId();
+      const rawTargetId = forceConvId || selectedConvIdRef.current || selectedConvId || loadActiveConvId(user._id);
       let targetId = rawTargetId;
       if (rawTargetId) {
-        const allConvs = deduplicateConversations([...data, ...loadLocalConversations()]);
-        const match = allConvs.find(
+        const match = mergedList.find(
           (c) => c.conversationId === rawTargetId || getUserKey(c) === getUserKey({ conversationId: rawTargetId })
         );
         if (match) {
@@ -306,9 +313,9 @@ export default function App() {
       if (targetId) {
         selectedConvIdRef.current = targetId;
         setSelectedConvId(targetId);
-        saveActiveConvId(targetId);
-      } else if (data.length > 0) {
-        const first = data.find((c) => !c.isRequest) || data[0];
+        saveActiveConvId(targetId, user._id);
+      } else if (mergedList.length > 0) {
+        const first = mergedList.find((c) => !c.isRequest) || mergedList[0];
         if (first) {
           handleOpenConversation(first.conversationId);
         }
@@ -320,9 +327,16 @@ export default function App() {
 
   const fetchConnections = async () => {
     try {
-      const res = await apiFetch('/connections');
-      const data = res.data || [];
+      const [connRes, sentRes] = await Promise.allSettled([
+        apiFetch('/connections'),
+        apiFetch('/connections/sent')
+      ]);
+      const data = connRes.status === 'fulfilled' && connRes.value?.data ? connRes.value.data : [];
       setConnections(data);
+
+      const sentData = sentRes.status === 'fulfilled' && sentRes.value?.data ? sentRes.value.data : [];
+      const sentIds = sentData.map(s => String(s.recipient?._id || s.recipient)).filter(Boolean);
+      setSentConnectionIds(sentIds);
     } catch (err) {
       setError(err.message);
     }
@@ -441,6 +455,13 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    setConversations([]);
+    setConvMessages([]);
+    setConvMessagesMap({});
+    setSelectedConvId(null);
+    setConnections([]);
+    setSentConnectionIds([]);
+    setActiveTab('home');
     setMessage('Logged out');
   };
 
@@ -923,19 +944,27 @@ export default function App() {
     setViewingProfileUser(null);
     setProfileHistory([]);
 
+    const isConnectedPeer = connections.some(c => {
+      const u = c.user || c;
+      const targetId = targetUser._id || targetUser.id;
+      return (u._id && targetId && String(u._id) === String(targetId)) ||
+             (u.username && targetUser.username && u.username.toLowerCase() === targetUser.username.toLowerCase());
+    });
+
     if (existing) {
       setConversations((prev) => {
         const others = prev.filter((c) => c.conversationId !== existing.conversationId);
         const next = [existing, ...others];
-        saveLocalConversations(next);
+        if (user?._id) saveLocalConversations(next, user._id);
         return next;
       });
       selectedConvIdRef.current = existing.conversationId;
       setSelectedConvId(existing.conversationId);
-      saveActiveConvId(existing.conversationId);
-      const tab = existing.isRequest ? 'requests' : 'message';
+      if (user?._id) saveActiveConvId(existing.conversationId, user._id);
+      const isReq = Boolean(existing.isRequest || existing.requestStatus === 'pending');
+      const tab = isReq ? 'requests' : 'message';
       setMessagesTab(tab);
-      saveMessagesTab(tab);
+      if (user?._id) saveMessagesTab(tab, user._id);
       handleOpenConversation(existing.conversationId);
     } else {
       const now = new Date().toISOString();
@@ -943,30 +972,33 @@ export default function App() {
         .toLowerCase()
         .replace(/[^a-z0-9_]/g, '');
       const newConvId = `conv-${uname}`;
+      const isReq = !isConnectedPeer;
       const newConv = {
         conversationId: newConvId,
         user: targetUser,
         lastMessage: { content: 'No messages yet', createdAt: now },
         updatedAt: now,
         unreadCount: 0,
-        isRequest: false,
-        requestStatus: 'pending',
-        requestSender: user?.username || 'soelnvc'
+        isRequest: isReq,
+        requestStatus: isReq ? 'pending' : 'accepted',
+        requestSender: user?.username || '',
+        needsResponse: false
       };
       selectedConvIdRef.current = newConvId;
-      saveActiveConvId(newConvId);
+      if (user?._id) saveActiveConvId(newConvId, user._id);
       setConversations((prev) => {
         const next = deduplicateConversations([newConv, ...prev]);
-        saveLocalConversations(next);
+        if (user?._id) saveLocalConversations(next, user._id);
         return next;
       });
       setSelectedConvId(newConvId);
-      setMessagesTab('message');
-      saveMessagesTab('message');
+      const tab = isReq ? 'requests' : 'message';
+      setMessagesTab(tab);
+      if (user?._id) saveMessagesTab(tab, user._id);
       setConvMessages([]);
       setConvMessagesMap((prev) => {
         const next = { ...prev, [newConvId]: [] };
-        saveLocalMessagesMap(next);
+        if (user?._id) saveLocalMessagesMap(next, user._id);
         return next;
       });
     }
@@ -974,29 +1006,42 @@ export default function App() {
   };
 
   const handleToggleConnectPeer = async (targetUser) => {
-    const targetId = targetUser._id || targetUser.id;
+    const targetId = targetUser?._id || targetUser?.id;
+    if (!targetId) return;
+
     const isConn = connections.some(c => {
       const u = c.user || c;
-      return (u._id && targetId && String(u._id) === String(targetId)) ||
+      return (u._id && String(u._id) === String(targetId)) ||
              (u.username && targetUser.username && u.username.toLowerCase() === targetUser.username.toLowerCase());
     });
 
-    if (isConn) {
-      setConnections(prev => prev.filter(c => {
-        const u = c.user || c;
-        return !(
-          (u._id && targetId && String(u._id) === String(targetId)) ||
-          (u.username && targetUser.username && u.username.toLowerCase() === targetUser.username.toLowerCase())
-        );
-      }));
-      setMessage(`Disconnected from @${targetUser.username || 'user'}`);
+    const isRequested = sentConnectionIds.includes(String(targetId));
+
+    if (isConn || isRequested) {
+      try {
+        await apiFetch(`/connections/${targetId}`, { method: 'DELETE' });
+        setConnections(prev => prev.filter(c => {
+          const u = c.user || c;
+          return !(
+            (u._id && String(u._id) === String(targetId)) ||
+            (u.username && targetUser.username && u.username.toLowerCase() === targetUser.username.toLowerCase())
+          );
+        }));
+        setSentConnectionIds(prev => prev.filter(id => id !== String(targetId)));
+        setMessage(isConn ? `Disconnected from @${targetUser.username || 'user'}` : `Connection request cancelled`);
+        fetchConnections();
+      } catch (err) {
+        setError(err.message || 'Failed to update connection');
+      }
     } else {
-      const newConn = {
-        _id: `conn-${Date.now()}`,
-        user: targetUser
-      };
-      setConnections(prev => [newConn, ...prev]);
-      setMessage(`Connected with @${targetUser.username || 'user'}`);
+      try {
+        await apiFetch(`/connections/${targetId}`, { method: 'POST' });
+        setSentConnectionIds(prev => [...prev, String(targetId)]);
+        setMessage(`Connection request sent to @${targetUser.username || 'user'}`);
+        fetchConnections();
+      } catch (err) {
+        setError(err.message || 'Failed to send connection request');
+      }
     }
   };
 
@@ -1483,12 +1528,30 @@ export default function App() {
             <ProfileHeader
               user={activeProfile}
               isSelf={!isViewingPeer}
-              pronouns={activeProfile?.pronouns || (isViewingPeer ? 'They/Them' : pronouns)}
-              instituteName={activeProfile?.institute?.name || (isViewingPeer ? 'IIT MADRAS' : instituteName)}
-              instituteYear={activeProfile?.institute?.year ? String(activeProfile.institute.year) : (isViewingPeer ? '2028' : instituteYear)}
-              bio={activeProfile?.bio || (isViewingPeer ? activeProfile?.bio : bio)}
-              interests={activeProfile?.interests || (isViewingPeer ? (activeProfile?.interests || ['Campus', 'DSA', 'Study']) : interests)}
-              connectionsCount={isViewingPeer ? (activeProfile?.stats?.connections || 84) : (connections.length > 0 ? connections.length : 72)}
+              pronouns={activeProfile?.pronouns || (isViewingPeer ? '' : pronouns)}
+              instituteName={activeProfile?.institute?.name || (isViewingPeer ? '' : instituteName)}
+              instituteYear={activeProfile?.institute?.year ? String(activeProfile.institute.year) : (isViewingPeer ? '' : instituteYear)}
+              bio={activeProfile?.bio || (isViewingPeer ? '' : bio)}
+              interests={activeProfile?.interests || (isViewingPeer ? [] : interests)}
+              dishesCreatedCount={dishes.filter(d => {
+                const cId = d.creator?._id ? String(d.creator._id) : (typeof d.creator === 'string' ? d.creator : null);
+                const cUser = d.creator?.username ? String(d.creator.username).toLowerCase() : null;
+                const pId = activeProfile?._id ? String(activeProfile._id) : null;
+                const pUsername = activeProfile?.username ? String(activeProfile.username).toLowerCase() : null;
+                return (pId && cId && pId === cId) || (pUsername && cUser && pUsername === cUser);
+              }).length}
+              dishesJoinedCount={dishes.filter(d => {
+                const pId = activeProfile?._id ? String(activeProfile._id) : null;
+                const pUsername = activeProfile?.username ? String(activeProfile.username).toLowerCase() : null;
+                const notCreator = pId ? (String(d.creator?._id || d.creator) !== pId) : true;
+                const isPart = (d.participants || []).some(p => {
+                  const partId = p.user?._id ? String(p.user._id) : (typeof p.user === 'string' ? p.user : null);
+                  const partUser = p.user?.username ? String(p.user.username).toLowerCase() : null;
+                  return (pId && partId && pId === partId) || (pUsername && partUser && pUsername === partUser);
+                });
+                return notCreator && isPart;
+              }).length}
+              connectionsCount={isViewingPeer ? (activeProfile?.stats?.connections ?? 0) : connections.length}
               onEditProfile={() => {
                 setSettingsSection('edit_profile');
                 setActiveTab('settings');
@@ -1509,6 +1572,7 @@ export default function App() {
                 return (u._id && activeProfile?._id && String(u._id) === String(activeProfile._id)) ||
                        (u.username && activeProfile?.username && u.username.toLowerCase() === activeProfile.username.toLowerCase());
               })}
+              isRequested={sentConnectionIds.includes(String(activeProfile?._id || activeProfile?.id))}
               onToggleConnect={() => handleToggleConnectPeer(activeProfile)}
               onMessage={() => handleMessageFromProfile(activeProfile)}
               onBlockUser={() => handleBlockUser(activeProfile?.username)}

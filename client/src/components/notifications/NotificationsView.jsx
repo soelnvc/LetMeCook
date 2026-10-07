@@ -5,8 +5,6 @@ import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import { apiFetch } from '@/lib/api';
 
-const NOTIFICATIONS_STORAGE_KEY = 'letmecook_notifications_v1';
-
 export default function NotificationsView({
   currentUser,
   onViewProfile,
@@ -17,6 +15,10 @@ export default function NotificationsView({
   const [filter, setFilter] = useState('all'); // 'all' | 'requests' | 'connections'
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+
+  const storageKey = currentUser?._id
+    ? `letmecook_notifications_${currentUser._id}`
+    : 'letmecook_notifications_guest';
 
   // Helper to format ISO timestamp into relative time
   const formatRelativeTime = (timestamp, fallback) => {
@@ -33,22 +35,19 @@ export default function NotificationsView({
     }
   };
 
-  // Load real notifications from backend API and local cache (no mock/demo data)
+  // Load real notifications from backend API and local cache (strictly isolated per user)
   useEffect(() => {
-    // Clear any previous mock/demo storage if it contained demo users
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+        localStorage.removeItem('letmecook_notifications_v1');
+        const stored = localStorage.getItem(storageKey);
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed)) {
-            // Filter out any stale mock demo IDs
-            const cleaned = parsed.filter(
-              (n) => n.id !== 'notif-naman' && n.id !== 'notif-pankaj' && n.id !== 'notif-priya'
-            );
-            setNotifications(cleaned);
-            localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(cleaned));
+            setNotifications(parsed);
           }
+        } else {
+          setNotifications([]);
         }
       } catch (err) {
         console.error('Failed reading notifications from localStorage:', err);
@@ -104,6 +103,10 @@ export default function NotificationsView({
               actionText = 'requested to join your dish.';
             } else if (notif.type === 'dish_join_approved') {
               actionText = 'approved your dish join request.';
+            } else if (notif.type === 'message_request') {
+              actionText = 'sent you a message request.';
+            } else if (notif.type === 'new_message') {
+              actionText = 'sent you a message.';
             }
 
             merged.push({
@@ -122,7 +125,7 @@ export default function NotificationsView({
 
         setNotifications(merged);
         if (typeof window !== 'undefined') {
-          localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(merged));
+          localStorage.setItem(storageKey, JSON.stringify(merged));
         }
       } catch (err) {
         console.error('Failed fetching notifications from server:', err);
@@ -130,14 +133,14 @@ export default function NotificationsView({
     };
 
     fetchBackend();
-  }, []);
+  }, [currentUser?._id, storageKey]);
 
   // Sync to local storage
   const persistNotifications = (updatedList) => {
     setNotifications(updatedList);
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(updatedList));
+        localStorage.setItem(storageKey, JSON.stringify(updatedList));
       } catch (err) {
         console.error('Failed writing notifications to localStorage:', err);
       }

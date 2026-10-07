@@ -13,6 +13,8 @@ export default function ProfileHeader({
   bio = '',
   interests = [],
   connectionsCount = 0,
+  dishesCreatedCount,
+  dishesJoinedCount,
   onEditProfile,
   onOpenSettings,
   onTabChange,
@@ -21,6 +23,7 @@ export default function ProfileHeader({
   onViewConnections,
   // 2nd person specific props:
   isConnected = false,
+  isRequested = false,
   onToggleConnect,
   onMessage,
   onBlockUser,
@@ -273,10 +276,10 @@ export default function ProfileHeader({
                   padding: '7px 22px',
                   fontSize: 13.5,
                   fontWeight: 600,
-                  color: '#000000'
+                  color: isConnected ? '#16a34a' : isRequested ? '#2563eb' : '#000000'
                 }}
               >
-                {isConnected ? 'Following' : 'Connect'}
+                {isConnected ? 'Connected' : isRequested ? 'Requested' : 'Connect'}
               </FluidButton>
 
               {/* Message Button */}
@@ -444,13 +447,13 @@ export default function ProfileHeader({
             style={{ cursor: 'pointer' }}
             onClick={() => onTabChange && onTabChange('dishes')}
           >
-            <strong>{user?.stats?.dishesCreated ?? 0}</strong> cooked
+            <strong>{dishesCreatedCount ?? user?.stats?.dishesCreated ?? 0}</strong> cooked
           </span>
           <span
             style={{ cursor: 'pointer' }}
             onClick={() => onTabChange && onTabChange('joined')}
           >
-            <strong>{user?.stats?.dishesJoined ?? 0}</strong> joined
+            <strong>{dishesJoinedCount ?? user?.stats?.dishesJoined ?? 0}</strong> joined
           </span>
           <span
             style={{ cursor: isSelf ? 'pointer' : 'default' }}

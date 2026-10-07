@@ -553,18 +553,18 @@ export default function HomeDashboard({
         {[
           {
             label: 'COOKED',
-            value: user?.stats?.dishesCreated ?? 17,
+            value: user?.stats?.dishesCreated ?? 0,
             desc: 'Hosted activities'
           },
           {
             label: 'JOINED',
-            value: user?.stats?.dishesJoined ?? 20,
+            value: user?.stats?.dishesJoined ?? 0,
             desc: 'Participated sessions'
           },
           {
             label: 'CONNECTIONS',
-            value: user?.stats?.peopleCookedWith ?? 42,
-            desc: 'Co-cooks met'
+            value: user?.stats?.connections ?? user?.stats?.peopleCookedWith ?? 0,
+            desc: 'Active connections'
           }
         ].map((metric, idx) => (
           <GlassContainer

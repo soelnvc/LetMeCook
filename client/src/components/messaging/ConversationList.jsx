@@ -28,11 +28,13 @@ export default function ConversationList({
   setMessagesTab,
   searchQuery,
   setSearchQuery,
+  onRespondRequest
 }) {
   // Filter and sort conversations by newest activity descending (newest chat always on top!)
   const filteredList = conversations
     .filter((c) => {
-      const matchTab = messagesTab === 'requests' ? c.isRequest : !c.isRequest;
+      const isReq = Boolean(c.isRequest || c.requestStatus === 'pending');
+      const matchTab = messagesTab === 'requests' ? isReq : !isReq;
       const query = searchQuery.trim().toLowerCase();
       if (!query) return matchTab;
       const nameMatch = (c.user?.name || '').toLowerCase().includes(query);
@@ -45,7 +47,9 @@ export default function ConversationList({
       return timeB - timeA;
     });
 
-  const pendingRequestsCount = conversations.filter((c) => c.isRequest).length;
+  const pendingRequestsCount = conversations.filter(
+    (c) => (c.isRequest || c.requestStatus === 'pending') && c.needsResponse
+  ).length;
 
   return (
     <div
@@ -365,7 +369,7 @@ export default function ConversationList({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onRespondRequest && onRespondRequest(c.conversationId, 'accepted');
+                          if (onRespondRequest) onRespondRequest(c.conversationId, 'accepted');
                         }}
                         style={{
                           padding: '4px 10px',
@@ -383,7 +387,7 @@ export default function ConversationList({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onRespondRequest && onRespondRequest(c.conversationId, 'rejected');
+                          if (onRespondRequest) onRespondRequest(c.conversationId, 'rejected');
                         }}
                         style={{
                           padding: '4px 10px',
@@ -398,6 +402,24 @@ export default function ConversationList({
                       >
                         Decline
                       </button>
+                    </div>
+                  )}
+
+                  {messagesTab === 'requests' && !c.needsResponse && (
+                    <div style={{ marginTop: 6 }}>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          padding: '3px 8px',
+                          borderRadius: 9999,
+                          backgroundColor: 'rgba(0, 0, 0, 0.06)',
+                          color: '#71717a',
+                          fontWeight: 600,
+                          display: 'inline-block'
+                        }}
+                      >
+                        Invitation sent · Pending
+                      </span>
                     </div>
                   )}
                 </div>

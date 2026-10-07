@@ -1,16 +1,25 @@
 /**
  * messageStorage.js
  * Persistent client-side storage engine for LetMeCook messaging.
+ * Strictly isolated per user account to prevent account bleed.
  * Guarantees zero-flicker hydration on page reloads (Cmd+R / F5)
  * and strictly ensures ONE single conversation thread per person
  * like Instagram & WhatsApp.
  */
 
-const STORAGE_KEYS = {
-  CONVERSATIONS: 'letmecook_conversations_cache',
-  MESSAGES: 'letmecook_messages_cache',
-  ACTIVE_CONV: 'letmecook_active_conv',
-  MESSAGES_TAB: 'letmecook_messages_tab'
+// Purge any legacy global storage keys to avoid polluting new accounts
+if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem('letmecook_conversations_cache');
+    localStorage.removeItem('letmecook_messages_cache');
+    localStorage.removeItem('letmecook_active_conv');
+    localStorage.removeItem('letmecook_messages_tab');
+  } catch {}
+}
+
+const getStorageKey = (type, userId) => {
+  const uid = userId ? String(userId).trim() : 'guest';
+  return `letmecook_${uid}_${type}`;
 };
 
 export const getUserKey = (userOrConv) => {
@@ -38,15 +47,11 @@ export const getUserKey = (userOrConv) => {
   return null;
 };
 
-/**
- * Migrates messages from an old conversationId (e.g. conv-amans)
- * to a canonical new conversationId (e.g. MongoDB compound ID).
- */
-export const migrateConversationId = (oldConvId, newConvId) => {
+export const migrateConversationId = (oldConvId, newConvId, userId) => {
   if (!oldConvId || !newConvId || oldConvId === newConvId) return;
   if (typeof window === 'undefined') return;
   try {
-    const map = loadLocalMessagesMap();
+    const map = loadLocalMessagesMap(userId);
     const oldMsgs = Array.isArray(map[oldConvId]) ? map[oldConvId] : [];
     const newMsgs = Array.isArray(map[newConvId]) ? map[newConvId] : [];
 
@@ -67,12 +72,12 @@ export const migrateConversationId = (oldConvId, newConvId) => {
       mergedMsgs.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
       map[newConvId] = mergedMsgs;
       delete map[oldConvId];
-      saveLocalMessagesMap(map);
+      saveLocalMessagesMap(map, userId);
     }
 
-    const active = loadActiveConvId();
+    const active = loadActiveConvId(userId);
     if (active === oldConvId) {
-      saveActiveConvId(newConvId);
+      saveActiveConvId(newConvId, userId);
     }
   } catch (err) {
     console.error('Failed to migrate conversation ID:', err);
@@ -100,20 +105,12 @@ export const deduplicateConversations = (conversations = []) => {
         id && !String(id).startsWith('conv-') && !String(id).startsWith('demo-');
 
       let preferredId = existing.conversationId;
-      let retiredId = null;
-
       if (isServerId(c.conversationId) && !isServerId(existing.conversationId)) {
         preferredId = c.conversationId;
-        retiredId = existing.conversationId;
       } else if (isServerId(existing.conversationId) && !isServerId(c.conversationId)) {
         preferredId = existing.conversationId;
-        retiredId = c.conversationId;
       } else {
         preferredId = c.conversationId || existing.conversationId;
-      }
-
-      if (retiredId && retiredId !== preferredId) {
-        migrateConversationId(retiredId, preferredId);
       }
 
       // Determine which item has newer message/timestamp
@@ -125,20 +122,23 @@ export const deduplicateConversations = (conversations = []) => {
       ).getTime();
       const newer = cTime >= existingTime ? c : existing;
 
-      // If either conversation is accepted/not request, it's an active chat
-      const isAccepted =
-        existing.requestStatus === 'accepted' ||
-        c.requestStatus === 'accepted' ||
-        (!existing.isRequest && existing.requestStatus !== 'pending') ||
-        (!c.isRequest && c.requestStatus !== 'pending');
+      // Pending requests must remain pending until explicitly accepted
+      const isPending =
+        newer.requestStatus === 'pending' ||
+        existing.requestStatus === 'pending' ||
+        (newer.isRequest && newer.requestStatus !== 'accepted') ||
+        (existing.isRequest && existing.requestStatus !== 'accepted');
+
+      const isAccepted = !isPending && (newer.requestStatus === 'accepted' || existing.requestStatus === 'accepted');
 
       map.set(userKey, {
         ...existing,
         ...newer,
         conversationId: preferredId,
         user: { ...(existing.user || {}), ...(c.user || {}) },
-        isRequest: isAccepted ? false : (newer.isRequest ?? existing.isRequest),
-        requestStatus: isAccepted ? 'accepted' : (newer.requestStatus || existing.requestStatus)
+        isRequest: isPending,
+        requestStatus: isPending ? 'pending' : (isAccepted ? 'accepted' : 'none'),
+        needsResponse: isPending ? Boolean(newer.needsResponse || existing.needsResponse) : false
       });
     }
   }
@@ -152,10 +152,10 @@ export const deduplicateConversations = (conversations = []) => {
   return list;
 };
 
-export const loadLocalConversations = () => {
+export const loadLocalConversations = (userId) => {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.CONVERSATIONS);
+    const raw = localStorage.getItem(getStorageKey('conversations', userId));
     return raw ? deduplicateConversations(JSON.parse(raw)) : [];
   } catch (err) {
     console.error('Failed to load local conversations:', err);
@@ -163,20 +163,20 @@ export const loadLocalConversations = () => {
   }
 };
 
-export const saveLocalConversations = (conversations) => {
+export const saveLocalConversations = (conversations, userId) => {
   if (typeof window === 'undefined' || !Array.isArray(conversations)) return;
   try {
     const cleaned = deduplicateConversations(conversations);
-    localStorage.setItem(STORAGE_KEYS.CONVERSATIONS, JSON.stringify(cleaned));
+    localStorage.setItem(getStorageKey('conversations', userId), JSON.stringify(cleaned));
   } catch (err) {
     console.error('Failed to save local conversations:', err);
   }
 };
 
-export const loadLocalMessagesMap = () => {
+export const loadLocalMessagesMap = (userId) => {
   if (typeof window === 'undefined') return {};
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.MESSAGES);
+    const raw = localStorage.getItem(getStorageKey('messages', userId));
     return raw ? JSON.parse(raw) : {};
   } catch (err) {
     console.error('Failed to load local messages map:', err);
@@ -184,58 +184,59 @@ export const loadLocalMessagesMap = () => {
   }
 };
 
-export const saveLocalMessagesMap = (map) => {
+export const saveLocalMessagesMap = (map, userId) => {
   if (typeof window === 'undefined' || !map) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(map));
+    localStorage.setItem(getStorageKey('messages', userId), JSON.stringify(map));
   } catch (err) {
     console.error('Failed to save local messages map:', err);
   }
 };
 
-export const saveLocalMessagesForConv = (convId, messages) => {
+export const saveLocalMessagesForConv = (convId, messages, userId) => {
   if (typeof window === 'undefined' || !convId) return;
   try {
-    const currentMap = loadLocalMessagesMap();
+    const currentMap = loadLocalMessagesMap(userId);
     currentMap[convId] = messages;
-    saveLocalMessagesMap(currentMap);
+    saveLocalMessagesMap(currentMap, userId);
   } catch (err) {
     console.error('Failed to save local messages for conv:', err);
   }
 };
 
-export const loadActiveConvId = () => {
+export const loadActiveConvId = (userId) => {
   if (typeof window === 'undefined') return null;
   try {
-    return localStorage.getItem(STORAGE_KEYS.ACTIVE_CONV) || null;
+    return localStorage.getItem(getStorageKey('active_conv', userId)) || null;
   } catch {
     return null;
   }
 };
 
-export const saveActiveConvId = (convId) => {
+export const saveActiveConvId = (convId, userId) => {
   if (typeof window === 'undefined') return;
   try {
+    const key = getStorageKey('active_conv', userId);
     if (convId) {
-      localStorage.setItem(STORAGE_KEYS.ACTIVE_CONV, convId);
+      localStorage.setItem(key, convId);
     } else {
-      localStorage.removeItem(STORAGE_KEYS.ACTIVE_CONV);
+      localStorage.removeItem(key);
     }
   } catch {}
 };
 
-export const loadMessagesTab = () => {
+export const loadMessagesTab = (userId) => {
   if (typeof window === 'undefined') return 'message';
   try {
-    return localStorage.getItem(STORAGE_KEYS.MESSAGES_TAB) || 'message';
+    return localStorage.getItem(getStorageKey('messages_tab', userId)) || 'message';
   } catch {
     return 'message';
   }
 };
 
-export const saveMessagesTab = (tab) => {
+export const saveMessagesTab = (tab, userId) => {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEYS.MESSAGES_TAB, tab || 'message');
+    localStorage.setItem(getStorageKey('messages_tab', userId), tab || 'message');
   } catch {}
 };

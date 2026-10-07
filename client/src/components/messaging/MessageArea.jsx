@@ -44,7 +44,6 @@ export default function MessageArea({
   onRejectRequest,
   onBlockUser
 }) {
-  const [isViewingRecipientScreen, setIsViewingRecipientScreen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const inputRef = useRef(null);
 
@@ -64,25 +63,27 @@ export default function MessageArea({
     }, 0);
   };
 
-  const isPending = conversation?.requestStatus === 'pending';
+  const isPending = conversation?.requestStatus === 'pending' || conversation?.isRequest;
   const mySentMessages = messages.filter(
     (m) =>
-      (m.sender?._id || m.sender?.username || m.sender) ===
-      (currentUser?._id || currentUser?.username)
+      String(m.sender?._id || m.sender?.username || m.sender) ===
+      String(currentUser?._id || currentUser?.username)
   );
   const hasSentOneMessage = mySentMessages.length >= 1;
 
   // The sender is the user who initiated this request
-  const isSender = conversation?.isRequest
-    ? false
-    : conversation?.requestSender
+  const firstMsg = messages[0];
+  const firstSender = firstMsg?.sender?.username || firstMsg?.sender?._id || firstMsg?.sender;
+  const isSender = firstSender
+    ? String(firstSender).toLowerCase() === String(currentUser?.username || currentUser?._id || '').toLowerCase()
+    : (conversation?.requestSender
       ? String(conversation.requestSender).toLowerCase() === String(currentUser?.username || '').toLowerCase()
-      : true;
+      : false);
 
   // Determine which UI mode to render
-  const showRecipientView = isPending && (!isSender || isViewingRecipientScreen);
-  const showSenderWaiting = isPending && isSender && !isViewingRecipientScreen && hasSentOneMessage;
-  const showSenderInitialForm = isPending && isSender && !isViewingRecipientScreen && !hasSentOneMessage;
+  const showRecipientView = isPending && !isSender;
+  const showSenderWaiting = isPending && isSender && hasSentOneMessage;
+  const showSenderInitialForm = isPending && isSender && !hasSentOneMessage;
 
   return (
     <div
@@ -170,53 +171,6 @@ export default function MessageArea({
                 </div>
               </div>
             </div>
-
-            {/* Recipient view indicator / mode switch */}
-            {isPending && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {isViewingRecipientScreen ? (
-                  <>
-                    <span
-                      style={{
-                        fontSize: 11.5,
-                        fontWeight: 700,
-                        color: '#b45309',
-                        backgroundColor: 'rgba(245, 158, 11, 0.12)',
-                        padding: '4px 10px',
-                        borderRadius: 9999
-                      }}
-                    >
-                      @{activeUser.username}'s Screen
-                    </span>
-                    <FluidButton
-                      onClick={() => setIsViewingRecipientScreen(false)}
-                      style={{
-                        padding: '5px 12px',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: '#000000'
-                      }}
-                    >
-                      My View
-                    </FluidButton>
-                  </>
-                ) : (
-                  hasSentOneMessage && (
-                    <FluidButton
-                      onClick={() => setIsViewingRecipientScreen(true)}
-                      style={{
-                        padding: '5px 12px',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: '#000000'
-                      }}
-                    >
-                      Switch to @{activeUser.username}'s Screen
-                    </FluidButton>
-                  )
-                )}
-              </div>
-            )}
           </div>
 
           {/* Pending Invitation Banner (Sender: 1 message allowed) */}
@@ -265,8 +219,7 @@ export default function MessageArea({
             ) : (
               messages.map((m) => {
                 const isFromCurrentUser = (m.sender?._id || m.sender?.username || m.sender) === (currentUser?._id || currentUser?.username);
-                // When in recipient view mode, invert the perspective so the incoming message appears on the left
-                const isBubbleMe = showRecipientView ? !isFromCurrentUser : isFromCurrentUser;
+                const isBubbleMe = isFromCurrentUser;
                 const isEmojiMsg = isOnlyEmojis(m.content);
                 const emojiSize = isEmojiMsg ? getEmojiFontSize(m.content) : 15;
 
@@ -313,7 +266,7 @@ export default function MessageArea({
                     </GlassContainer>
                   );
                 } else {
-                  const bubbleUser = showRecipientView ? currentUser : activeUser;
+                  const bubbleUser = activeUser;
 
                   // Instagram / Telegram style: Standalone emoji without bubble container
                   if (isEmojiMsg) {
@@ -475,7 +428,7 @@ export default function MessageArea({
               >
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: '#000000', marginBottom: 4 }}>
-                    {isViewingRecipientScreen ? `@${currentUser?.username || 'user'}` : `@${activeUser?.username}`} wants to send you a message
+                    @{activeUser?.username} wants to send you a message
                   </div>
                   <div style={{ fontSize: 12.5, color: '#6b7280' }}>
                     Do you want to let them send you messages? They won't know you've seen it until you accept.
@@ -486,7 +439,6 @@ export default function MessageArea({
                   <FluidButton
                     onClick={() => {
                       if (onAcceptRequest) onAcceptRequest(conversation?.conversationId);
-                      setIsViewingRecipientScreen(false);
                     }}
                     style={{
                       padding: '8px 26px',
@@ -501,7 +453,6 @@ export default function MessageArea({
                   <FluidButton
                     onClick={() => {
                       if (onRejectRequest) onRejectRequest(conversation?.conversationId);
-                      setIsViewingRecipientScreen(false);
                     }}
                     style={{
                       padding: '8px 22px',
@@ -515,9 +466,7 @@ export default function MessageArea({
 
                   <FluidButton
                     onClick={() => {
-                      const targetToBlock = isViewingRecipientScreen ? currentUser?.username : activeUser?.username;
-                      if (onBlockUser) onBlockUser(targetToBlock);
-                      setIsViewingRecipientScreen(false);
+                      if (onBlockUser) onBlockUser(activeUser?.username);
                     }}
                     style={{
                       padding: '8px 22px',
@@ -529,24 +478,6 @@ export default function MessageArea({
                     Block
                   </FluidButton>
                 </div>
-
-                {isViewingRecipientScreen && (
-                  <button
-                    type="button"
-                    onClick={() => setIsViewingRecipientScreen(false)}
-                    style={{
-                      marginTop: 2,
-                      background: 'none',
-                      border: 'none',
-                      fontSize: 12,
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      textDecoration: 'underline'
-                    }}
-                  >
-                    Back to my view (Sender)
-                  </button>
-                )}
               </GlassContainer>
             </div>
           ) : showSenderWaiting ? (
@@ -573,20 +504,6 @@ export default function MessageArea({
                 </div>
                 <div style={{ fontSize: 12.5, color: '#6b7280' }}>
                   You have sent your 1 invitation message. You'll be able to send more messages once @{activeUser?.username} accepts your request.
-                </div>
-
-                <div style={{ marginTop: 4 }}>
-                  <FluidButton
-                    onClick={() => setIsViewingRecipientScreen(true)}
-                    style={{
-                      padding: '7px 18px',
-                      fontSize: 12.5,
-                      fontWeight: 600,
-                      color: '#000000'
-                    }}
-                  >
-                    Switch to @{activeUser?.username}'s Screen (Recipient View)
-                  </FluidButton>
                 </div>
               </GlassContainer>
             </div>

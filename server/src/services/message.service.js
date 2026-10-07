@@ -89,6 +89,19 @@ const sendMessage = async (senderId, receiverInput, content) => {
     requestStatus
   });
 
+  try {
+    const Notification = require('../models/Notification');
+    await Notification.create({
+      recipient: receiverId,
+      type: isRequest ? 'message_request' : 'new_message',
+      actor: senderId,
+      reference: message._id,
+      metadata: { conversationId, content: content.slice(0, 80) }
+    });
+  } catch (notifErr) {
+    console.error('Failed to create message notification:', notifErr);
+  }
+
   return await message.populate('sender', 'username name avatar bio pronouns institute');
 };
 

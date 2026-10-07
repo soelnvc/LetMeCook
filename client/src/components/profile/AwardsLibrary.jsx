@@ -13,7 +13,7 @@ export default function AwardsLibrary({ user, isSelf = true }) {
   const connectionsCount = Number(
     user?.stats?.connections ?? (Array.isArray(user?.connections) ? user.connections.length : 0)
   );
-  const interestsCount = Array.isArray(user?.interests) ? user.interests.length : 3;
+  const interestsCount = Array.isArray(user?.interests) ? user.interests.length : 0;
 
   // Master definitions of awards with personalized progress
   const allAwards = [

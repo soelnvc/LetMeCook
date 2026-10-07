@@ -5,8 +5,6 @@ import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import { apiFetch } from '@/lib/api';
 
-const RECENT_SEARCHES_KEY = 'letmecook_recent_searches';
-
 export default function GlobalSearchModal({
   isOpen,
   onClose,
@@ -21,25 +19,32 @@ export default function GlobalSearchModal({
   const [isSearching, setIsSearching] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
 
+  const recentSearchesKey = currentUser?._id
+    ? `letmecook_recent_searches_${currentUser._id}`
+    : 'letmecook_recent_searches_guest';
+
   const inputRef = useRef(null);
   const closingTimeoutRef = useRef(null);
 
-  // Load recent searches from localStorage
+  // Load recent searches from localStorage (isolated per user)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+        localStorage.removeItem('letmecook_recent_searches');
+        const stored = localStorage.getItem(recentSearchesKey);
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed)) {
             setRecentSearches(parsed.slice(0, 5));
           }
+        } else {
+          setRecentSearches([]);
         }
       } catch (err) {
         console.error('Failed to parse recent searches:', err);
       }
     }
-  }, []);
+  }, [recentSearchesKey, currentUser?._id]);
 
   // Handle open / close animations
   useEffect(() => {
@@ -115,7 +120,7 @@ export default function GlobalSearchModal({
     setRecentSearches(updated);
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+        localStorage.setItem(recentSearchesKey, JSON.stringify(updated));
       } catch (err) {
         console.error('Failed to save recent search:', err);
       }
@@ -131,7 +136,7 @@ export default function GlobalSearchModal({
     setRecentSearches(updated);
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+        localStorage.setItem(recentSearchesKey, JSON.stringify(updated));
       } catch (err) {
         console.error('Failed to update recent searches:', err);
       }
@@ -144,7 +149,7 @@ export default function GlobalSearchModal({
     setRecentSearches([]);
     if (typeof window !== 'undefined') {
       try {
-        localStorage.removeItem(RECENT_SEARCHES_KEY);
+        localStorage.removeItem(recentSearchesKey);
       } catch (err) {
         console.error('Failed to clear recent searches:', err);
       }

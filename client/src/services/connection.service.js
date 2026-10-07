@@ -9,9 +9,19 @@ export const connectionService = {
     return apiFetch('/connections/requests');
   },
 
+  getSentRequests: async () => {
+    return apiFetch('/connections/sent');
+  },
+
   sendRequest: async (userId) => {
     return apiFetch(`/connections/${userId}`, {
       method: 'POST'
+    });
+  },
+
+  removeConnection: async (userId) => {
+    return apiFetch(`/connections/${userId}`, {
+      method: 'DELETE'
     });
   },
 
@@ -23,7 +33,7 @@ export const connectionService = {
   },
 
   blockUser: async (userId) => {
-    return apiFetch(`/connections/${userId}/block`, {
+    return apiFetch(`/connections/${userId}`, {
       method: 'POST'
     });
   }
