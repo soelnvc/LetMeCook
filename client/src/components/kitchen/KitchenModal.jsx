@@ -170,6 +170,8 @@ export default function KitchenModal({
   isOpen,
   onClose,
   onSubmitDish,
+  onSaveRecipe,
+  initialRecipe = null,
   isSubmitting = false
 }) {
   // Form State
@@ -191,6 +193,13 @@ export default function KitchenModal({
   // Description
   const [description, setDescription] = useState('');
 
+  // Save as Recipe states
+  const [showSaveRecipeModal, setShowSaveRecipeModal] = useState(false);
+  const [recipeName, setRecipeName] = useState('');
+  const [isSavingRecipe, setIsSavingRecipe] = useState(false);
+  const [saveRecipeError, setSaveRecipeError] = useState('');
+  const [saveRecipeSuccess, setSaveRecipeSuccess] = useState(false);
+
   // Sequential Step & Sub-Step State
   // mainStep: 1..5, subStep: 1..N
   const [mainStep, setMainStep] = useState(1);
@@ -200,32 +209,55 @@ export default function KitchenModal({
   const [animStage, setAnimStage] = useState('idle');
   const nextTimerRef = useRef(null);
 
-  // Reset when opened
+  // Reset or load initialRecipe when opened
   useEffect(() => {
     if (isOpen) {
-      setMainStep(1);
-      setSubStep(1);
+      if (initialRecipe) {
+        // Pre-fill from saved recipe template
+        setDishType(initialRecipe.type || 'regular');
+        setCategory(initialRecipe.category || 'sport');
+        setJoinMode(initialRecipe.joinMode || 'auto');
+        setCapacity(initialRecipe.capacity?.max || 4);
+        setUnlimitedCapacity(Boolean(initialRecipe.capacity?.unlimited));
+        setAreaName(initialRecipe.location?.areaName || 'Campus Court');
+        setDescription(initialRecipe.description || '');
+        if (initialRecipe.eligibility) {
+          setGender(initialRecipe.eligibility.gender || 'any');
+          setInstituteOnly(Boolean(initialRecipe.eligibility.instituteOnly));
+          setSkillLevel(initialRecipe.eligibility.skillLevel || 'Any Level');
+        }
+        // Jump directly to review/cook step
+        setMainStep(5);
+        setSubStep(1);
+      } else {
+        setMainStep(1);
+        setSubStep(1);
+        setDishType('regular');
+        setCategory('');
+        setJoinMode('auto');
+        setCapacity(4);
+        setUnlimitedCapacity(false);
+        setAreaName('Campus Court');
+        setGender('any');
+        setInstituteOnly(false);
+        setAgeMode('any');
+        setAgeMin('');
+        setAgeMax('');
+        setSkillLevel('Any Level');
+        setDescription('');
+      }
       setDirection('forward');
       setAnimating(false);
       setAnimStage('idle');
-      setDishType('regular');
-      setCategory('');
-      setJoinMode('auto');
-      setCapacity(4);
-      setUnlimitedCapacity(false);
-      setAreaName('Campus Court');
-      setGender('any');
-      setInstituteOnly(false);
-      setAgeMode('any');
-      setAgeMin('');
-      setAgeMax('');
-      setSkillLevel('Any Level');
-      setDescription('');
+      setShowSaveRecipeModal(false);
+      setRecipeName('');
+      setSaveRecipeError('');
+      setSaveRecipeSuccess(false);
     }
     return () => {
       if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
     };
-  }, [isOpen]);
+  }, [isOpen, initialRecipe]);
 
   if (!isOpen) return null;
 
@@ -414,6 +446,69 @@ export default function KitchenModal({
     onSubmitDish(payload);
   };
 
+  const handleSaveRecipeSubmit = async (e) => {
+    if (e) e.preventDefault();
+    const trimmed = (recipeName || '').trim();
+    if (!trimmed) {
+      setSaveRecipeError('Recipe name is required');
+      return;
+    }
+
+    setIsSavingRecipe(true);
+    setSaveRecipeError('');
+
+    let computedAgeMin = null;
+    let computedAgeMax = null;
+    if (ageMode === '18_plus') {
+      computedAgeMin = 18;
+    } else if (ageMode === 'under_18') {
+      computedAgeMax = 17;
+    } else if (ageMode === 'custom') {
+      computedAgeMin = ageMin ? Number(ageMin) : null;
+      computedAgeMax = ageMax ? Number(ageMax) : null;
+    }
+
+    const payload = {
+      name: trimmed,
+      description: description.trim(),
+      category: category || 'other',
+      type: dishType,
+      joinMode,
+      capacity: {
+        max: unlimitedCapacity ? 50 : Number(capacity) || 4,
+        unlimited: Boolean(unlimitedCapacity)
+      },
+      location: { areaName: areaName.trim() || 'Campus Court' },
+      eligibility: isChefsSpecial
+        ? {
+            gender,
+            age: {
+              min: computedAgeMin,
+              max: computedAgeMax
+            },
+            instituteOnly: Boolean(instituteOnly),
+            skillLevel: skillLevel === 'Any Level' ? null : skillLevel
+          }
+        : { gender: 'any', instituteOnly: false }
+    };
+
+    if (onSaveRecipe) {
+      const res = await onSaveRecipe(payload);
+      setIsSavingRecipe(false);
+      if (res && res.success) {
+        setShowSaveRecipeModal(false);
+        setRecipeName('');
+        setSaveRecipeSuccess(true);
+        setTimeout(() => setSaveRecipeSuccess(false), 4000);
+      } else {
+        setSaveRecipeError(res?.message || 'Failed to save recipe');
+      }
+    } else {
+      setIsSavingRecipe(false);
+      setShowSaveRecipeModal(false);
+    }
+  };
+
   const getTransitionStyle = () => {
     const isForward = direction === 'forward';
     
@@ -477,21 +572,26 @@ export default function KitchenModal({
   const canGoBack = !(mainStep === 1 && subStep === 1);
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.52)',
-        backdropFilter: 'blur(5px)',
-        WebkitBackdropFilter: 'blur(5px)',
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16
-      }}
-      onClick={onClose}
-    >
+    <>
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.52)',
+          backdropFilter: 'blur(5px)',
+          WebkitBackdropFilter: 'blur(5px)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 16
+        }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+      >
       {/* Sized Main Container (580px x 470px) - Spacious, zero scrolling */}
       <GlassContainer
         radius={28}
@@ -1252,6 +1352,37 @@ export default function KitchenModal({
                 >
                   Back
                 </FluidButton>
+
+                {/* Save as Recipe Option */}
+                <FluidButton
+                  type="button"
+                  onClick={() => {
+                    setSaveRecipeError('');
+                    setShowSaveRecipeModal(true);
+                  }}
+                  disabled={!description.trim() || isSubmitting}
+                  style={{
+                    padding: '7px 18px',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    color: '#09090b',
+                    border: '1px solid rgba(0, 0, 0, 0.12)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    opacity: !description.trim() ? 0.45 : 1,
+                    cursor: !description.trim() ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                  </svg>
+                  Save as Recipe
+                </FluidButton>
+
                 <FluidButton
                   type="button"
                   onClick={handleSubmit}
@@ -1270,8 +1401,211 @@ export default function KitchenModal({
             )}
           </div>
         </div>
+
+        {/* Success toast banner */}
+        {saveRecipeSuccess && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 18,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: '#09090b',
+              color: '#ffffff',
+              padding: '8px 18px',
+              borderRadius: 9999,
+              fontSize: 12.5,
+              fontWeight: 600,
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              zIndex: 1300
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Recipe saved successfully!
+          </div>
+        )}
       </GlassContainer>
     </div>
-  );
+
+    {/* Smaller popup modal for naming and saving recipe (independent z-index 1400 overlay) */}
+    {showSaveRecipeModal && (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.55)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          zIndex: 1400,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 16
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (e.target === e.currentTarget && !isSavingRecipe) {
+            setShowSaveRecipeModal(false);
+          }
+        }}
+      >
+        <GlassContainer
+          radius={24}
+          style={{ width: '100%', maxWidth: 430 }}
+          onClick={(e) => e.stopPropagation()}
+          innerStyle={{
+            padding: '24px 24px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+            boxSizing: 'border-box'
+          }}
+        >
+          {/* Header */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(0, 0, 0, 0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#09090b'
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#09090b' }}>
+                  Save as Recipe
+                </h3>
+                <p style={{ fontSize: 12, color: '#71717a', margin: '2px 0 0 0' }}>
+                  Save as a template for quick 1-click use
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSaveRecipeModal(false);
+              }}
+              disabled={isSavingRecipe}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 4,
+                cursor: 'pointer',
+                color: '#71717a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Input field & form */}
+          <form
+            onSubmit={handleSaveRecipeSubmit}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: '#3f3f46',
+                  marginBottom: 6,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em'
+                }}
+              >
+                Recipe Name <span style={{ color: '#ef4444' }}>*</span>
+              </label>
+              <input
+                type="text"
+                value={recipeName}
+                onChange={(e) => {
+                  setRecipeName(e.target.value);
+                  if (saveRecipeError) setSaveRecipeError('');
+                }}
+                onClick={(e) => e.stopPropagation()}
+                placeholder="e.g. Badminton Doubles, DSA Late Night..."
+                maxLength={60}
+                autoFocus
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  fontSize: 14,
+                  borderRadius: 12,
+                  border: saveRecipeError ? '1.5px solid #ef4444' : '1px solid rgba(0, 0, 0, 0.15)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  color: '#09090b',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+              {saveRecipeError && (
+                <p style={{ fontSize: 12, color: '#ef4444', margin: '6px 0 0 0', fontWeight: 500 }}>
+                  {saveRecipeError}
+                </p>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}
+            >
+              <FluidButton
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSaveRecipeModal(false);
+                }}
+                disabled={isSavingRecipe}
+                style={{ padding: '7px 16px', fontSize: 13, fontWeight: 500 }}
+              >
+                Cancel
+              </FluidButton>
+              <FluidButton
+                type="submit"
+                disabled={!recipeName.trim() || isSavingRecipe}
+                style={{
+                  padding: '7px 20px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  opacity: !recipeName.trim() || isSavingRecipe ? 0.45 : 1
+                }}
+              >
+                {isSavingRecipe ? 'Saving...' : 'Save Recipe'}
+              </FluidButton>
+            </div>
+          </form>
+        </GlassContainer>
+      </div>
+    )}
+  </>
+);
 }
 

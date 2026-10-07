@@ -8,6 +8,8 @@ export default function HomeDashboard({
   user,
   dishes = [],
   connections = [],
+  recipes = [],
+  onDeleteRecipe,
   onOpenKitchenModal,
   onJoinDish,
   onExploreDineIn,
@@ -15,6 +17,67 @@ export default function HomeDashboard({
   onViewProfile
 }) {
   const [historyFilter, setHistoryFilter] = useState('all'); // 'all' | 'hosted' | 'joined'
+
+  // Category vector icon helper for Saved Recipes
+  const getCategoryIcon = (category) => {
+    const cat = (category || '').toLowerCase();
+    if (cat === 'sport') {
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24" />
+        </svg>
+      );
+    }
+    if (cat === 'study') {
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+      );
+    }
+    if (cat === 'travel') {
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 3c-.1.2-.1.4-.1.6v4.5c0 .6.4 1 1 1h2" />
+          <circle cx="7" cy="17" r="2" />
+          <circle cx="17" cy="17" r="2" />
+        </svg>
+      );
+    }
+    if (cat === 'food') {
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 2v20" />
+          <path d="M6 2v7a3 3 0 0 0 3 3h0a3 3 0 0 0 3-3V2" />
+          <path d="M9 12v10" />
+        </svg>
+      );
+    }
+    if (cat === 'gaming') {
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="6" width="20" height="12" rx="6" />
+          <path d="M6 12h4m-2-2v4m9-2h.01m3-2h.01" />
+        </svg>
+      );
+    }
+    if (cat === 'social') {
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+        </svg>
+      );
+    }
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <polygon points="12 6 15 11 20 12 16 16 17 21 12 18 7 21 8 16 4 12 9 11 12 6" />
+      </svg>
+    );
+  };
 
   // Time-aware greeting
   const greeting = useMemo(() => {
@@ -711,101 +774,213 @@ export default function HomeDashboard({
       </div>
 
       {/* ========================================================= */}
-      {/* 4. QUICK ACTIVITY SHORTCUTS (1-Click Starters)            */}
+      {/* 4. SAVED RECIPES (Quick-Use Templates)                     */}
       {/* ========================================================= */}
       <div style={{ marginBottom: 38 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#71717a', margin: 0 }}>
-            Quick Starters
-          </h3>
-          <span style={{ fontSize: 12, color: '#a1a1aa' }}>1-Click Templates</span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-          {[
-            {
-              title: 'Badminton Doubles',
-              subtitle: 'Indoor Court 2',
-              category: 'sport',
-              icon: (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24" />
-                </svg>
-              )
-            },
-            {
-              title: 'DSA Study Room',
-              subtitle: 'Central Library',
-              category: 'study',
-              icon: (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                </svg>
-              )
-            },
-            {
-              title: 'Cafe Iced Latte Run',
-              subtitle: 'Campus Square Cafe',
-              category: 'social',
-              icon: (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                  <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-                </svg>
-              )
-            },
-            {
-              title: 'Smash / FIFA Chill',
-              subtitle: 'Hostel Lounge',
-              category: 'gaming',
-              icon: (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="6" width="20" height="12" rx="6" />
-                  <path d="M6 12h4m-2-2v4m9-2h.01m3-2h.01" />
-                </svg>
-              )
-            }
-          ].map((starter, idx) => (
-            <GlassContainer
-              key={idx}
-              as="button"
-              radius={18}
-              onClick={() => onOpenKitchenModal && onOpenKitchenModal(starter.category)}
-              innerStyle={{
-                padding: '16px 18px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-                cursor: 'pointer'
-              }}
-            >
-              <div
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#71717a', margin: 0 }}>
+              Saved Recipes
+            </h3>
+            {recipes && recipes.length > 0 && (
+              <span
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#09090b'
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: '2px 7px',
+                  borderRadius: 9999,
+                  backgroundColor: 'rgba(0, 0, 0, 0.06)',
+                  color: '#52525b'
                 }}
               >
-                {starter.icon}
-              </div>
-              <div>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#09090b', lineHeight: 1.25 }}>
-                  {starter.title}
-                </div>
-                <div style={{ fontSize: 11.5, color: '#71717a', marginTop: 2 }}>
-                  {starter.subtitle}
-                </div>
-              </div>
-            </GlassContainer>
-          ))}
+                {recipes.length}
+              </span>
+            )}
+          </div>
+          {recipes && recipes.length > 0 && (
+            <button
+              onClick={() => onOpenKitchenModal && onOpenKitchenModal()}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#09090b',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4
+              }}
+            >
+              + New Recipe
+            </button>
+          )}
         </div>
+
+        {!recipes || recipes.length === 0 ? (
+          <GlassContainer
+            radius={20}
+            style={{ width: '100%' }}
+            innerStyle={{
+              padding: '28px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              gap: 12
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#18181b'
+              }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                <line x1="12" y1="6" x2="12" y2="12" />
+                <line x1="9" y1="9" x2="15" y2="9" />
+              </svg>
+            </div>
+            <div>
+              <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px 0', color: '#09090b' }}>
+                No saved recipes yet
+              </h4>
+              <p style={{ fontSize: 13, color: '#71717a', margin: 0, maxWidth: 360, lineHeight: 1.4 }}>
+                Save your favorite activities as recipes to quickly launch them on campus anytime with one click.
+              </p>
+            </div>
+            <FluidButton
+              onClick={() => onOpenKitchenModal && onOpenKitchenModal()}
+              style={{
+                padding: '8px 22px',
+                fontSize: 13,
+                fontWeight: 600,
+                marginTop: 4,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Let's make your First Recipe
+            </FluidButton>
+          </GlassContainer>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
+            {recipes.map((recipe) => (
+              <GlassContainer
+                key={recipe._id}
+                as="div"
+                radius={18}
+                onClick={() => onOpenKitchenModal && onOpenKitchenModal(recipe.category, recipe)}
+                innerStyle={{
+                  padding: '16px 18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  cursor: 'pointer',
+                  position: 'relative',
+                  height: '100%',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 10,
+                      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#09090b'
+                    }}
+                  >
+                    {getCategoryIcon(recipe.category)}
+                  </div>
+                  {onDeleteRecipe && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Delete saved recipe "${recipe.name}"?`)) {
+                          onDeleteRecipe(recipe._id);
+                        }
+                      }}
+                      title="Delete recipe"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 4,
+                        cursor: 'pointer',
+                        color: '#a1a1aa',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 6,
+                        transition: 'color 0.15s ease'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#a1a1aa')}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#09090b', lineHeight: 1.25 }}>
+                    {recipe.name}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: '#71717a', marginTop: 3 }}>
+                    {recipe.location?.areaName || 'Campus Court'} • <span style={{ textTransform: 'capitalize' }}>{recipe.category}</span>
+                  </div>
+                  {recipe.description && (
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: '#52525b',
+                        marginTop: 6,
+                        lineHeight: 1.35,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical'
+                      }}
+                    >
+                      {recipe.description}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ paddingTop: 4, borderTop: '1px solid rgba(0, 0, 0, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#71717a' }}>
+                    {recipe.capacity?.unlimited ? '∞ spots' : `${recipe.capacity?.max || 4} spots`}
+                  </span>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: '#09090b', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    Cook <span>→</span>
+                  </span>
+                </div>
+              </GlassContainer>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ========================================================= */}

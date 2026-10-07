@@ -12,6 +12,7 @@ const connectionRoutes = require('./routes/connection.routes');
 const messageRoutes = require('./routes/message.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const safetyRoutes = require('./routes/safety.routes');
+const recipeRoutes = require('./routes/recipe.routes');
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use('/api/connections', connectionRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/safety', safetyRoutes);
+app.use('/api/recipes', recipeRoutes);
 
 // Centralized Error Handling
 app.use(errorHandler);

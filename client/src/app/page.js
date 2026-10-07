@@ -436,9 +436,10 @@ export default function App() {
   const [editAvatar, setEditAvatar] = useState('');
   const [profileActiveTab, setProfileActiveTab] = useState('dishes'); // 'dishes' | 'joined' | 'awards'
   const [searchUsername, setSearchUsername] = useState('');
-  const [searchedProfile, setSearchedProfile] = useState(null);
   const [connections, setConnections] = useState([]);
   const [showConnectionsModal, setShowConnectionsModal] = useState(false);
+  const [recipes, setRecipes] = useState([]);
+  const [selectedRecipeForKitchen, setSelectedRecipeForKitchen] = useState(null);
 
   // Privacy Settings form states
   const [bioVisibility, setBioVisibility] = useState('everyone');
@@ -662,9 +663,50 @@ export default function App() {
     }
   };
 
+  const fetchRecipes = async () => {
+    try {
+      const res = await apiFetch('/recipes');
+      if (res && res.data) {
+        setRecipes(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch recipes:', err);
+    }
+  };
+
+  const handleSaveRecipe = async (recipeData) => {
+    try {
+      const res = await apiFetch('/recipes', {
+        method: 'POST',
+        body: JSON.stringify(recipeData)
+      });
+      if (res && res.data) {
+        setRecipes((prev) => [res.data, ...prev.filter((r) => r._id !== res.data._id)]);
+        setMessage(`Recipe "${res.data.name}" saved!`);
+        return { success: true, data: res.data };
+      }
+      return { success: false, message: 'Failed to save recipe' };
+    } catch (err) {
+      return { success: false, message: err.message || 'Failed to save recipe' };
+    }
+  };
+
+  const handleDeleteRecipe = async (recipeId) => {
+    try {
+      await apiFetch(`/recipes/${recipeId}`, { method: 'DELETE' });
+      setRecipes((prev) => prev.filter((r) => r._id !== recipeId));
+      setMessage('Recipe deleted successfully');
+    } catch (err) {
+      setError(err.message || 'Failed to delete recipe');
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
-    if (activeTab === 'home' || activeTab === 'dine-in' || activeTab === 'global') fetchDishes();
+    if (activeTab === 'home' || activeTab === 'dine-in' || activeTab === 'global') {
+      fetchDishes();
+      fetchRecipes();
+    }
     if (activeTab === 'messages') fetchConversations();
     if (activeTab === 'profile') {
       fetchConnections();
@@ -1565,8 +1607,11 @@ export default function App() {
           user={user}
           dishes={visibleDishes}
           connections={connections}
-          onOpenKitchenModal={(category) => {
+          recipes={recipes}
+          onDeleteRecipe={handleDeleteRecipe}
+          onOpenKitchenModal={(category, recipe) => {
             if (category) setCategoryFilter(category);
+            setSelectedRecipeForKitchen(recipe || null);
             setShowKitchenModal(true);
           }}
           onJoinDish={handleJoinDish}
@@ -3145,8 +3190,13 @@ export default function App() {
       {/* ========================================================= */}
       <KitchenModal
         isOpen={showKitchenModal}
-        onClose={() => setShowKitchenModal(false)}
+        onClose={() => {
+          setShowKitchenModal(false);
+          setSelectedRecipeForKitchen(null);
+        }}
         onSubmitDish={handleCreateDish}
+        onSaveRecipe={handleSaveRecipe}
+        initialRecipe={selectedRecipeForKitchen}
         isSubmitting={isSubmittingDish}
       />
 
