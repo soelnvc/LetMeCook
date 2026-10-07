@@ -5,6 +5,32 @@ import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import EmojiPicker from './EmojiPicker';
 
+const isOnlyEmojis = (text) => {
+  if (!text || typeof text !== 'string') return false;
+  const clean = text.trim();
+  if (!clean) return false;
+  const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Modifier}|\u200d|\ufe0f|\s)+$/u;
+  return emojiRegex.test(clean);
+};
+
+const getEmojiFontSize = (text) => {
+  if (!text) return 48;
+  try {
+    const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+    const segments = Array.from(segmenter.segment(text.trim())).filter((s) => s.segment.trim());
+    const count = segments.length;
+    if (count <= 1) return 50; // Big standalone emoji like Instagram & Telegram
+    if (count === 2) return 40;
+    if (count === 3) return 34;
+    return 28;
+  } catch {
+    const len = [...text.trim()].length;
+    if (len <= 2) return 50;
+    if (len <= 4) return 40;
+    return 30;
+  }
+};
+
 export default function MessageArea({
   currentUser,
   activeUser,
@@ -241,8 +267,36 @@ export default function MessageArea({
                 const isFromCurrentUser = (m.sender?._id || m.sender?.username || m.sender) === (currentUser?._id || currentUser?.username);
                 // When in recipient view mode, invert the perspective so the incoming message appears on the left
                 const isBubbleMe = showRecipientView ? !isFromCurrentUser : isFromCurrentUser;
+                const isEmojiMsg = isOnlyEmojis(m.content);
+                const emojiSize = isEmojiMsg ? getEmojiFontSize(m.content) : 15;
 
                 if (isBubbleMe) {
+                  // Instagram / Telegram style: Standalone emoji without bubble container
+                  if (isEmojiMsg) {
+                    return (
+                      <div
+                        key={m._id}
+                        style={{
+                          alignSelf: 'flex-end',
+                          padding: '4px 6px',
+                          fontSize: emojiSize,
+                          lineHeight: 1.15,
+                          userSelect: 'none',
+                          marginBottom: 4,
+                          transition: 'transform 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.12)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        {m.content}
+                      </div>
+                    );
+                  }
+
                   return (
                     <GlassContainer
                       key={m._id}
@@ -260,6 +314,79 @@ export default function MessageArea({
                   );
                 } else {
                   const bubbleUser = showRecipientView ? currentUser : activeUser;
+
+                  // Instagram / Telegram style: Standalone emoji without bubble container
+                  if (isEmojiMsg) {
+                    return (
+                      <div
+                        key={m._id}
+                        style={{
+                          alignSelf: 'flex-start',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12,
+                          marginBottom: 4
+                        }}
+                      >
+                        <div
+                          onClick={() => {
+                            if (onViewProfile && bubbleUser) onViewProfile(bubbleUser);
+                          }}
+                          style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0 }}
+                          title={onViewProfile ? `View @${bubbleUser?.username}'s profile` : ''}
+                        >
+                          {bubbleUser?.avatar ? (
+                            <img
+                              src={bubbleUser.avatar}
+                              alt={bubbleUser.name || 'User'}
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                                display: 'block',
+                                border: '1px solid rgba(0, 0, 0, 0.08)'
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: '50%',
+                                backgroundColor: '#8257e5',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#fff',
+                                fontSize: 13,
+                                fontWeight: 'bold'
+                              }}
+                            >
+                              {(bubbleUser?.name || bubbleUser?.username || 'U')[0].toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div
+                          style={{
+                            padding: '4px 6px',
+                            fontSize: emojiSize,
+                            lineHeight: 1.15,
+                            userSelect: 'none',
+                            transition: 'transform 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.12)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                        >
+                          {m.content}
+                        </div>
+                      </div>
+                    );
+                  }
 
                   return (
                     <div

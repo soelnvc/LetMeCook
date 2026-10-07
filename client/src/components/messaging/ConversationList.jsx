@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
-import EmojiPicker from './EmojiPicker';
 
 const formatInstagramTime = (dateStr) => {
   if (!dateStr) return '';
@@ -29,10 +28,7 @@ export default function ConversationList({
   setMessagesTab,
   searchQuery,
   setSearchQuery,
-  onRespondRequest
 }) {
-  const [showSearchEmoji, setShowSearchEmoji] = useState(false);
-
   // Filter and sort conversations by newest activity descending (newest chat always on top!)
   const filteredList = conversations
     .filter((c) => {
@@ -152,14 +148,8 @@ export default function ConversationList({
         </GlassContainer>
       </div>
 
-      {/* Pill Search Bar with Emoji Button */}
-      <div style={{ padding: '14px 20px 8px 20px', position: 'relative' }}>
-        <EmojiPicker
-          isOpen={showSearchEmoji}
-          onClose={() => setShowSearchEmoji(false)}
-          onSelectEmoji={(emoji) => setSearchQuery((prev) => prev + emoji)}
-          position="top"
-        />
+      {/* Pill Search Bar */}
+      <div style={{ padding: '14px 20px 8px 20px' }}>
         <GlassContainer
           radius={9999}
           innerStyle={{
@@ -215,25 +205,6 @@ export default function ConversationList({
               ✕
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => setShowSearchEmoji((prev) => !prev)}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              fontSize: 15,
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: showSearchEmoji ? 1 : 0.7,
-              transition: 'transform 0.15s ease, opacity 0.15s ease'
-            }}
-            title="Add emoji"
-          >
-            😊
-          </button>
         </GlassContainer>
       </div>
 
