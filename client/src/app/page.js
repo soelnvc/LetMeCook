@@ -2231,6 +2231,18 @@ export default function App() {
               throw err;
             }
           }}
+          onUserReload={(newUser) => {
+            setUser(newUser);
+            if (newUser.name !== undefined) setProfileName(newUser.name);
+            if (newUser.pronouns !== undefined) setPronouns(newUser.pronouns);
+            if (newUser.bio !== undefined) setBio(newUser.bio);
+            if (newUser.interests !== undefined) setInterests(newUser.interests);
+            if (newUser.avatar !== undefined) setEditAvatar(newUser.avatar);
+            if (newUser.institute?.name !== undefined) setInstituteName(newUser.institute.name || '');
+            if (newUser.institute?.year !== undefined) setInstituteYear(newUser.institute.year ? String(newUser.institute.year) : '');
+            if (newUser.secondaryInstitute?.name !== undefined) setSecondaryInstituteName(newUser.secondaryInstitute.name || '');
+            if (newUser.secondaryInstitute?.year !== undefined) setSecondaryInstituteYear(newUser.secondaryInstitute.year ? String(newUser.secondaryInstitute.year) : '');
+          }}
           onOpenEditProfile={() => setSettingsSection('edit_profile')}
           themePreference={themePreference}
           onThemeChange={(newTheme) => setThemePreference(newTheme)}

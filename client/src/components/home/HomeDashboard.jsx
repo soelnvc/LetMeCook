@@ -88,7 +88,7 @@ export default function HomeDashboard({
   }, []);
 
   const displayName = user?.name?.split(' ')[0] || user?.username || 'Sid';
-  const instituteName = user?.institute?.name || 'IIT Madras';
+  const instituteName = user?.institute?.name || '';
 
   // Top Picks for the user: "Things you might actually want to do."
   const topPicks = useMemo(() => {
@@ -923,9 +923,10 @@ export default function HomeDashboard({
             </p>
           </div>
 
-          {/* History Sub-Filter (All / Hosted / Joined) with GlassContainer & FluidButton */}
+          {/* History Sub-Filter (All / Hosted / Joined) with Dine In solid black selector style */}
           <GlassContainer
             radius={9999}
+            style={{ display: 'inline-flex' }}
             innerStyle={{
               display: 'inline-flex',
               padding: 4,
@@ -940,21 +941,41 @@ export default function HomeDashboard({
             ].map((tab) => {
               const isActive = historyFilter === tab.id;
               return (
-                <FluidButton
+                <button
                   key={tab.id}
+                  type="button"
                   onClick={() => setHistoryFilter(tab.id)}
                   style={{
-                    padding: '5px 14px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '7px 16px',
                     borderRadius: 9999,
-                    fontSize: 12,
-                    fontWeight: isActive ? 700 : 500,
-                    backgroundColor: isActive ? '#09090b' : 'transparent',
+                    border: 'none',
+                    fontSize: 12.5,
+                    fontWeight: isActive ? 600 : 500,
+                    cursor: 'pointer',
+                    background: isActive ? '#09090b' : 'transparent',
                     color: isActive ? '#ffffff' : '#52525b',
-                    boxShadow: isActive ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none'
+                    boxShadow: isActive ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none',
+                    transition: 'all 0.18s ease',
+                    fontFamily: 'inherit'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                      e.currentTarget.style.color = '#18181b';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = '#52525b';
+                    }
                   }}
                 >
                   {tab.label}
-                </FluidButton>
+                </button>
               );
             })}
           </GlassContainer>

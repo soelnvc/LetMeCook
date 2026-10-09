@@ -3,8 +3,14 @@ const User = require('../models/User');
 const Connection = require('../models/Connection');
 const Dish = require('../models/Dish');
 const Report = require('../models/Report');
+const { calculateUserStats } = require('./auth.service');
 
 const updateProfile = async (userId, updateData) => {
+  const existingUser = await User.findById(userId);
+  if (!existingUser) {
+    throw new Error('User not found');
+  }
+
   const allowedUpdates = [
     'name',
     'pronouns',
@@ -18,9 +24,15 @@ const updateProfile = async (userId, updateData) => {
     'gender',
     'mobile',
     'email',
-    'address'
+    'address',
+    'verifiedInstitutes'
   ];
   const updatePayload = {};
+
+  const verifiedNames = (existingUser.verifiedInstitutes || []).map((v) => v.name.toLowerCase());
+  if (existingUser.institute?.name && existingUser.institute?.verified) {
+    verifiedNames.push(existingUser.institute.name.toLowerCase());
+  }
 
   for (const key of allowedUpdates) {
     if (updateData[key] !== undefined) {
@@ -33,6 +45,39 @@ const updateProfile = async (userId, updateData) => {
         for (const [pKey, pVal] of Object.entries(updateData.privacy)) {
           updatePayload[`privacy.${pKey}`] = pVal;
         }
+      } else if (key === 'institute') {
+        if (!updateData.institute || !updateData.institute.name) {
+          updatePayload['institute.name'] = null;
+          updatePayload['institute.year'] = null;
+          updatePayload['institute.verified'] = false;
+        } else {
+          const reqName = String(updateData.institute.name).trim();
+          if (!verifiedNames.includes(reqName.toLowerCase())) {
+            throw new Error(`You are not verified by ${reqName}. You can only select from your verified institutions.`);
+          }
+          const matched = (existingUser.verifiedInstitutes || []).find(
+            (v) => v.name.toLowerCase() === reqName.toLowerCase()
+          );
+          updatePayload['institute.name'] = matched ? matched.name : reqName;
+          updatePayload['institute.year'] = Number(updateData.institute.year) || (matched ? matched.year : null) || existingUser.institute?.year || null;
+          updatePayload['institute.verified'] = true;
+          updatePayload['verification.institute'] = true;
+        }
+      } else if (key === 'secondaryInstitute') {
+        if (!updateData.secondaryInstitute || !updateData.secondaryInstitute.name) {
+          updatePayload['secondaryInstitute.name'] = null;
+          updatePayload['secondaryInstitute.year'] = null;
+        } else {
+          const reqName = String(updateData.secondaryInstitute.name).trim();
+          if (!verifiedNames.includes(reqName.toLowerCase())) {
+            throw new Error(`You are not verified by ${reqName}. You can only select from your verified institutions.`);
+          }
+          const matched = (existingUser.verifiedInstitutes || []).find(
+            (v) => v.name.toLowerCase() === reqName.toLowerCase()
+          );
+          updatePayload['secondaryInstitute.name'] = matched ? matched.name : reqName;
+          updatePayload['secondaryInstitute.year'] = Number(updateData.secondaryInstitute.year) || (matched ? matched.year : null) || null;
+        }
       } else {
         updatePayload[key] = updateData[key];
       }
@@ -40,7 +85,10 @@ const updateProfile = async (userId, updateData) => {
   }
 
   const updatedUser = await User.findByIdAndUpdate(userId, { $set: updatePayload }, { new: true });
-  return updatedUser;
+  const stats = await calculateUserStats(updatedUser._id);
+  const userObj = updatedUser.toObject();
+  userObj.stats = stats;
+  return userObj;
 };
 
 const getPublicProfile = async (username, requesterId) => {

@@ -169,6 +169,66 @@ function CustomSelect({ value, onChange, options, style = {} }) {
 }
 
 /**
+ * SegmentedSelector taking reference from Dine In selector (solid black active pill)
+ */
+function SegmentedSelector({ options, value, onChange, style = {} }) {
+  return (
+    <GlassContainer
+      radius={9999}
+      style={{ display: 'inline-flex', maxWidth: '100%', overflowX: 'auto', ...style }}
+      innerStyle={{
+        display: 'inline-flex',
+        padding: 4,
+        gap: 4,
+        boxSizing: 'border-box'
+      }}
+    >
+      {options.map((opt) => {
+        const isSelected = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 15px',
+              borderRadius: 9999,
+              border: 'none',
+              fontSize: 12.5,
+              fontWeight: isSelected ? 600 : 500,
+              cursor: 'pointer',
+              background: isSelected ? '#09090b' : 'transparent',
+              color: isSelected ? '#ffffff' : '#52525b',
+              boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none',
+              transition: 'all 0.18s ease',
+              whiteSpace: 'nowrap',
+              fontFamily: 'inherit'
+            }}
+            onMouseEnter={(e) => {
+              if (!isSelected) {
+                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.color = '#18181b';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isSelected) {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#52525b';
+              }
+            }}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </GlassContainer>
+  );
+}
+
+/**
  * Custom Toggle Switch (eliminates native HTML checkboxes)
  */
 function CustomToggle({ checked, onChange, id }) {
@@ -211,33 +271,15 @@ function CustomToggle({ checked, onChange, id }) {
 }
 
 /**
- * Selection Pills using FluidButton:
- * When selected: container is bigger (larger padding) and text is bigger and bolder,
- * with NO black borders or solid black box fills.
+ * PrivacySelectionPills using SegmentedSelector (solid black active pill like Dine In)
  */
 function PrivacySelectionPills({ options, value, onChange }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-      {options.map((opt) => {
-        const isSelected = value === opt.value;
-        return (
-          <FluidButton
-            key={opt.value}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            style={{
-              padding: isSelected ? '9px 18px' : '6px 13px',
-              fontSize: isSelected ? 13 : 12,
-              fontWeight: isSelected ? 800 : 500,
-              color: isSelected ? '#09090b' : '#52525b',
-              transition: 'all 0.18s ease'
-            }}
-          >
-            {opt.label}
-          </FluidButton>
-        );
-      })}
-    </div>
+    <SegmentedSelector
+      options={options}
+      value={value}
+      onChange={onChange}
+    />
   );
 }
 
@@ -245,6 +287,7 @@ export default function SettingsPage({
   user,
   onLogout,
   onUpdateUser,
+  onUserReload,
   onOpenEditProfile,
   initialSection = 'privacy',
   onSectionChange,
@@ -270,6 +313,26 @@ export default function SettingsPage({
 
   const isAdult = Boolean(user && user.age !== undefined && user.age !== null && Number(user.age) >= 18);
 
+  // Verified Institutes calculation
+  const verifiedInstitutes = useMemo(() => {
+    const list = Array.isArray(user?.verifiedInstitutes) ? [...user.verifiedInstitutes] : [];
+    if (
+      user?.institute?.name &&
+      (user?.institute?.verified || user?.verification?.institute) &&
+      !list.some((v) => v.name.toLowerCase() === user.institute.name.toLowerCase())
+    ) {
+      list.push({
+        name: user.institute.name,
+        year: user.institute.year || null,
+        verifiedAt: user.institute.verifiedAt || new Date(),
+        status: 'verified'
+      });
+    }
+    return list;
+  }, [user]);
+
+  const hasVerifiedInstitutes = verifiedInstitutes.length > 0;
+
   // Profile Settings States
   const [profileName, setProfileName] = useState(user?.name || '');
   const [pronouns, setPronouns] = useState(user?.pronouns || 'He/Him');
@@ -277,12 +340,30 @@ export default function SettingsPage({
   const [interests, setInterests] = useState(user?.interests || ['music', 'Gym', 'Sports', 'Anime', 'Coffee']);
   const [newTagInput, setNewTagInput] = useState('');
   const [editAvatar, setEditAvatar] = useState(user?.avatar || '');
-  const [instituteName, setInstituteName] = useState(user?.institute?.name || 'IIT MADRAS');
-  const [instituteYear, setInstituteYear] = useState(user?.institute?.year ? String(user.institute.year) : '2029');
-  const [secondaryInstituteName, setSecondaryInstituteName] = useState(user?.secondaryInstitute?.name || 'SST');
-  const [secondaryInstituteYear, setSecondaryInstituteYear] = useState(user?.secondaryInstitute?.year ? String(user.secondaryInstitute.year) : '2029');
+
+  const [instituteName, setInstituteName] = useState(
+    user?.institute?.verified || user?.verification?.institute ? (user?.institute?.name || '') : ''
+  );
+  const [instituteYear, setInstituteYear] = useState(
+    user?.institute?.year ? String(user.institute.year) : ''
+  );
+  const [secondaryInstituteName, setSecondaryInstituteName] = useState(
+    user?.secondaryInstitute?.name || ''
+  );
+  const [secondaryInstituteYear, setSecondaryInstituteYear] = useState(
+    user?.secondaryInstitute?.year ? String(user.secondaryInstitute.year) : ''
+  );
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const avatarFileInputRef = useRef(null);
+
+  // Verification Modal State
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verifyInstName, setVerifyInstName] = useState('');
+  const [verifyInstEmail, setVerifyInstEmail] = useState('');
+  const [verifyInstYear, setVerifyInstYear] = useState('');
+  const [verifyInstCourse, setVerifyInstCourse] = useState('');
+  const [isSubmittingVerification, setIsSubmittingVerification] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -291,10 +372,36 @@ export default function SettingsPage({
       if (user.bio !== undefined) setBio(user.bio || '');
       if (user.interests !== undefined) setInterests(user.interests || ['music', 'Gym', 'Sports', 'Anime', 'Coffee']);
       if (user.avatar !== undefined) setEditAvatar(user.avatar || '');
-      if (user.institute?.name !== undefined) setInstituteName(user.institute.name);
-      if (user.institute?.year !== undefined) setInstituteYear(String(user.institute.year));
-      if (user.secondaryInstitute?.name !== undefined) setSecondaryInstituteName(user.secondaryInstitute.name);
-      if (user.secondaryInstitute?.year !== undefined) setSecondaryInstituteYear(String(user.secondaryInstitute.year));
+
+      const isVerified = Boolean(
+        user.institute?.verified ||
+        user.verification?.institute ||
+        (user.verifiedInstitutes && user.verifiedInstitutes.length > 0)
+      );
+
+      if (isVerified && user.institute?.name) {
+        setInstituteName(user.institute.name);
+      } else {
+        setInstituteName('');
+      }
+
+      if (user.institute?.year) {
+        setInstituteYear(String(user.institute.year));
+      } else {
+        setInstituteYear('');
+      }
+
+      if (isVerified && user.secondaryInstitute?.name) {
+        setSecondaryInstituteName(user.secondaryInstitute.name);
+      } else {
+        setSecondaryInstituteName('');
+      }
+
+      if (user.secondaryInstitute?.year) {
+        setSecondaryInstituteYear(String(user.secondaryInstitute.year));
+      } else {
+        setSecondaryInstituteYear('');
+      }
     }
   }, [user]);
 
@@ -343,22 +450,79 @@ export default function SettingsPage({
         bio,
         interests,
         avatar: editAvatar || user?.avatar || null,
-        institute: { name: instituteName, year: Number(instituteYear) || 2029 },
-        secondaryInstitute: { name: secondaryInstituteName, year: Number(secondaryInstituteYear) || 2029 }
+        institute: instituteName
+          ? { name: instituteName, year: instituteYear ? Number(instituteYear) : null }
+          : { name: null, year: null },
+        secondaryInstitute: secondaryInstituteName
+          ? { name: secondaryInstituteName, year: secondaryInstituteYear ? Number(secondaryInstituteYear) : null }
+          : { name: null, year: null }
       };
       if (onUpdateUser) {
         await onUpdateUser(payload);
       } else {
-        await apiFetch('/users/me', {
+        const res = await apiFetch('/users/me', {
           method: 'PATCH',
           body: JSON.stringify(payload)
         });
+        if (onUserReload && res.data) onUserReload(res.data);
       }
       triggerSuccess('Profile changes applied successfully');
     } catch (err) {
       triggerSuccess(err.message || 'Failed to update profile');
     } finally {
       setIsSavingProfile(false);
+    }
+  };
+
+  const handleVerifySubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const cleanName = verifyInstName.trim();
+    const cleanEmail = verifyInstEmail.trim().toLowerCase();
+
+    if (!cleanName) {
+      setVerifyError('Please enter your university or college name.');
+      return;
+    }
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setVerifyError('Please enter a valid academic/institutional email address.');
+      return;
+    }
+
+    setIsSubmittingVerification(true);
+    setVerifyError('');
+
+    try {
+      const res = await apiFetch('/safety/verifications/institute', {
+        method: 'POST',
+        body: JSON.stringify({
+          instituteName: cleanName,
+          instituteEmail: cleanEmail,
+          course: verifyInstCourse.trim() || undefined,
+          year: verifyInstYear ? Number(verifyInstYear) : undefined
+        })
+      });
+
+      const updatedUser = res.data?.user;
+      if (updatedUser) {
+        setInstituteName(updatedUser.institute?.name || cleanName);
+        if (updatedUser.institute?.year) {
+          setInstituteYear(String(updatedUser.institute.year));
+        }
+        if (onUserReload) {
+          onUserReload(updatedUser);
+        }
+      }
+
+      triggerSuccess(`Successfully verified with ${cleanName}!`);
+      setShowVerificationModal(false);
+      setVerifyInstName('');
+      setVerifyInstEmail('');
+      setVerifyInstYear('');
+      setVerifyInstCourse('');
+    } catch (err) {
+      setVerifyError(err.message || 'Verification failed. Please check your credentials.');
+    } finally {
+      setIsSubmittingVerification(false);
     }
   };
 
@@ -927,33 +1091,75 @@ export default function SettingsPage({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {sec.items.map((item) => {
                       const isActive = activeSection === item.id;
+                      if (isActive) {
+                        return (
+                          <GlassContainer
+                            key={item.id}
+                            radius={12}
+                            style={{ width: '100%' }}
+                            innerStyle={{
+                              padding: 0,
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            <FluidButton
+                              onClick={() => handleSelectSection(item.id)}
+                              style={{
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                gap: 10,
+                                padding: '9px 12px',
+                                borderRadius: 12,
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: '#09090b',
+                                border: 'none',
+                                background: 'transparent',
+                                boxShadow: 'none'
+                              }}
+                            >
+                              <span style={{ color: '#09090b', display: 'flex', flexShrink: 0 }}>
+                                {item.icon}
+                              </span>
+                              <span style={{ color: '#09090b', fontWeight: 700 }}>{item.label}</span>
+                            </FluidButton>
+                          </GlassContainer>
+                        );
+                      }
                       return (
                         <button
                           key={item.id}
+                          type="button"
                           onClick={() => handleSelectSection(item.id)}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 12,
+                            gap: 10,
                             padding: '9px 12px',
                             borderRadius: 12,
                             border: 'none',
-                            background: isActive ? '#09090b' : 'transparent',
-                            color: isActive ? '#ffffff' : '#27272a',
+                            background: 'transparent',
+                            color: '#52525b',
                             fontSize: 13,
-                            fontWeight: isActive ? 700 : 500,
+                            fontWeight: 500,
                             cursor: 'pointer',
                             textAlign: 'left',
-                            transition: 'all 0.15s ease'
+                            transition: 'all 0.15s ease',
+                            width: '100%',
+                            fontFamily: 'inherit'
                           }}
                           onMouseEnter={(e) => {
-                            if (!isActive) e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                            e.currentTarget.style.color = '#09090b';
                           }}
                           onMouseLeave={(e) => {
-                            if (!isActive) e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#52525b';
                           }}
                         >
-                          <span style={{ color: isActive ? '#ffffff' : '#09090b', display: 'flex' }}>
+                          <span style={{ color: '#71717a', display: 'flex', flexShrink: 0 }}>
                             {item.icon}
                           </span>
                           <span>{item.label}</span>
@@ -1177,70 +1383,228 @@ export default function SettingsPage({
 
                 {/* 3. Campus & Academic Affiliation */}
                 <GlassContainer radius={22} innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
-                    Campus & Academic Details
-                  </h3>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
-                        Primary Institute:
-                      </label>
-                      <CustomInput
-                        value={instituteName}
-                        onChange={(e) => setInstituteName(e.target.value)}
-                        placeholder="e.g. IIT MADRAS"
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
-                        Primary Batch Year:
-                      </label>
-                      <CustomInput
-                        type="number"
-                        value={instituteYear}
-                        onChange={(e) => setInstituteYear(e.target.value)}
-                        placeholder="2029"
-                      />
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#09090b' }}>
+                      Campus & Academic Details
+                    </h3>
+                    {hasVerifiedInstitutes ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            color: '#15803d',
+                            background: 'rgba(22, 163, 74, 0.08)',
+                            border: '1px solid rgba(22, 163, 74, 0.2)',
+                            padding: '3px 10px',
+                            borderRadius: 9999
+                          }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          Verified Member
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setVerifyError('');
+                            setShowVerificationModal(true);
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#f97316',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            padding: '4px 6px'
+                          }}
+                        >
+                          + Verify Another
+                        </button>
+                      </div>
+                    ) : (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: '#64748b',
+                          background: 'rgba(100, 116, 139, 0.08)',
+                          padding: '3px 10px',
+                          borderRadius: 9999
+                        }}
+                      >
+                        Not Verified
+                      </span>
+                    )}
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
-                        Secondary Institute:
-                      </label>
-                      <CustomInput
-                        value={secondaryInstituteName}
-                        onChange={(e) => setSecondaryInstituteName(e.target.value)}
-                        placeholder="e.g. SST"
-                      />
+                  {!hasVerifiedInstitutes ? (
+                    /* User has NO verified institute */
+                    <div
+                      style={{
+                        padding: '24px 20px',
+                        borderRadius: 16,
+                        background: 'rgba(0, 0, 0, 0.02)',
+                        border: '1px dashed rgba(0, 0, 0, 0.12)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        gap: 12
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: '50%',
+                          background: 'rgba(239, 68, 68, 0.08)',
+                          color: '#ef4444',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                          <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                        </svg>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: 14.5, fontWeight: 700, color: '#09090b', marginBottom: 4 }}>
+                          You are not verified by any Institution
+                        </div>
+                        <div style={{ fontSize: 12.5, color: '#71717a', maxWidth: 360, lineHeight: 1.45 }}>
+                          Verify your university or college credentials to display your institution and unlock campus-exclusive dishes.
+                        </div>
+                      </div>
+
+                      <FluidButton
+                        type="button"
+                        onClick={() => {
+                          setVerifyError('');
+                          setShowVerificationModal(true);
+                        }}
+                        style={{
+                          padding: '9px 24px',
+                          fontSize: 13,
+                          fontWeight: 700,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          marginTop: 2
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                        Get Verified
+                      </FluidButton>
                     </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
-                        Secondary Batch Year:
-                      </label>
-                      <CustomInput
-                        type="number"
-                        value={secondaryInstituteYear}
-                        onChange={(e) => setSecondaryInstituteYear(e.target.value)}
-                        placeholder="2029"
-                      />
-                    </div>
-                  </div>
+                  ) : (
+                    /* User HAS verified institute(s) - provide option to select with solid black Dine In style selector */
+                    <>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 8 }}>
+                            Primary Institute:
+                          </label>
+                          <SegmentedSelector
+                            value={instituteName}
+                            onChange={(val) => {
+                              setInstituteName(val);
+                              const matched = verifiedInstitutes.find((v) => v.name === val);
+                              if (matched && matched.year && !instituteYear) {
+                                setInstituteYear(String(matched.year));
+                              }
+                            }}
+                            options={[
+                              ...verifiedInstitutes.map((inst) => ({
+                                value: inst.name,
+                                label: `${inst.name}`
+                              })),
+                              { value: '', label: 'None' }
+                            ]}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
+                            Primary Batch Year:
+                          </label>
+                          <CustomInput
+                            type="number"
+                            value={instituteYear}
+                            onChange={(e) => setInstituteYear(e.target.value)}
+                            placeholder="e.g. 2028"
+                            style={{ maxWidth: 220 }}
+                          />
+                        </div>
+                      </div>
+
+                      {verifiedInstitutes.length > 1 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 6, borderTop: '1px solid rgba(0, 0, 0, 0.06)' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 8 }}>
+                              Secondary Institute (Optional):
+                            </label>
+                            <SegmentedSelector
+                              value={secondaryInstituteName}
+                              onChange={(val) => {
+                                setSecondaryInstituteName(val);
+                                const matched = verifiedInstitutes.find((v) => v.name === val);
+                                if (matched && matched.year && !secondaryInstituteYear) {
+                                  setSecondaryInstituteYear(String(matched.year));
+                                }
+                              }}
+                              options={[
+                                { value: '', label: 'None' },
+                                ...verifiedInstitutes
+                                  .filter((inst) => inst.name !== instituteName)
+                                  .map((inst) => ({
+                                    value: inst.name,
+                                    label: `${inst.name}`
+                                  }))
+                              ]}
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#09090b', marginBottom: 6 }}>
+                              Secondary Batch Year:
+                            </label>
+                            <CustomInput
+                              type="number"
+                              value={secondaryInstituteYear}
+                              onChange={(e) => setSecondaryInstituteYear(e.target.value)}
+                              placeholder="e.g. 2029"
+                              style={{ maxWidth: 220 }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </GlassContainer>
 
-                {/* Apply Changes Button */}
-                <div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: 6, paddingBottom: 16 }}>
+                {/* Apply Changes Button - normal grey glass FluidButton, aligned to right side */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6, paddingBottom: 16 }}>
                   <FluidButton
                     type="submit"
                     disabled={isSavingProfile}
                     style={{
                       padding: '11px 34px',
                       fontSize: 13.5,
-                      fontWeight: 700,
-                      background: '#09090b',
-                      color: '#ffffff'
+                      fontWeight: 700
                     }}
                   >
                     {isSavingProfile ? 'Applying Changes...' : 'Apply Changes'}
@@ -2043,7 +2407,7 @@ export default function SettingsPage({
                   </div>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 700 }}>@{user?.username || 'user'}</div>
-                    <div style={{ fontSize: 12, color: '#71717a' }}>{user?.institute?.name || 'IIT Madras'}</div>
+                    <div style={{ fontSize: 12, color: '#71717a' }}>{user?.institute?.name || (hasVerifiedInstitutes ? verifiedInstitutes[0].name : 'Not verified')}</div>
                     <label
                       style={{
                         display: 'inline-block',
@@ -2072,7 +2436,7 @@ export default function SettingsPage({
                               if (w > h) {
                                 if (w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
                               } else {
-                                if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+                                if (h > maxDim) { h = Math.round((h * maxDim) / h); h = maxDim; }
                               }
                               canvas.width = w; canvas.height = h;
                               const ctx = canvas.getContext('2d');
@@ -2178,48 +2542,116 @@ export default function SettingsPage({
 
                 {/* Verification Status Card */}
                 <GlassContainer radius={22} innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
-                    Campus & Identity Verification
-                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
+                      Campus & Identity Verification
+                    </h3>
+                    {hasVerifiedInstitutes && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVerifyError('');
+                          setShowVerificationModal(true);
+                        }}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#f97316',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          padding: '4px 6px'
+                        }}
+                      >
+                        + Add Institution
+                      </button>
+                    )}
+                  </div>
 
-                  {/* Institute Verification */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px 14px',
-                      borderRadius: 14,
-                      background: 'rgba(22, 163, 74, 0.08)',
-                      border: '1px solid rgba(22, 163, 74, 0.2)'
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: 13.5, fontWeight: 700, color: '#15803d', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                          <polyline points="22 4 12 14.01 9 11.01" />
-                        </svg>
-                        Institute Verified: {user?.institute?.name || 'IIT Madras'}
-                      </div>
-                      <div style={{ fontSize: 12, color: '#166534', marginTop: 2 }}>
-                        Batch of {user?.institute?.year || '2029'} • Verified via institutional smail
-                      </div>
-                    </div>
-
-                    <span
+                  {/* Institute Verification Status */}
+                  {!hasVerifiedInstitutes ? (
+                    <div
                       style={{
-                        padding: '3px 8px',
-                        borderRadius: 9999,
-                        background: '#15803d',
-                        color: '#ffffff',
-                        fontSize: 11,
-                        fontWeight: 700
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '14px 16px',
+                        borderRadius: 14,
+                        background: 'rgba(239, 68, 68, 0.05)',
+                        border: '1px solid rgba(239, 68, 68, 0.18)'
                       }}
                     >
-                      Active
-                    </span>
-                  </div>
+                      <div>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: 7 }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                          </svg>
+                          You are not verified by any Institution
+                        </div>
+                        <div style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>
+                          Verify your academic credentials to unlock campus dining networks and badges.
+                        </div>
+                      </div>
+
+                      <FluidButton
+                        type="button"
+                        onClick={() => {
+                          setVerifyError('');
+                          setShowVerificationModal(true);
+                        }}
+                        style={{
+                          padding: '6px 16px',
+                          fontSize: 12,
+                          fontWeight: 700
+                        }}
+                      >
+                        Get Verified
+                      </FluidButton>
+                    </div>
+                  ) : (
+                    verifiedInstitutes.map((inst, idx) => (
+                      <div
+                        key={inst.name || idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 14px',
+                          borderRadius: 14,
+                          background: 'rgba(22, 163, 74, 0.08)',
+                          border: '1px solid rgba(22, 163, 74, 0.2)'
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#15803d', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                              <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                            Institute Verified: {inst.name}
+                          </div>
+                          <div style={{ fontSize: 12, color: '#166534', marginTop: 2 }}>
+                            {inst.year ? `Batch of ${inst.year} • ` : ''}Verified via institutional credentials
+                          </div>
+                        </div>
+
+                        <span
+                          style={{
+                            padding: '3px 8px',
+                            borderRadius: 9999,
+                            background: '#15803d',
+                            color: '#ffffff',
+                            fontSize: 11,
+                            fontWeight: 700
+                          }}
+                        >
+                          Active
+                        </span>
+                      </div>
+                    ))
+                  )}
 
                   {/* Government ID Verification (Optional) */}
                   <div
@@ -2906,6 +3338,210 @@ export default function SettingsPage({
               </>
             )}
           </GlassContainer>
+        </div>
+      )}
+
+      {/* INSTITUTION VERIFICATION MODAL */}
+      {showVerificationModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16
+          }}
+          onClick={() => {
+            if (!isSubmittingVerification) setShowVerificationModal(false);
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 480
+            }}
+          >
+            <GlassContainer
+              radius={24}
+              borderWidth={1.5}
+              style={{
+                boxShadow: '0 24px 60px rgba(0, 0, 0, 0.22)'
+              }}
+              innerStyle={{
+                padding: 26,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16
+              }}
+            >
+              {/* Modal Header */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      background: 'rgba(249, 115, 22, 0.1)',
+                      color: '#f97316',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                      <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                      Verify Institution
+                    </h3>
+                    <p style={{ fontSize: 12.5, color: '#71717a', margin: '2px 0 0 0' }}>
+                      Verify academic credentials to unlock campus badges & networks.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowVerificationModal(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#71717a',
+                    cursor: 'pointer',
+                    padding: 4,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Quick Select Popular Campuses - Dine In solid black style */}
+              <div>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#71717a', marginBottom: 8 }}>
+                  Quick Select Campus:
+                </label>
+                <SegmentedSelector
+                  value={verifyInstName}
+                  onChange={(campus) => setVerifyInstName(campus)}
+                  options={['IIT Madras', 'IIT Bombay', 'IIT Delhi', 'BITS Pilani', 'IISc Bangalore'].map((campus) => ({
+                    value: campus,
+                    label: campus
+                  }))}
+                />
+              </div>
+
+              {/* Verification Form */}
+              <form onSubmit={handleVerifySubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 5 }}>
+                    Institution Name:
+                  </label>
+                  <CustomInput
+                    value={verifyInstName}
+                    onChange={(e) => setVerifyInstName(e.target.value)}
+                    placeholder="e.g. IIT Madras, BITS, Stanford..."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 5 }}>
+                    Institutional / Student Email:
+                  </label>
+                  <CustomInput
+                    type="email"
+                    value={verifyInstEmail}
+                    onChange={(e) => setVerifyInstEmail(e.target.value)}
+                    placeholder="e.g. rollnumber@smail.iitm.ac.in or .edu"
+                    required
+                  />
+                  <span style={{ fontSize: 11, color: '#71717a', marginTop: 3, display: 'block' }}>
+                    Requires your official academic or college-issued email.
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 5 }}>
+                      Batch / Graduation Year:
+                    </label>
+                    <CustomInput
+                      type="number"
+                      value={verifyInstYear}
+                      onChange={(e) => setVerifyInstYear(e.target.value)}
+                      placeholder="e.g. 2028"
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 5 }}>
+                      Degree / Program (Opt):
+                    </label>
+                    <CustomInput
+                      value={verifyInstCourse}
+                      onChange={(e) => setVerifyInstCourse(e.target.value)}
+                      placeholder="e.g. B.Tech CS"
+                    />
+                  </div>
+                </div>
+
+                {verifyError && (
+                  <div
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 10,
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      fontSize: 12,
+                      color: '#dc2626',
+                      fontWeight: 600
+                    }}
+                  >
+                    {verifyError}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 6 }}>
+                  <FluidButton
+                    type="button"
+                    onClick={() => setShowVerificationModal(false)}
+                    disabled={isSubmittingVerification}
+                    style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 600 }}
+                  >
+                    Cancel
+                  </FluidButton>
+
+                  <FluidButton
+                    type="submit"
+                    disabled={isSubmittingVerification}
+                    style={{
+                      padding: '8px 22px',
+                      fontSize: 12.5,
+                      fontWeight: 700
+                    }}
+                  >
+                    {isSubmittingVerification ? 'Verifying...' : 'Verify Instantly'}
+                  </FluidButton>
+                </div>
+              </form>
+            </GlassContainer>
+          </div>
         </div>
       )}
     </div>

@@ -402,89 +402,68 @@ export default function NotificationsView({
               boxSizing: 'border-box'
             }}
           >
-            <FluidButton
-              onClick={() => setFilter('all')}
-              style={{
-                padding: '6px 16px',
-                borderRadius: 9999,
-                fontSize: 13,
-                fontWeight: filter === 'all' ? 700 : 500,
-                color: filter === 'all' ? '#ffffff' : '#52525b',
-                backgroundColor: filter === 'all' ? '#09090b' : 'transparent',
-                boxShadow: filter === 'all' ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none'
-              }}
-            >
-              All
-              <span
-                style={{
-                  fontSize: 11,
-                  padding: '1px 6px',
-                  borderRadius: 999,
-                  marginLeft: 6,
-                  backgroundColor: filter === 'all' ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.06)'
-                }}
-              >
-                {notifications.length}
-              </span>
-            </FluidButton>
-
-            <FluidButton
-              onClick={() => setFilter('requests')}
-              style={{
-                padding: '6px 16px',
-                borderRadius: 9999,
-                fontSize: 13,
-                fontWeight: filter === 'requests' ? 700 : 500,
-                color: filter === 'requests' ? '#ffffff' : '#52525b',
-                backgroundColor: filter === 'requests' ? '#09090b' : 'transparent',
-                boxShadow: filter === 'requests' ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none'
-              }}
-            >
-              Requests
-              {pendingRequestsCount > 0 && (
-                <span
+            {[
+              { id: 'all', label: 'All', count: notifications.length },
+              { id: 'requests', label: 'Requests', count: pendingRequestsCount, isRed: true },
+              { id: 'connections', label: 'Connections', count: connectionsCount }
+            ].map((tab) => {
+              const isSelected = filter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setFilter(tab.id)}
                   style={{
-                    fontSize: 11,
-                    padding: '1px 6px',
-                    borderRadius: 999,
-                    marginLeft: 6,
-                    backgroundColor: filter === 'requests' ? '#ef4444' : 'rgba(239, 68, 68, 0.14)',
-                    color: filter === 'requests' ? '#ffffff' : '#ef4444',
-                    fontWeight: 700
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '7px 16px',
+                    borderRadius: 9999,
+                    border: 'none',
+                    fontSize: 12.5,
+                    fontWeight: isSelected ? 600 : 500,
+                    cursor: 'pointer',
+                    background: isSelected ? '#09090b' : 'transparent',
+                    color: isSelected ? '#ffffff' : '#52525b',
+                    boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none',
+                    transition: 'all 0.18s ease',
+                    fontFamily: 'inherit'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                      e.currentTarget.style.color = '#18181b';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = '#52525b';
+                    }
                   }}
                 >
-                  {pendingRequestsCount}
-                </span>
-              )}
-            </FluidButton>
-
-            <FluidButton
-              onClick={() => setFilter('connections')}
-              style={{
-                padding: '6px 16px',
-                borderRadius: 9999,
-                fontSize: 13,
-                fontWeight: filter === 'connections' ? 700 : 500,
-                color: filter === 'connections' ? '#ffffff' : '#52525b',
-                backgroundColor: filter === 'connections' ? '#09090b' : 'transparent',
-                boxShadow: filter === 'connections' ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none'
-              }}
-            >
-              Connections
-              {connectionsCount > 0 && (
-                <span
-                  style={{
-                    fontSize: 11,
-                    padding: '1px 6px',
-                    borderRadius: 999,
-                    marginLeft: 6,
-                    backgroundColor: filter === 'connections' ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.06)'
-                  }}
-                >
-                  {connectionsCount}
-                </span>
-              )}
-            </FluidButton>
+                  <span>{tab.label}</span>
+                  {tab.count > 0 && (
+                    <span
+                      style={{
+                        padding: '1px 6px',
+                        borderRadius: 9999,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        background: isSelected
+                          ? 'rgba(255, 255, 255, 0.22)'
+                          : tab.isRed
+                          ? 'rgba(239, 68, 68, 0.14)'
+                          : 'rgba(0, 0, 0, 0.07)',
+                        color: isSelected ? '#ffffff' : tab.isRed ? '#ef4444' : '#71717a'
+                      }}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </GlassContainer>
         </div>
 
@@ -709,13 +688,11 @@ export default function NotificationsView({
                     {/* Action Buttons for Pending Requests */}
                     {isPendingRequest && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {/* Accept Button with FluidButton */}
+                        {/* Accept Button with normal grey glass FluidButton */}
                         <FluidButton
                           disabled={isLoading}
                           onClick={(e) => handleAcceptRequest(item, e)}
                           style={{
-                            backgroundColor: '#09090b',
-                            color: '#ffffff',
                             padding: '7px 18px',
                             fontSize: 13,
                             fontWeight: 700,
@@ -730,8 +707,6 @@ export default function NotificationsView({
                           disabled={isLoading}
                           onClick={(e) => handleRejectRequest(item, e)}
                           style={{
-                            backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                            color: '#52525b',
                             padding: '7px 14px',
                             fontSize: 13,
                             fontWeight: 600,

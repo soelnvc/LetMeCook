@@ -72,6 +72,16 @@ const userSchema = new mongoose.Schema(
       name: { type: String, default: null },
       year: { type: Number, default: null }
     },
+    verifiedInstitutes: [
+      {
+        name: { type: String, required: true },
+        email: { type: String, default: null },
+        course: { type: String, default: null },
+        year: { type: Number, default: null },
+        verifiedAt: { type: Date, default: Date.now },
+        status: { type: String, default: 'verified' }
+      }
+    ],
     age: {
       type: Number,
       required: [true, 'Age is required during account creation'],

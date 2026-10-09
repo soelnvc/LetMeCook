@@ -78,6 +78,8 @@ const register = async ({ username, name, email, mobile, password, age, institut
       age: newUser.age,
       avatar: newUser.avatar,
       institute: newUser.institute,
+      secondaryInstitute: newUser.secondaryInstitute,
+      verifiedInstitutes: newUser.verifiedInstitutes || [],
       verification: newUser.verification,
       privacy: newUser.privacy,
       stats: newUser.stats
@@ -132,6 +134,8 @@ const login = async ({ identifier, password }) => {
       mobile: user.mobile,
       avatar: user.avatar,
       institute: user.institute,
+      secondaryInstitute: user.secondaryInstitute,
+      verifiedInstitutes: user.verifiedInstitutes || [],
       verification: user.verification,
       privacy: user.privacy,
       stats,
@@ -183,5 +187,6 @@ module.exports = {
   register,
   login,
   getCurrentUser,
-  changePassword
+  changePassword,
+  calculateUserStats
 };

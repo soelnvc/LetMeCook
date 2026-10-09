@@ -300,21 +300,40 @@ export default function GlobalPage({
           ].map((tab) => {
             const isActive = distanceFilter === tab.id;
             return (
-              <FluidButton
+              <button
                 key={tab.id}
+                type="button"
                 onClick={() => setDistanceFilter(tab.id)}
                 style={{
-                  padding: '5px 14px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '6px 14px',
                   borderRadius: 9999,
+                  border: 'none',
                   fontSize: 12,
-                  fontWeight: isActive ? 700 : 500,
-                  backgroundColor: isActive ? '#09090b' : 'transparent',
+                  fontWeight: isActive ? 600 : 500,
+                  cursor: 'pointer',
+                  background: isActive ? '#09090b' : 'transparent',
                   color: isActive ? '#ffffff' : '#52525b',
-                  boxShadow: isActive ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none'
+                  boxShadow: isActive ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none',
+                  transition: 'all 0.18s ease',
+                  fontFamily: 'inherit'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                    e.currentTarget.style.color = '#18181b';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#52525b';
+                  }
                 }}
               >
                 {tab.label}
-              </FluidButton>
+              </button>
             );
           })}
         </GlassContainer>
