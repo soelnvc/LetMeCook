@@ -14,7 +14,8 @@ export default function HomeDashboard({
   onJoinDish,
   onExploreDineIn,
   onNavigateTab,
-  onViewProfile
+  onViewProfile,
+  onOpenDishDetail
 }) {
   const [historyFilter, setHistoryFilter] = useState('all'); // 'all' | 'hosted' | 'joined'
 
@@ -186,7 +187,13 @@ export default function HomeDashboard({
         style={{
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          cursor: onOpenDishDetail ? 'pointer' : 'default',
+          transition: 'transform 0.18s ease'
+        }}
+        onClick={(e) => {
+          if (e.target.closest('button') || e.target.closest('a')) return;
+          if (onOpenDishDetail) onOpenDishDetail(dish);
         }}
         innerStyle={{
           padding: '20px 22px',
@@ -998,6 +1005,14 @@ export default function HomeDashboard({
                 <GlassContainer
                   key={dish._id}
                   radius={18}
+                  style={{
+                    cursor: onOpenDishDetail ? 'pointer' : 'default',
+                    transition: 'transform 0.18s ease'
+                  }}
+                  onClick={(e) => {
+                    if (e.target.closest('button') || e.target.closest('a')) return;
+                    if (onOpenDishDetail) onOpenDishDetail(dish);
+                  }}
                   innerStyle={{
                     padding: '16px 20px',
                     display: 'flex',

@@ -118,6 +118,40 @@ const inviteToDish = async (req, res, next) => {
   }
 };
 
+const getDishChat = async (req, res, next) => {
+  try {
+    const chatData = await dishService.getDishChat(req.params.id, req.user.userId);
+    res.status(200).json({
+      success: true,
+      data: chatData
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const sendDishChatMessage = async (req, res, next) => {
+  try {
+    const { content } = req.body;
+    const message = await dishService.sendDishChatMessage(req.params.id, req.user.userId, content);
+    res.status(201).json({
+      success: true,
+      data: message
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteDish = async (req, res, next) => {
+  try {
+    const result = await dishService.deleteDish(req.params.id, req.user.userId);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createDish,
   getDishes,
@@ -127,6 +161,9 @@ module.exports = {
   approveRequest,
   rejectRequest,
   updateStatus,
-  inviteToDish
+  inviteToDish,
+  getDishChat,
+  sendDishChatMessage,
+  deleteDish
 };
 

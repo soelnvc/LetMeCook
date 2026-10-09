@@ -7,6 +7,7 @@ import FluidButton from '@/components/ui/FluidButton';
 import KitchenModal from '@/components/kitchen/KitchenModal';
 import Sidebar from '@/components/layout/Sidebar';
 import DishCard from '@/components/dish/DishCard';
+import DishDetailModal from '@/components/dish/DishDetailModal';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import AwardsLibrary from '@/components/profile/AwardsLibrary';
 import ConversationList from '@/components/messaging/ConversationList';
@@ -88,6 +89,7 @@ export default function App() {
   const [dishes, setDishes] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [dineInTab, setDineInTab] = useState('join_to_cook'); // 'join_to_cook', 'cooking', 'global', 'my_dishes'
+  const [selectedDishDetail, setSelectedDishDetail] = useState(null);
   const [expandedDishes, setExpandedDishes] = useState({});
   const [navHovered, setNavHovered] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -522,8 +524,22 @@ export default function App() {
       const res = await dishService.updateStatus(dishId, status);
       setMessage(`Dish status: ${res.data.status}`);
       fetchDishes();
+      if (selectedDishDetail?._id === dishId) {
+        setSelectedDishDetail((prev) => prev ? { ...prev, status } : null);
+      }
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const handleDeleteDish = async (dishId) => {
+    try {
+      await apiFetch(`/dishes/${dishId}`, { method: 'DELETE' });
+      setMessage('Dish deleted successfully');
+      fetchDishes();
+      setSelectedDishDetail(null);
+    } catch (err) {
+      setError(err.message || 'Failed to delete dish');
     }
   };
 
@@ -1351,6 +1367,7 @@ export default function App() {
           onExploreDineIn={() => setActiveTab('dine-in')}
           onNavigateTab={(tab) => setActiveTab(tab)}
           onViewProfile={(profile) => handleNavigateToProfile(profile, 'home')}
+          onOpenDishDetail={(d) => setSelectedDishDetail(d)}
         />
       )}
 
@@ -1374,6 +1391,7 @@ export default function App() {
             setShowKitchenModal(true);
           }}
           onViewProfile={(profile) => handleNavigateToProfile(profile, 'dine-in')}
+          onOpenDishDetail={(d) => setSelectedDishDetail(d)}
           initialTab={dineInTab}
           initialCategory={categoryFilter}
         />
@@ -2639,6 +2657,34 @@ export default function App() {
           </GlassContainer>
         </div>
       )}
+
+      {/* ========================================================= */}
+      {/* 9. FULL-SIZE DISH TICKET & GROUP CHAT MODAL                */}
+      {/* ========================================================= */}
+      <DishDetailModal
+        isOpen={Boolean(selectedDishDetail)}
+        dish={selectedDishDetail}
+        onClose={() => setSelectedDishDetail(null)}
+        currentUser={user}
+        connections={connections}
+        onJoinDish={handleJoinDish}
+        onLeaveDish={handleLeaveDish}
+        onStartCooking={(id) => handleUpdateStatus(id, 'cooking')}
+        onMarkCooked={(id) => handleUpdateStatus(id, 'cooked')}
+        onDeleteDish={handleDeleteDish}
+        onViewProfile={(profileUser) => {
+          setSelectedDishDetail(null);
+          handleNavigateToProfile(profileUser, activeTab);
+        }}
+        onReportDish={(dishToReport) => {
+          setReportDescription(`Reporting dish ticket: "${dishToReport.description}" (ID: ${dishToReport._id})`);
+          setShowReportModal(true);
+        }}
+        onDishUpdated={(updated) => {
+          setSelectedDishDetail(updated);
+          setDishes((prev) => prev.map((d) => (d._id === updated._id ? { ...d, ...updated } : d)));
+        }}
+      />
       </div>
     </div>
   );

@@ -25,5 +25,10 @@ router.post('/:id/invite', authMiddleware, dishController.inviteToDish);
 router.post('/:id/requests/:requestId/approve', authMiddleware, dishController.approveRequest);
 router.post('/:id/requests/:requestId/reject', authMiddleware, dishController.rejectRequest);
 router.patch('/:id/status', authMiddleware, dishController.updateStatus);
+router.delete('/:id', authMiddleware, dishController.deleteDish);
+
+// Dish Group Chat routes
+router.get('/:id/chat', authMiddleware, dishController.getDishChat);
+router.post('/:id/chat/messages', authMiddleware, dishController.sendDishChatMessage);
 
 module.exports = router;

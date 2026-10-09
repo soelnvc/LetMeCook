@@ -197,7 +197,8 @@ export default function DishCard({
   onMarkCooked,
   onApproveRequest,
   onRejectRequest,
-  onViewProfile
+  onViewProfile,
+  onOpenDetail
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -249,10 +250,6 @@ export default function DishCard({
     })
   );
 
-  // Exact prompt requirements:
-  // - "From <institutename>"
-  // - "from Connections"
-  // - If the person is both use: "a friend from <institutename>"
   let sourceText = '';
   if (isFriend && isSameInstitute) {
     sourceText = `a friend from ${displayInst}`;
@@ -267,7 +264,21 @@ export default function DishCard({
   return (
     <GlassContainer
       radius={28}
-      style={{ width: '100%' }}
+      style={{
+        width: '100%',
+        cursor: onOpenDetail ? 'pointer' : 'default',
+        transition: 'transform 0.18s ease, box-shadow 0.18s ease'
+      }}
+      onClick={(e) => {
+        if (
+          e.target.closest('button') ||
+          e.target.closest('a') ||
+          e.target.closest('.no-dish-click')
+        ) {
+          return;
+        }
+        if (onOpenDetail) onOpenDetail(dish);
+      }}
       innerStyle={{
         padding: '20px 22px',
         display: 'flex',
@@ -280,7 +291,10 @@ export default function DishCard({
       }}
     >
       {/* Left Icon: Genre-Specific Ticket SVG (Sport, Study, Gaming, etc.) */}
-      <div style={{ paddingTop: 4, flexShrink: 0 }}>
+      <div
+        style={{ paddingTop: 4, flexShrink: 0, cursor: onOpenDetail ? 'pointer' : 'default' }}
+        onClick={() => onOpenDetail && onOpenDetail(dish)}
+      >
         {getGenreIcon(dish.category)}
       </div>
 
@@ -604,10 +618,35 @@ export default function DishCard({
           )}
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+          {onOpenDetail && (
+            <FluidButton
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenDetail(dish);
+              }}
+              style={{
+                padding: '5px 14px',
+                fontSize: 12,
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <span>Ticket & Chat</span>
+            </FluidButton>
+          )}
+
           {!isParticipant && !hasPendingReq && (
             <FluidButton
-              onClick={() => onJoin && onJoin(dish._id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onJoin) onJoin(dish._id);
+              }}
               style={{ padding: '5px 14px', fontSize: 12, fontWeight: 600 }}
             >
               {dish.joinMode === 'auto' ? 'Join Dish' : 'Request to Join'}

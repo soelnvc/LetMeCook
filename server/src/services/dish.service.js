@@ -2,6 +2,7 @@ const Dish = require('../models/Dish');
 const User = require('../models/User');
 const Connection = require('../models/Connection');
 const Notification = require('../models/Notification');
+const DishMessage = require('../models/DishMessage');
 
 const createDish = async (creatorId, dishData) => {
   const {
@@ -54,6 +55,18 @@ const createDish = async (creatorId, dishData) => {
     $inc: { 'stats.dishesCreated': 1 },
     currentDish: dish._id
   });
+
+  // Automatically initialize Dish Chat with welcome message
+  try {
+    await DishMessage.create({
+      dish: dish._id,
+      sender: creatorId,
+      content: `🎉 Group chat started for "${dish.description.slice(0, 60)}" • Welcome!`,
+      isSystem: true
+    });
+  } catch (err) {
+    console.error('[DishChat] Error creating initial system message:', err);
+  }
 
   return dish;
 };
@@ -204,6 +217,18 @@ const joinDish = async (dishId, userId) => {
       currentDish: dish._id
     });
 
+    try {
+      const joiner = await User.findById(userId).select('username');
+      await DishMessage.create({
+        dish: dish._id,
+        sender: userId,
+        content: `@${joiner?.username || 'user'} joined the dish`,
+        isSystem: true
+      });
+    } catch (err) {
+      console.error('[DishChat] Join notification error:', err);
+    }
+
     return { joined: true, status: 'participant' };
   } else if (dish.joinMode === 'approval') {
     const existingReq = dish.requests.find(
@@ -249,6 +274,17 @@ const transitionDishStatus = async (dishId, creatorId, newStatus) => {
   dish.status = newStatus;
   if (newStatus === 'cooked') {
     dish.cookedAt = new Date();
+    // Post chat expiration system message
+    try {
+      await DishMessage.create({
+        dish: dish._id,
+        sender: creatorId,
+        content: '🍽️ Dish marked as Cooked! This ticket and chat are now closed.',
+        isSystem: true
+      });
+    } catch (err) {
+      console.error('[DishChat] Status notification error:', err);
+    }
   }
   await dish.save();
 
@@ -280,6 +316,18 @@ const leaveDish = async (dishId, userId) => {
     $inc: { 'stats.dishesJoined': -1 },
     currentDish: null
   });
+
+  try {
+    const leaver = await User.findById(userId).select('username');
+    await DishMessage.create({
+      dish: dish._id,
+      sender: userId,
+      content: `@${leaver?.username || 'user'} left the dish`,
+      isSystem: true
+    });
+  } catch (err) {
+    console.error('[DishChat] Leave notification error:', err);
+  }
 
   return { success: true, message: 'Successfully left Dish' };
 };
@@ -399,6 +447,113 @@ const inviteToDish = async (dishId, inviterId, targetUsername) => {
   return { success: true, message: `Invitation sent to @${cleanUsername}` };
 };
 
+const getDishChat = async (dishId, userId) => {
+  const dish = await Dish.findById(dishId)
+    .populate('creator', 'username name avatar institute verification')
+    .populate('participants.user', 'username name avatar institute verification');
+
+  if (!dish) {
+    throw new Error('Dish not found');
+  }
+
+  const isExpired = dish.status === 'cooked';
+
+  // Ensure initial system message exists if chat was not initialized
+  let messages = await DishMessage.find({ dish: dishId })
+    .populate('sender', 'username name avatar institute verification')
+    .sort({ createdAt: 1 });
+
+  if (messages.length === 0) {
+    try {
+      const initMsg = await DishMessage.create({
+        dish: dish._id,
+        sender: dish.creator._id,
+        content: `🎉 Group chat started for "${dish.description.slice(0, 60)}" • Welcome!`,
+        isSystem: true
+      });
+      await initMsg.populate('sender', 'username name avatar institute verification');
+      messages = [initMsg];
+    } catch (e) {
+      // Ignore race condition on init message
+    }
+  }
+
+  return {
+    dish,
+    isExpired,
+    messages
+  };
+};
+
+const sendDishChatMessage = async (dishId, senderId, content) => {
+  if (!content || !content.trim()) {
+    throw new Error('Message content cannot be empty');
+  }
+
+  const dish = await Dish.findById(dishId);
+  if (!dish) {
+    throw new Error('Dish not found');
+  }
+
+  if (dish.status === 'cooked') {
+    throw new Error('Cannot send message: Dish ticket has expired (Cooked)');
+  }
+
+  const isParticipant =
+    dish.creator.toString() === senderId.toString() ||
+    dish.participants.some(
+      (p) => (p.user?._id || p.user).toString() === senderId.toString()
+    );
+
+  if (!isParticipant) {
+    throw new Error('You must be a confirmed participant of this dish to send messages');
+  }
+
+  const message = await DishMessage.create({
+    dish: dishId,
+    sender: senderId,
+    content: content.trim().slice(0, 2000),
+    isSystem: false
+  });
+
+  await message.populate('sender', 'username name avatar institute verification');
+  return message;
+};
+
+const deleteDish = async (dishId, creatorId) => {
+  const dish = await Dish.findById(dishId);
+  if (!dish) {
+    throw new Error('Dish not found');
+  }
+
+  if (dish.creator.toString() !== creatorId.toString()) {
+    throw new Error('Only the creator can delete this dish');
+  }
+
+  // Clean up messages
+  await DishMessage.deleteMany({ dish: dishId });
+
+  // Update stats
+  await User.findByIdAndUpdate(creatorId, {
+    $inc: { 'stats.dishesCreated': -1 },
+    currentDish: null
+  });
+
+  // Remove currentDish for participants
+  for (const p of dish.participants) {
+    if (p.user.toString() !== creatorId.toString()) {
+      await User.findByIdAndUpdate(p.user, {
+        $inc: { 'stats.dishesJoined': -1 },
+        currentDish: null
+      });
+    }
+  }
+
+  await Dish.findByIdAndDelete(dishId);
+
+  return { success: true, message: 'Dish deleted successfully' };
+};
+
 module.exports = {
   createDish,
   getDishes,
@@ -407,6 +562,9 @@ module.exports = {
   leaveDish,
   respondToJoinRequest,
   transitionDishStatus,
-  inviteToDish
+  inviteToDish,
+  getDishChat,
+  sendDishChatMessage,
+  deleteDish
 };
 
