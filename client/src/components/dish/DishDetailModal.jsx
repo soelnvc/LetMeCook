@@ -1183,53 +1183,81 @@ export default function DishDetailModal({
               backgroundColor: 'transparent'
             }}
           >
-            {/* Expired or Non-Participant Warning Banner */}
+            {/* Expired Warning Banner: Frosted glass with red accent */}
             {isExpired && (
               <div style={{ padding: '12px 24px 0 24px' }}>
-                <GlassContainer
-                  radius={16}
-                  innerStyle={{
-                    padding: '10px 16px',
+                <div
+                  style={{
+                    padding: '11px 18px',
+                    borderRadius: 16,
+                    background: 'linear-gradient(135deg, rgba(254, 226, 226, 0.42) 0%, rgba(255, 255, 255, 0.6) 100%)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1.5px solid rgba(239, 68, 68, 0.28)',
+                    boxShadow: '0 4px 16px rgba(239, 68, 68, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.85)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
+                    gap: 10,
                     fontSize: 12.5,
                     fontWeight: 600,
-                    color: '#e11d48',
-                    backgroundColor: 'rgba(244, 63, 94, 0.06)'
+                    color: '#dc2626'
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#dc2626"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ flexShrink: 0 }}
+                  >
                     <circle cx="12" cy="12" r="10" />
                     <line x1="12" y1="8" x2="12" y2="12" />
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                   <span>This dish ticket has expired and chat is archived.</span>
-                </GlassContainer>
+                </div>
               </div>
             )}
 
             {!isParticipant && !isExpired && (
               <div style={{ padding: '12px 24px 0 24px' }}>
-                <GlassContainer
-                  radius={16}
-                  innerStyle={{
-                    padding: '10px 16px',
+                <div
+                  style={{
+                    padding: '11px 18px',
+                    borderRadius: 16,
+                    background: 'linear-gradient(135deg, rgba(239, 246, 255, 0.45) 0%, rgba(255, 255, 255, 0.6) 100%)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1.5px solid rgba(59, 130, 246, 0.28)',
+                    boxShadow: '0 4px 16px rgba(59, 130, 246, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.85)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
+                    gap: 10,
                     fontSize: 12.5,
                     fontWeight: 600,
-                    color: '#2563eb',
-                    backgroundColor: 'rgba(37, 99, 235, 0.06)'
+                    color: '#2563eb'
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#2563eb"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ flexShrink: 0 }}
+                  >
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
                   </svg>
                   <span>Join this dish table to participate in the group chat!</span>
-                </GlassContainer>
+                </div>
               </div>
             )}
 

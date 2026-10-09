@@ -10,7 +10,8 @@ export default function GlobalPage({
   onJoinDish,
   onOpenKitchenModal,
   onNavigateTab,
-  onViewProfile
+  onViewProfile,
+  onOpenDishDetail
 }) {
   const isAdult = Boolean(user && user.age !== undefined && user.age !== null && Number(user.age) >= 18);
 
@@ -438,7 +439,13 @@ export default function GlobalPage({
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
+                  cursor: onOpenDishDetail ? 'pointer' : 'default',
+                  transition: 'transform 0.18s ease, box-shadow 0.18s ease'
+                }}
+                onClick={(e) => {
+                  if (e.target.closest('button') || e.target.closest('a')) return;
+                  if (onOpenDishDetail) onOpenDishDetail(dish);
                 }}
                 innerStyle={{
                   padding: '20px 22px',

@@ -1725,7 +1725,15 @@ export default function App() {
                       {activeDish && (
                         <GlassContainer
                           radius={28}
-                          style={{ width: '100%' }}
+                          style={{
+                            width: '100%',
+                            cursor: 'pointer',
+                            transition: 'transform 0.18s ease, box-shadow 0.18s ease'
+                          }}
+                          onClick={(e) => {
+                            if (e.target.closest('button') || e.target.closest('a')) return;
+                            setSelectedDishDetail(activeDish);
+                          }}
                           innerStyle={{
                             padding: '20px 22px',
                             display: 'flex',
@@ -1875,7 +1883,17 @@ export default function App() {
                               <GlassContainer
                                 key={dish._id}
                                 radius={18}
-                                style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'default', overflow: 'hidden' }}
+                                style={{
+                                  aspectRatio: '1 / 1',
+                                  position: 'relative',
+                                  cursor: 'pointer',
+                                  overflow: 'hidden',
+                                  transition: 'transform 0.18s ease, box-shadow 0.18s ease'
+                                }}
+                                onClick={(e) => {
+                                  if (e.target.closest('button') || e.target.closest('a')) return;
+                                  setSelectedDishDetail(dish);
+                                }}
                                 innerStyle={{
                                   padding: 18,
                                   height: '100%',
@@ -1978,7 +1996,15 @@ export default function App() {
                       {activeJoined && (
                         <GlassContainer
                           radius={28}
-                          style={{ width: '100%' }}
+                          style={{
+                            width: '100%',
+                            cursor: 'pointer',
+                            transition: 'transform 0.18s ease, box-shadow 0.18s ease'
+                          }}
+                          onClick={(e) => {
+                            if (e.target.closest('button') || e.target.closest('a')) return;
+                            setSelectedDishDetail(activeJoined);
+                          }}
                           innerStyle={{
                             padding: '20px 22px',
                             display: 'flex',
@@ -2142,7 +2168,17 @@ export default function App() {
                               <GlassContainer
                                 key={dish._id}
                                 radius={18}
-                                style={{ aspectRatio: '1 / 1', position: 'relative', cursor: 'default', overflow: 'hidden' }}
+                                style={{
+                                  aspectRatio: '1 / 1',
+                                  position: 'relative',
+                                  cursor: 'pointer',
+                                  overflow: 'hidden',
+                                  transition: 'transform 0.18s ease, box-shadow 0.18s ease'
+                                }}
+                                onClick={(e) => {
+                                  if (e.target.closest('button') || e.target.closest('a')) return;
+                                  setSelectedDishDetail(dish);
+                                }}
                                 innerStyle={{
                                   padding: 18,
                                   height: '100%',
