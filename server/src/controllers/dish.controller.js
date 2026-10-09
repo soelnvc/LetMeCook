@@ -152,6 +152,26 @@ const deleteDish = async (req, res, next) => {
   }
 };
 
+const kickParticipant = async (req, res, next) => {
+  try {
+    const { targetUserId } = req.body;
+    const result = await dishService.kickParticipant(req.params.id, req.user.userId, targetUserId);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const toggleMuteParticipant = async (req, res, next) => {
+  try {
+    const { targetUserId } = req.body;
+    const result = await dishService.toggleMuteParticipant(req.params.id, req.user.userId, targetUserId);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createDish,
   getDishes,
@@ -162,6 +182,8 @@ module.exports = {
   rejectRequest,
   updateStatus,
   inviteToDish,
+  kickParticipant,
+  toggleMuteParticipant,
   getDishChat,
   sendDishChatMessage,
   deleteDish

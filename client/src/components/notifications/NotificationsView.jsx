@@ -9,7 +9,8 @@ export default function NotificationsView({
   currentUser,
   onViewProfile,
   onNavigateToMessages,
-  onConnectionsUpdated
+  onConnectionsUpdated,
+  onOpenDishDetail
 }) {
   const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState('all'); // 'all' | 'requests' | 'connections'
@@ -107,6 +108,10 @@ export default function NotificationsView({
               actionText = 'sent you a message request.';
             } else if (notif.type === 'new_message') {
               actionText = 'sent you a message.';
+            } else if (notif.type === 'dish_invite') {
+              actionText = notif.metadata?.dishDescription
+                ? `invited you to join: "${notif.metadata.dishDescription.slice(0, 36)}${notif.metadata.dishDescription.length > 36 ? '...' : ''}"`
+                : 'invited you to join a dish ticket.';
             }
 
             merged.push({
@@ -115,6 +120,7 @@ export default function NotificationsView({
               status: notif.metadata?.status || 'info',
               actor: notif.actor,
               actionText,
+              dishId: notif.reference || notif.metadata?.dishId,
               timeAgo: formatRelativeTime(notif.createdAt, 'Recent'),
               createdAt: notif.createdAt,
               read: notif.read || false,
@@ -599,6 +605,8 @@ export default function NotificationsView({
                               ? '#22c55e'
                               : item.type === 'connection_added'
                               ? '#0284c7'
+                              : item.type === 'dish_invite'
+                              ? '#ea580c'
                               : '#f97316',
                           color: '#ffffff',
                           display: 'flex',
@@ -617,6 +625,11 @@ export default function NotificationsView({
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                             <circle cx="8.5" cy="7" r="4" />
+                          </svg>
+                        ) : item.type === 'dish_invite' ? (
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                           </svg>
                         ) : (
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
@@ -795,6 +808,30 @@ export default function NotificationsView({
                           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                         </svg>
                         Message
+                      </FluidButton>
+                    )}
+
+                    {/* View Ticket button for dish invitations */}
+                    {item.type === 'dish_invite' && onOpenDishDetail && (
+                      <FluidButton
+                        onClick={() => onOpenDishDetail(item.dishId || item.connectionId)}
+                        style={{
+                          padding: '5px 14px',
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          color: '#ea580c',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 5
+                        }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="16" rx="2" />
+                          <line x1="7" y1="8" x2="17" y2="8" />
+                          <line x1="7" y1="12" x2="17" y2="12" />
+                          <line x1="7" y1="16" x2="13" y2="16" />
+                        </svg>
+                        View Ticket
                       </FluidButton>
                     )}
 

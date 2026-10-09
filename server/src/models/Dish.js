@@ -61,6 +61,19 @@ const dishSchema = new mongoose.Schema(
         respondedAt: { type: Date, default: null }
       }
     ],
+    invitedUsers: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        invitedAt: { type: Date, default: Date.now },
+        invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+      }
+    ],
+    mutedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ],
     location: {
       scope: { type: String, default: 'nearby' },
       areaName: { type: String, default: null },

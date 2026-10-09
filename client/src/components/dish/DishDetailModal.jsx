@@ -134,6 +134,7 @@ export default function DishDetailModal({
   const [showRateModal, setShowRateModal] = useState(false);
   const [userRating, setUserRating] = useState(5);
   const [toastMessage, setToastMessage] = useState('');
+  const [actionLoadingUserId, setActionLoadingUserId] = useState(null);
 
   const inputRef = useRef(null);
   const chatScrollRef = useRef(null);
@@ -284,6 +285,22 @@ export default function DishDetailModal({
       (p) => (p.user?._id || p.user)?.toString() === currentUser?._id?.toString()
     ) || isCreator;
 
+  const invitedList = dish.invitedUsers || [];
+  const isInvited =
+    !isParticipant &&
+    invitedList.some((inv) => {
+      const u = inv.user?._id || inv.user;
+      return u && String(u) === String(currentUser?._id);
+    });
+
+  const mutedList = dish.mutedUsers || [];
+  const isMuted = mutedList.some((u) => {
+    const id = u?._id || u;
+    return id && String(id) === String(currentUser?._id);
+  });
+
+  const isUnlocked = isParticipant || isCreator;
+
   const isExpired = dish.status === 'cooked';
   const spotsLeft = dish.capacity?.unlimited
     ? '∞'
@@ -321,6 +338,11 @@ export default function DishDetailModal({
       return;
     }
 
+    if (isMuted) {
+      triggerToast('You have been muted in this room by the host.');
+      return;
+    }
+
     const content = messageInput.trim();
     setMessageInput('');
     setIsSending(true);
@@ -346,24 +368,79 @@ export default function DishDetailModal({
     }
   };
 
-  // Quick invite helper
+  // Send real dish invitation
   const handleSendInvite = async (targetUsername) => {
     if (!targetUsername || isInviting) return;
     setIsInviting(true);
+    const clean = targetUsername.replace(/^@/, '').trim();
     try {
-      await apiFetch(`/dishes/${dish._id}/chat/messages`, {
+      const res = await apiFetch(`/dishes/${dish._id}/invite`, {
         method: 'POST',
-        body: JSON.stringify({
-          content: `@${currentUser?.username || 'Host'} invited @${targetUsername.replace('@', '')} to this dish table! 🎉`
-        })
+        body: JSON.stringify({ username: clean })
       });
-      triggerToast(`Invited @${targetUsername.replace('@', '')}!`);
-      setInviteUsername('');
-      setShowInviteDialog(false);
+      if (res?.success) {
+        triggerToast(`Invited @${clean}!`);
+        if (res.data && onDishUpdatedRef.current) {
+          onDishUpdatedRef.current(res.data);
+        }
+        setInviteUsername('');
+        setShowInviteDialog(false);
+      } else {
+        triggerToast(res?.message || 'Could not send invitation');
+      }
     } catch (err) {
       triggerToast(err.message || 'Could not send invitation');
     } finally {
       setIsInviting(false);
+    }
+  };
+
+  // Host: Kick a member
+  const handleKickMember = async (targetUserId, targetUsername) => {
+    if (!isCreator || actionLoadingUserId) return;
+    if (!window.confirm(`Are you sure you want to remove @${targetUsername || 'this user'} from the dish?`)) return;
+    setActionLoadingUserId(String(targetUserId));
+    try {
+      const res = await apiFetch(`/dishes/${dish._id}/kick`, {
+        method: 'POST',
+        body: JSON.stringify({ targetUserId })
+      });
+      if (res?.success) {
+        triggerToast(`@${targetUsername || 'User'} removed from dish`);
+        if (res.data && onDishUpdatedRef.current) {
+          onDishUpdatedRef.current(res.data);
+        }
+      } else {
+        triggerToast(res?.message || 'Failed to remove user');
+      }
+    } catch (err) {
+      triggerToast(err.message || 'Error removing user');
+    } finally {
+      setActionLoadingUserId(null);
+    }
+  };
+
+  // Host: Toggle mute for a member
+  const handleToggleMute = async (targetUserId, targetUsername) => {
+    if (!isCreator || actionLoadingUserId) return;
+    setActionLoadingUserId(String(targetUserId));
+    try {
+      const res = await apiFetch(`/dishes/${dish._id}/mute`, {
+        method: 'POST',
+        body: JSON.stringify({ targetUserId })
+      });
+      if (res?.success) {
+        triggerToast(res.message || 'Updated mute status');
+        if (res.data && onDishUpdatedRef.current) {
+          onDishUpdatedRef.current(res.data);
+        }
+      } else {
+        triggerToast(res?.message || 'Failed to update mute status');
+      }
+    } catch (err) {
+      triggerToast(err.message || 'Error updating mute status');
+    } finally {
+      setActionLoadingUserId(null);
     }
   };
 
@@ -763,14 +840,30 @@ export default function DishDetailModal({
 
             {/* Bottom Right: Action Buttons (Invite, Leave, Join, 3-dots) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              {/* Not Joined Yet */}
+              {/* Not Joined Yet: Show "You are Invited!" if invited, otherwise "Join Dish" */}
               {!isParticipant && !isExpired && (
-                <FluidButton
-                  onClick={() => onJoinDish && onJoinDish(dish._id)}
-                  style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 700 }}
-                >
-                  {dish.joinMode === 'auto' ? 'Join Dish' : 'Request'}
-                </FluidButton>
+                isInvited ? (
+                  <FluidButton
+                    onClick={() => onJoinDish && onJoinDish(dish._id)}
+                    style={{
+                      padding: '8px 18px',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      backgroundColor: 'rgba(249, 115, 22, 0.15)',
+                      color: '#ea580c',
+                      border: '1px solid rgba(249, 115, 22, 0.3)'
+                    }}
+                  >
+                    You are Invited!
+                  </FluidButton>
+                ) : (
+                  <FluidButton
+                    onClick={() => onJoinDish && onJoinDish(dish._id)}
+                    style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 700 }}
+                  >
+                    {dish.joinMode === 'auto' ? 'Join Dish' : 'Request'}
+                  </FluidButton>
+                )
               )}
 
               {/* Participant (Not Host) */}
@@ -1009,24 +1102,38 @@ export default function DishDetailModal({
             flexDirection: 'column',
             height: '100%',
             backgroundColor: 'transparent',
-            position: 'relative'
+            position: 'relative',
+            overflow: 'hidden'
           }}
         >
-          {/* TOP 10%: NAME OF DISH WITH PFP OF MEMBERS (MAX TOP 7, + SIGN TO VIEW FULL LIST) */}
+          {/* Inner Content that gets blurred if not unlocked */}
           <div
             style={{
-              padding: '16px 24px',
-              borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 16,
-              height: 72,
-              boxSizing: 'border-box',
-              flexShrink: 0,
-              backgroundColor: 'transparent'
+              flexDirection: 'column',
+              height: '100%',
+              width: '100%',
+              filter: !isUnlocked ? 'blur(16px)' : 'none',
+              pointerEvents: !isUnlocked ? 'none' : 'auto',
+              userSelect: !isUnlocked ? 'none' : 'auto',
+              transition: 'filter 0.25s ease'
             }}
           >
+            {/* TOP 10%: NAME OF DISH WITH PFP OF MEMBERS (MAX TOP 7, + SIGN TO VIEW FULL LIST) */}
+            <div
+              style={{
+                padding: '16px 24px',
+                borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 16,
+                height: 72,
+                boxSizing: 'border-box',
+                flexShrink: 0,
+                backgroundColor: 'transparent'
+              }}
+            >
             {/* Left: Name of the Dish with Glass Icon */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
               <GlassContainer
@@ -1539,6 +1646,34 @@ export default function DishDetailModal({
               </div>
             )}
 
+            {/* Muted Warning Banner */}
+            {isMuted && (
+              <div style={{ padding: '0 24px 8px 24px' }}>
+                <GlassContainer
+                  radius={12}
+                  innerStyle={{
+                    padding: '7px 14px',
+                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                    color: '#dc2626',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                    <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
+                    <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
+                  </svg>
+                  <span>You have been muted in this dish room by the host. You cannot send messages.</span>
+                </GlassContainer>
+              </div>
+            )}
+
             {/* Chat Input Bar (Copied directly from MessageArea.jsx) */}
             <div style={{ padding: '16px 24px', backgroundColor: 'transparent', position: 'relative' }}>
               <EmojiPicker
@@ -1559,27 +1694,27 @@ export default function DishDetailModal({
                   {/* Emoji Picker Button */}
                   <button
                     type="button"
-                    disabled={isExpired || !isParticipant}
+                    disabled={isExpired || !isParticipant || isMuted}
                     onClick={() => setShowEmojiPicker((prev) => !prev)}
                     style={{
                       border: 'none',
                       background: 'transparent',
-                      cursor: isExpired || !isParticipant ? 'not-allowed' : 'pointer',
+                      cursor: isExpired || !isParticipant || isMuted ? 'not-allowed' : 'pointer',
                       padding: 2,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      opacity: isExpired || !isParticipant ? 0.4 : showEmojiPicker ? 1 : 0.75,
+                      opacity: isExpired || !isParticipant || isMuted ? 0.4 : showEmojiPicker ? 1 : 0.75,
                       transition: 'transform 0.15s ease, opacity 0.15s ease'
                     }}
                     onMouseEnter={(e) => {
-                      if (!isExpired && isParticipant) {
+                      if (!isExpired && isParticipant && !isMuted) {
                         e.currentTarget.style.transform = 'scale(1.1)';
                         e.currentTarget.style.opacity = '1';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (!isExpired && isParticipant) {
+                      if (!isExpired && isParticipant && !isMuted) {
                         e.currentTarget.style.transform = 'scale(1)';
                         if (!showEmojiPicker) e.currentTarget.style.opacity = '0.75';
                       }
@@ -1612,11 +1747,13 @@ export default function DishDetailModal({
                     placeholder={
                       isExpired
                         ? 'This dish ticket has expired and chat is archived.'
+                        : isMuted
+                        ? 'You are muted by the host in this room.'
                         : !isParticipant
                         ? 'Join dish to participate in group chat...'
                         : 'Type a Message...'
                     }
-                    disabled={isExpired || !isParticipant || isSending}
+                    disabled={isExpired || !isParticipant || isMuted || isSending}
                     maxLength={2000}
                     style={{
                       border: 'none',
@@ -1633,7 +1770,7 @@ export default function DishDetailModal({
                   <FluidButton
                     type="submit"
                     variant="icon"
-                    disabled={isExpired || !isParticipant || isSending || !messageInput.trim()}
+                    disabled={isExpired || !isParticipant || isMuted || isSending || !messageInput.trim()}
                     style={{
                       width: 36,
                       height: 36,
@@ -1661,10 +1798,120 @@ export default function DishDetailModal({
             </div>
           </div>
         </div>
+
+          {/* Frosted Glass Overlay if viewer is not a member or host */}
+          {!isUnlocked && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 40,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '24px',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)'
+              }}
+            >
+              <GlassContainer
+                radius={24}
+                style={{
+                  maxWidth: 420,
+                  width: '90%',
+                  boxShadow: '0 20px 48px rgba(0, 0, 0, 0.16)'
+                }}
+                innerStyle={{
+                  padding: '34px 28px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  gap: 16
+                }}
+              >
+                <div
+                  style={{
+                    width: 58,
+                    height: 58,
+                    borderRadius: '50%',
+                    backgroundColor: isInvited ? 'rgba(249, 115, 22, 0.12)' : 'rgba(0, 0, 0, 0.05)',
+                    color: isInvited ? '#ea580c' : '#09090b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.06)'
+                  }}
+                >
+                  {isInvited ? (
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                  ) : (
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <h4 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#09090b', letterSpacing: '-0.02em' }}>
+                    {isInvited ? 'You are Invited!' : 'Dish Room Locked'}
+                  </h4>
+                  <p style={{ margin: 0, fontSize: 13, color: '#71717a', lineHeight: 1.5, maxWidth: 320 }}>
+                    {isInvited
+                      ? 'You were invited to this dish table! Accept your invitation to unlock the group chat and view member interactions.'
+                      : 'Join this dish table as a confirmed member to unlock the live group chat and connect with other diners.'}
+                  </p>
+                </div>
+
+                <FluidButton
+                  onClick={() => onJoinDish && onJoinDish(dish._id)}
+                  style={{
+                    padding: '10px 28px',
+                    fontSize: 13.5,
+                    fontWeight: 700,
+                    backgroundColor: isInvited ? '#ea580c' : undefined,
+                    color: isInvited ? '#ffffff' : undefined,
+                    marginTop: 4
+                  }}
+                >
+                  {isInvited ? 'Accept Invite to Unlock' : (dish.joinMode === 'auto' ? 'Join Dish to Unlock' : 'Request to Join')}
+                </FluidButton>
+              </GlassContainer>
+            </div>
+          )}
+
+          {/* Always accessible Close Button when right side is locked */}
+          {!isUnlocked && (
+            <div style={{ position: 'absolute', top: 18, right: 24, zIndex: 60 }}>
+              <FluidButton
+                variant="icon"
+                type="button"
+                onClick={onClose}
+                title="Close"
+                style={{
+                  width: 34,
+                  height: 34,
+                  minWidth: 34,
+                  minHeight: 34
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </FluidButton>
+            </div>
+          )}
+        </div>
       </GlassContainer>
 
       {/* ========================================================= */}
-      {/* FLOATING SUB-MODAL 1: FULL MEMBERS LIST                   */}
+      {/* FLOATING SUB-MODAL 1: FULL MEMBERS & INVITED LIST         */}
       {/* ========================================================= */}
       {showMembersModal && (
         <div
@@ -1683,15 +1930,24 @@ export default function DishDetailModal({
           }}
         >
           <GlassContainer
-            radius={22}
-            style={{ width: 380, maxWidth: '92vw', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.25)' }}
-            innerStyle={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}
+            radius={24}
+            style={{ width: 660, maxWidth: '94vw', boxShadow: '0 20px 50px rgba(0, 0, 0, 0.28)' }}
+            innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#09090b' }}>
-                  Dish Members ({participantsList.length})
+            {/* Modal Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0, 0, 0, 0.07)', paddingBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <h3 style={{ margin: 0, fontSize: 16.5, fontWeight: 700, color: '#09090b' }}>
+                  Dish Table Directory
                 </h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)', color: '#27272a' }}>
+                    {participantsList.length} Joined
+                  </span>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(249, 115, 22, 0.12)', color: '#ea580c' }}>
+                    {invitedList.length} Invited
+                  </span>
+                </div>
               </div>
               <FluidButton
                 variant="icon"
@@ -1705,57 +1961,249 @@ export default function DishDetailModal({
               </FluidButton>
             </div>
 
-            <div className="custom-scrollbar" style={{ maxHeight: 340, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {participantsList.map((p, idx) => {
-                const u = p.user || {};
-                const isHost = (u._id || u).toString() === (dish.creator?._id || dish.creator).toString();
-                return (
-                  <GlassContainer
-                    key={u._id || idx}
-                    radius={14}
-                    onClick={() => {
-                      if (onViewProfile) {
-                        setShowMembersModal(false);
-                        onViewProfile(u);
-                      }
-                    }}
-                    style={{ cursor: 'pointer' }}
-                    innerStyle={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '8px 12px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      {u.avatar ? (
-                        <img src={u.avatar} alt={u.name} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#8257e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
-                          {((u.name || u.username || 'U')[0]).toUpperCase()}
-                        </div>
-                      )}
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b' }}>{u.name || u.username}</div>
-                        <div style={{ fontSize: 11, color: '#71717a' }}>@{u.username || 'user'}</div>
-                      </div>
-                    </div>
+            {/* 2 Separate Columns: Column 1 = Joined Members, Column 2 = Invited */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: 16,
+                maxHeight: 420
+              }}
+            >
+              {/* Column 1: Joined Members */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                    Joined Members ({participantsList.length})
+                  </span>
+                </div>
 
-                    <span
+                <div className="custom-scrollbar" style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
+                  {participantsList.map((p, idx) => {
+                    const u = p.user || {};
+                    const isHost = (u._id || u).toString() === (dish.creator?._id || dish.creator).toString();
+                    const isMemberMuted = mutedList.some(
+                      (m) => (m._id || m).toString() === (u._id || u).toString()
+                    );
+                    const isTargetLoading = actionLoadingUserId === (u._id || u).toString();
+
+                    return (
+                      <GlassContainer
+                        key={u._id || idx}
+                        radius={14}
+                        innerStyle={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '9px 12px',
+                          gap: 10
+                        }}
+                      >
+                        {/* Member Identity */}
+                        <div
+                          onClick={() => {
+                            if (onViewProfile) {
+                              setShowMembersModal(false);
+                              onViewProfile(u);
+                            }
+                          }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, cursor: 'pointer', flex: 1 }}
+                        >
+                          {u.avatar ? (
+                            <img src={u.avatar} alt={u.name} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                          ) : (
+                            <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#8257e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                              {((u.name || u.username || 'U')[0]).toUpperCase()}
+                            </div>
+                          )}
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {u.name || u.username}
+                            </div>
+                            <div style={{ fontSize: 11, color: '#71717a' }}>
+                              @{u.username || 'user'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Status Badges & Host Controls */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                          {/* Role Pill */}
+                          <span
+                            style={{
+                              fontSize: 10.5,
+                              fontWeight: 700,
+                              padding: '2px 7px',
+                              borderRadius: 9999,
+                              background: isHost ? '#09090b' : 'rgba(0, 0, 0, 0.06)',
+                              color: isHost ? '#ffffff' : '#52525b'
+                            }}
+                          >
+                            {isHost ? 'Host' : 'Member'}
+                          </span>
+
+                          {/* Muted Pill if muted */}
+                          {isMemberMuted && (
+                            <span
+                              style={{
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                padding: '2px 7px',
+                                borderRadius: 9999,
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                color: '#dc2626'
+                              }}
+                              title="Muted by host"
+                            >
+                              Muted
+                            </span>
+                          )}
+
+                          {/* Host Controls: Kick & Mute for non-host participants */}
+                          {isCreator && !isHost && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 2 }}>
+                              <FluidButton
+                                disabled={isTargetLoading}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleMute(u._id || u, u.username);
+                                }}
+                                style={{
+                                  padding: '3px 8px',
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  color: isMemberMuted ? '#16a34a' : '#52525b'
+                                }}
+                                title={isMemberMuted ? 'Unmute participant' : 'Mute participant'}
+                              >
+                                {isMemberMuted ? 'Unmute' : 'Mute'}
+                              </FluidButton>
+
+                              <FluidButton
+                                disabled={isTargetLoading}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleKickMember(u._id || u, u.username);
+                                }}
+                                style={{
+                                  padding: '3px 8px',
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  color: '#dc2626'
+                                }}
+                                title="Kick participant from dish"
+                              >
+                                Kick
+                              </FluidButton>
+                            </div>
+                          )}
+                        </div>
+                      </GlassContainer>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Column 2: Invited (Awaiting Acceptance) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                    Invited ({invitedList.length})
+                  </span>
+                  <span style={{ fontSize: 11, color: '#a1a1aa' }}>Pending acceptance</span>
+                </div>
+
+                <div className="custom-scrollbar" style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
+                  {invitedList.length === 0 ? (
+                    <div
                       style={{
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        padding: '2px 8px',
-                        borderRadius: 9999,
-                        background: isHost ? '#09090b' : 'rgba(0, 0, 0, 0.06)',
-                        color: isHost ? '#ffffff' : '#52525b'
+                        padding: '32px 16px',
+                        textAlign: 'center',
+                        color: '#71717a',
+                        fontSize: 12.5,
+                        borderRadius: 14,
+                        border: '1px dashed rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 10
                       }}
                     >
-                      {isHost ? 'Host' : 'Member'}
-                    </span>
-                  </GlassContainer>
-                );
-              })}
+                      <span>No pending invitations.</span>
+                      {isUnlocked && (
+                        <FluidButton
+                          onClick={() => {
+                            setShowMembersModal(false);
+                            setShowInviteDialog(true);
+                          }}
+                          style={{ padding: '5px 14px', fontSize: 12, fontWeight: 600 }}
+                        >
+                          Invite Peers
+                        </FluidButton>
+                      )}
+                    </div>
+                  ) : (
+                    invitedList.map((inv, idx) => {
+                      const u = inv.user || {};
+                      return (
+                        <GlassContainer
+                          key={u._id || idx}
+                          radius={14}
+                          innerStyle={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '9px 12px',
+                            gap: 10
+                          }}
+                        >
+                          {/* User info */}
+                          <div
+                            onClick={() => {
+                              if (onViewProfile) {
+                                setShowMembersModal(false);
+                                onViewProfile(u);
+                              }
+                            }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, cursor: 'pointer', flex: 1 }}
+                          >
+                            {u.avatar ? (
+                              <img src={u.avatar} alt={u.name} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                            ) : (
+                              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#f97316', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                                {((u.name || u.username || 'U')[0]).toUpperCase()}
+                              </div>
+                            )}
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {u.name || u.username || 'Peer'}
+                              </div>
+                              <div style={{ fontSize: 11, color: '#71717a' }}>
+                                @{u.username || 'user'}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Invited Badge */}
+                          <span
+                            style={{
+                              fontSize: 10.5,
+                              fontWeight: 700,
+                              padding: '3px 8px',
+                              borderRadius: 9999,
+                              background: 'rgba(249, 115, 22, 0.12)',
+                              color: '#ea580c',
+                              flexShrink: 0
+                            }}
+                          >
+                            Invited
+                          </span>
+                        </GlassContainer>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
             </div>
           </GlassContainer>
         </div>

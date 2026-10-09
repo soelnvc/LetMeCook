@@ -543,6 +543,23 @@ export default function App() {
     }
   };
 
+  const handleOpenDishByIdOrObj = async (dishOrId) => {
+    if (!dishOrId) return;
+    if (typeof dishOrId === 'object' && dishOrId._id) {
+      setSelectedDishDetail(dishOrId);
+      return;
+    }
+    const dishId = typeof dishOrId === 'string' ? dishOrId : dishOrId?.toString();
+    try {
+      const res = await apiFetch(`/dishes/${dishId}`);
+      if (res?.data) {
+        setSelectedDishDetail(res.data);
+      }
+    } catch (err) {
+      console.error('Failed opening dish ticket:', err);
+    }
+  };
+
   const handleApproveRequest = async (dishId, requestId) => {
     setError('');
     setMessage('');
@@ -1475,6 +1492,7 @@ export default function App() {
           onConnectionsUpdated={() => {
             fetchConnections();
           }}
+          onOpenDishDetail={handleOpenDishByIdOrObj}
         />
       )}
 

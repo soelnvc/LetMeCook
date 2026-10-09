@@ -22,6 +22,8 @@ router.post('/', authMiddleware, validate(createDishValidator), dishController.c
 router.post('/:id/join', authMiddleware, dishController.joinDish);
 router.post('/:id/leave', authMiddleware, dishController.leaveDish);
 router.post('/:id/invite', authMiddleware, dishController.inviteToDish);
+router.post('/:id/kick', authMiddleware, dishController.kickParticipant);
+router.post('/:id/mute', authMiddleware, dishController.toggleMuteParticipant);
 router.post('/:id/requests/:requestId/approve', authMiddleware, dishController.approveRequest);
 router.post('/:id/requests/:requestId/reject', authMiddleware, dishController.rejectRequest);
 router.patch('/:id/status', authMiddleware, dishController.updateStatus);

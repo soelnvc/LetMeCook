@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Connection = require('../models/Connection');
 const Notification = require('../models/Notification');
 const DishMessage = require('../models/DishMessage');
+const messageService = require('./message.service');
 
 const createDish = async (creatorId, dishData) => {
   const {
@@ -174,7 +175,10 @@ const getDishes = async (userId, query = {}) => {
 const getDishById = async (dishId) => {
   const dish = await Dish.findById(dishId)
     .populate('creator', 'username name avatar institute verification')
-    .populate('participants.user', 'username name avatar');
+    .populate('participants.user', 'username name avatar institute verification')
+    .populate('invitedUsers.user', 'username name avatar institute verification')
+    .populate('invitedUsers.invitedBy', 'username name avatar')
+    .populate('mutedUsers', 'username name avatar');
 
   if (!dish) {
     throw new Error('Dish not found');
@@ -193,7 +197,7 @@ const joinDish = async (dishId, userId) => {
   }
 
   const alreadyParticipant = dish.participants.some(
-    (p) => p.user.toString() === userId.toString()
+    (p) => (p.user?._id || p.user).toString() === userId.toString()
   );
   if (alreadyParticipant) {
     throw new Error('You are already part of this Dish');
@@ -204,7 +208,17 @@ const joinDish = async (dishId, userId) => {
     throw new Error('This Dish is full');
   }
 
-  if (dish.joinMode === 'auto') {
+  // Check if user was explicitly invited
+  const inviteIndex = dish.invitedUsers?.findIndex(
+    (inv) => (inv.user?._id || inv.user).toString() === userId.toString()
+  );
+  const wasInvited = inviteIndex !== undefined && inviteIndex !== -1;
+
+  if (wasInvited || dish.joinMode === 'auto' || dish.joinMode === 'invite_only') {
+    if (wasInvited) {
+      dish.invitedUsers.splice(inviteIndex, 1);
+    }
+
     dish.participants.push({
       user: userId,
       joinedAt: new Date(),
@@ -222,14 +236,23 @@ const joinDish = async (dishId, userId) => {
       await DishMessage.create({
         dish: dish._id,
         sender: userId,
-        content: `@${joiner?.username || 'user'} joined the dish`,
+        content: wasInvited
+          ? `🎉 @${joiner?.username || 'user'} accepted the invite and joined the table!`
+          : `@${joiner?.username || 'user'} joined the dish`,
         isSystem: true
       });
     } catch (err) {
       console.error('[DishChat] Join notification error:', err);
     }
 
-    return { joined: true, status: 'participant' };
+    const updatedDish = await Dish.findById(dishId)
+      .populate('creator', 'username name avatar institute verification')
+      .populate('participants.user', 'username name avatar institute verification')
+      .populate('invitedUsers.user', 'username name avatar institute verification')
+      .populate('invitedUsers.invitedBy', 'username name avatar')
+      .populate('mutedUsers', 'username name avatar');
+
+    return { joined: true, status: 'participant', dish: updatedDish };
   } else if (dish.joinMode === 'approval') {
     const existingReq = dish.requests.find(
       (r) => r.user.toString() === userId.toString() && r.status === 'pending'
@@ -435,22 +458,193 @@ const inviteToDish = async (dishId, inviterId, targetUsername) => {
     }
   }
 
-  // Create notification
-  await Notification.create({
-    recipient: target._id,
-    actor: inviterId,
-    type: 'dish_invite',
-    dish: dish._id,
-    content: `${inviter.name || inviter.username} invited you to join "${dish.description.slice(0, 40)}..."`
+  // Add to dish.invitedUsers if not already invited
+  if (!dish.invitedUsers) {
+    dish.invitedUsers = [];
+  }
+  const alreadyInvited = dish.invitedUsers.some(
+    (inv) => (inv.user?._id || inv.user).toString() === target._id.toString()
+  );
+  if (!alreadyInvited) {
+    dish.invitedUsers.push({
+      user: target._id,
+      invitedAt: new Date(),
+      invitedBy: inviterId
+    });
+    await dish.save();
+  }
+
+  // 1. Create In-app Notification
+  try {
+    await Notification.create({
+      recipient: target._id,
+      actor: inviterId,
+      type: 'dish_invite',
+      reference: dish._id,
+      metadata: {
+        dishId: dish._id,
+        dishDescription: dish.description,
+        inviterName: inviter.name || inviter.username
+      }
+    });
+  } catch (notifErr) {
+    console.error('[DishInvite] Notification create error:', notifErr);
+  }
+
+  // 2. Standard Message DM
+  const dmContent = `Hey! I invited you to join my dish: "${dish.description}". Check out the dish ticket to accept! 🍽️`;
+  try {
+    await messageService.sendMessage(inviterId, target._id, dmContent);
+  } catch (dmErr) {
+    console.log('[DishInvite] standard DM via service:', dmErr.message);
+    try {
+      const Message = require('../models/Message');
+      const conversationId = [inviterId.toString(), target._id.toString()].sort().join('_');
+      await Message.create({
+        sender: inviterId,
+        receiver: target._id,
+        conversationId,
+        content: dmContent,
+        isRequest: false,
+        requestStatus: 'none'
+      });
+    } catch (directMsgErr) {
+      console.error('[DishInvite] Direct message fallback error:', directMsgErr);
+    }
+  }
+
+  // 3. Post system announcement to dish chat
+  try {
+    await DishMessage.create({
+      dish: dish._id,
+      sender: inviterId,
+      content: `✉️ @${inviter.username} invited @${cleanUsername} to the table!`,
+      isSystem: true
+    });
+  } catch (chatAnnounceErr) {
+    console.error('[DishInvite] System message error:', chatAnnounceErr);
+  }
+
+  const updatedDish = await getDishById(dish._id);
+  return { success: true, message: `Invitation sent to @${cleanUsername}`, dish: updatedDish };
+};
+
+const kickParticipant = async (dishId, hostId, targetUserId) => {
+  const dish = await Dish.findById(dishId);
+  if (!dish) throw new Error('Dish not found');
+
+  if (dish.creator.toString() !== hostId.toString()) {
+    throw new Error('Only the host can remove participants');
+  }
+
+  if (targetUserId.toString() === hostId.toString()) {
+    throw new Error('Host cannot kick themselves');
+  }
+
+  const participantIdx = dish.participants.findIndex(
+    (p) => (p.user?._id || p.user).toString() === targetUserId.toString()
+  );
+  if (participantIdx === -1) {
+    throw new Error('User is not a participant in this dish');
+  }
+
+  dish.participants.splice(participantIdx, 1);
+
+  if (dish.mutedUsers) {
+    dish.mutedUsers = dish.mutedUsers.filter(
+      (m) => (m._id || m).toString() !== targetUserId.toString()
+    );
+  }
+
+  await dish.save();
+
+  await User.findByIdAndUpdate(targetUserId, {
+    $inc: { 'stats.dishesJoined': -1 },
+    $unset: { currentDish: 1 }
   });
 
-  return { success: true, message: `Invitation sent to @${cleanUsername}` };
+  const kickedUser = await User.findById(targetUserId).select('username');
+
+  try {
+    await DishMessage.create({
+      dish: dish._id,
+      sender: hostId,
+      content: `🚫 @${kickedUser?.username || 'user'} was removed from the dish table by the host`,
+      isSystem: true
+    });
+  } catch (err) {
+    console.error('[DishChat] Kick notification error:', err);
+  }
+
+  const updatedDish = await getDishById(dishId);
+  return {
+    success: true,
+    message: `@${kickedUser?.username || 'User'} has been removed from the dish`,
+    dish: updatedDish
+  };
+};
+
+const toggleMuteParticipant = async (dishId, hostId, targetUserId) => {
+  const dish = await Dish.findById(dishId);
+  if (!dish) throw new Error('Dish not found');
+
+  if (dish.creator.toString() !== hostId.toString()) {
+    throw new Error('Only the host can mute or unmute participants');
+  }
+
+  if (targetUserId.toString() === hostId.toString()) {
+    throw new Error('Host cannot mute themselves');
+  }
+
+  if (!dish.mutedUsers) {
+    dish.mutedUsers = [];
+  }
+
+  const mutedIdx = dish.mutedUsers.findIndex(
+    (m) => (m._id || m).toString() === targetUserId.toString()
+  );
+  const isAlreadyMuted = mutedIdx !== -1;
+  const targetUser = await User.findById(targetUserId).select('username');
+
+  if (isAlreadyMuted) {
+    dish.mutedUsers.splice(mutedIdx, 1);
+  } else {
+    dish.mutedUsers.push(targetUserId);
+  }
+
+  await dish.save();
+
+  try {
+    await DishMessage.create({
+      dish: dish._id,
+      sender: hostId,
+      content: isAlreadyMuted
+        ? `🔊 @${targetUser?.username || 'user'} was unmuted by the host`
+        : `🔇 @${targetUser?.username || 'user'} was muted by the host`,
+      isSystem: true
+    });
+  } catch (err) {
+    console.error('[DishChat] Mute notification error:', err);
+  }
+
+  const updatedDish = await getDishById(dishId);
+  return {
+    success: true,
+    isMuted: !isAlreadyMuted,
+    message: isAlreadyMuted
+      ? `@${targetUser?.username || 'User'} unmuted`
+      : `@${targetUser?.username || 'User'} muted`,
+    dish: updatedDish
+  };
 };
 
 const getDishChat = async (dishId, userId) => {
   const dish = await Dish.findById(dishId)
     .populate('creator', 'username name avatar institute verification')
-    .populate('participants.user', 'username name avatar institute verification');
+    .populate('participants.user', 'username name avatar institute verification')
+    .populate('invitedUsers.user', 'username name avatar institute verification')
+    .populate('invitedUsers.invitedBy', 'username name avatar')
+    .populate('mutedUsers', 'username name avatar');
 
   if (!dish) {
     throw new Error('Dish not found');
@@ -509,6 +703,14 @@ const sendDishChatMessage = async (dishId, senderId, content) => {
     throw new Error('You must be a confirmed participant of this dish to send messages');
   }
 
+  // Enforce Mute check
+  const isMuted = (dish.mutedUsers || []).some(
+    (u) => (u._id || u).toString() === senderId.toString()
+  );
+  if (isMuted) {
+    throw new Error('You have been muted in this dish room by the host');
+  }
+
   const message = await DishMessage.create({
     dish: dishId,
     sender: senderId,
@@ -563,6 +765,8 @@ module.exports = {
   respondToJoinRequest,
   transitionDishStatus,
   inviteToDish,
+  kickParticipant,
+  toggleMuteParticipant,
   getDishChat,
   sendDishChatMessage,
   deleteDish
