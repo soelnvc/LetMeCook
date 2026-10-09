@@ -7,9 +7,41 @@ import EmojiPicker from '@/components/messaging/EmojiPicker';
 import { apiFetch } from '@/lib/api';
 
 /**
+ * Check if text contains only emojis (copied from MessageArea)
+ */
+const isOnlyEmojis = (text) => {
+  if (!text || typeof text !== 'string') return false;
+  const clean = text.trim();
+  if (!clean) return false;
+  const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Modifier}|\u200d|\ufe0f|\s)+$/u;
+  return emojiRegex.test(clean);
+};
+
+/**
+ * Determine dynamic emoji font size (copied from MessageArea)
+ */
+const getEmojiFontSize = (text) => {
+  if (!text) return 48;
+  try {
+    const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+    const segments = Array.from(segmenter.segment(text.trim())).filter((s) => s.segment.trim());
+    const count = segments.length;
+    if (count <= 1) return 48;
+    if (count === 2) return 38;
+    if (count === 3) return 32;
+    return 26;
+  } catch {
+    const len = [...text.trim()].length;
+    if (len <= 2) return 48;
+    if (len <= 4) return 38;
+    return 28;
+  }
+};
+
+/**
  * Genre-specific vector icons for dish tickets
  */
-function getGenreIcon(category = '', size = 28) {
+function getGenreIcon(category = '', size = 26) {
   const cat = (category || '').toLowerCase().trim();
 
   if (cat === 'sport' || cat === 'sports' || cat === 'fitness') {
@@ -103,9 +135,16 @@ export default function DishDetailModal({
   const [userRating, setUserRating] = useState(5);
   const [toastMessage, setToastMessage] = useState('');
 
+  const inputRef = useRef(null);
   const chatScrollRef = useRef(null);
-  const pollTimerRef = useRef(null);
   const optionsMenuRef = useRef(null);
+  const onDishUpdatedRef = useRef(onDishUpdated);
+  const isFetchingRef = useRef(false);
+
+  // Keep latest callback ref without triggering effect re-executions
+  useEffect(() => {
+    onDishUpdatedRef.current = onDishUpdated;
+  }, [onDishUpdated]);
 
   // Show transient toast notification
   const triggerToast = (msg) => {
@@ -124,9 +163,13 @@ export default function DishDetailModal({
       const timer = setTimeout(() => {
         setIsMounted(false);
         setMessages([]);
+        setMessageInput('');
+        setShowEmojiPicker(false);
         setShowOptionsMenu(false);
-        setShowInviteDialog(false);
         setShowMembersModal(false);
+        setShowInviteDialog(false);
+        setShowRateModal(false);
+        setChatError('');
       }, 200);
       return () => clearTimeout(timer);
     }
@@ -145,46 +188,73 @@ export default function DishDetailModal({
     }
   }, [showOptionsMenu]);
 
-  // Fetch Dish Chat messages
-  const fetchChat = useCallback(async (isSilent = false) => {
-    if (!dish?._id) return;
-    if (!isSilent) setIsLoadingChat(true);
-
-    try {
-      const res = await apiFetch(`/dishes/${dish._id}/chat`);
-      if (res && res.success && res.data) {
-        setMessages(res.data.messages || []);
-        // Check if dish status updated
-        if (res.data.dish && onDishUpdated) {
-          onDishUpdated(res.data.dish);
+  // Keyboard shortcut: Escape closes modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (showEmojiPicker) {
+          setShowEmojiPicker(false);
+        } else if (showOptionsMenu) {
+          setShowOptionsMenu(false);
+        } else if (showMembersModal) {
+          setShowMembersModal(false);
+        } else if (showInviteDialog) {
+          setShowInviteDialog(false);
+        } else if (showRateModal) {
+          setShowRateModal(false);
+        } else {
+          onClose();
         }
       }
-    } catch (err) {
-      if (!isSilent) {
-        console.error('Failed to load dish chat:', err);
-      }
-    } finally {
-      if (!isSilent) setIsLoadingChat(false);
-    }
-  }, [dish?._id, onDishUpdated]);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, showEmojiPicker, showOptionsMenu, showMembersModal, showInviteDialog, showRateModal, onClose]);
 
-  // Initialize and poll chat while modal is open
+  // Safely fetch and poll Dish Chat messages (no infinite loops)
   useEffect(() => {
-    if (isOpen && dish?._id) {
-      fetchChat(false);
+    if (!isOpen || !dish?._id) return;
+    let isCancelled = false;
 
-      // Start live polling every 3.5 seconds
-      pollTimerRef.current = setInterval(() => {
-        fetchChat(true);
-      }, 3500);
+    const doFetch = async (isSilent = false) => {
+      if (isFetchingRef.current) return;
+      isFetchingRef.current = true;
+      if (!isSilent) setIsLoadingChat(true);
 
-      return () => {
-        if (pollTimerRef.current) clearInterval(pollTimerRef.current);
-      };
-    }
-  }, [isOpen, dish?._id, fetchChat]);
+      try {
+        const res = await apiFetch(`/dishes/${dish._id}/chat`);
+        if (!isCancelled && res?.success && res.data) {
+          setMessages(res.data.messages || []);
+          if (res.data.dish && onDishUpdatedRef.current) {
+            onDishUpdatedRef.current(res.data.dish);
+          }
+        }
+      } catch (err) {
+        if (!isCancelled && !isSilent) {
+          console.error('Failed to load dish chat:', err);
+        }
+      } finally {
+        isFetchingRef.current = false;
+        if (!isCancelled && !isSilent) setIsLoadingChat(false);
+      }
+    };
 
-  // Auto-scroll chat to bottom when messages update
+    // Initial load
+    doFetch(false);
+
+    // Live polling every 4.5 seconds
+    const timer = setInterval(() => {
+      doFetch(true);
+    }, 4500);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(timer);
+    };
+  }, [isOpen, dish?._id]);
+
+  // Auto-scroll chat to bottom when messages change
   useEffect(() => {
     if (chatScrollRef.current) {
       chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
@@ -209,14 +279,32 @@ export default function DishDetailModal({
     String(creatorObj) === String(currentUser?._id);
 
   const participantsList = dish.participants || [];
-  const isParticipant = participantsList.some(
-    (p) => (p.user?._id || p.user)?.toString() === currentUser?._id?.toString()
-  ) || isCreator;
+  const isParticipant =
+    participantsList.some(
+      (p) => (p.user?._id || p.user)?.toString() === currentUser?._id?.toString()
+    ) || isCreator;
 
   const isExpired = dish.status === 'cooked';
   const spotsLeft = dish.capacity?.unlimited
     ? '∞'
     : Math.max(0, (dish.capacity?.max || 4) - participantsList.length);
+
+  // Insert emoji at cursor position (copied from MessageArea)
+  const handleInsertEmoji = (emoji) => {
+    const input = inputRef.current;
+    if (!input) {
+      setMessageInput((prev) => prev + emoji);
+      return;
+    }
+    const start = input.selectionStart ?? messageInput.length;
+    const end = input.selectionEnd ?? messageInput.length;
+    const next = messageInput.substring(0, start) + emoji + messageInput.substring(end);
+    setMessageInput(next);
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(start + emoji.length, start + emoji.length);
+    }, 0);
+  };
 
   // Send a message to the group chat
   const handleSendMessage = async (e) => {
@@ -224,7 +312,7 @@ export default function DishDetailModal({
     if (!messageInput.trim() || isSending) return;
 
     if (isExpired) {
-      triggerToast('Dish ticket has expired. Chat is closed.');
+      triggerToast('Dish ticket has expired. Chat is archived.');
       return;
     }
 
@@ -248,36 +336,30 @@ export default function DishDetailModal({
         setMessages((prev) => [...prev, res.data]);
         setShowEmojiPicker(false);
       } else {
-        throw new Error(res?.message || 'Failed to send message');
+        setChatError(res?.message || 'Failed to send message');
       }
     } catch (err) {
-      console.error('Error sending message:', err);
-      setChatError(err.message || 'Failed to send message');
-      setMessageInput(content); // restore input
+      setChatError(err.message || 'Error sending message');
+      setMessageInput(content); // restore on error
     } finally {
       setIsSending(false);
     }
   };
 
-  // Quick invite handler
+  // Quick invite helper
   const handleSendInvite = async (targetUsername) => {
-    const uname = (targetUsername || inviteUsername || '').trim().replace(/^@/, '');
-    if (!uname) return;
-
+    if (!targetUsername || isInviting) return;
     setIsInviting(true);
     try {
-      const res = await apiFetch(`/dishes/${dish._id}/invite`, {
+      await apiFetch(`/dishes/${dish._id}/chat/messages`, {
         method: 'POST',
-        body: JSON.stringify({ username: uname })
+        body: JSON.stringify({
+          content: `@${currentUser?.username || 'Host'} invited @${targetUsername.replace('@', '')} to this dish table! 🎉`
+        })
       });
-
-      if (res && (res.success || res.message)) {
-        triggerToast(`Invitation sent to @${uname}!`);
-        setInviteUsername('');
-        setShowInviteDialog(false);
-      } else {
-        throw new Error(res?.message || 'Failed to send invitation');
-      }
+      triggerToast(`Invited @${targetUsername.replace('@', '')}!`);
+      setInviteUsername('');
+      setShowInviteDialog(false);
     } catch (err) {
       triggerToast(err.message || 'Could not send invitation');
     } finally {
@@ -285,23 +367,20 @@ export default function DishDetailModal({
     }
   };
 
-  // Copy shareable ticket link
+  // Share ticket helper
   const handleShareTicket = () => {
-    if (typeof window !== 'undefined') {
-      const url = `${window.location.origin}/?dish=${dish._id}`;
-      navigator.clipboard.writeText(url).then(
-        () => triggerToast('Ticket link copied to clipboard!'),
-        () => triggerToast(`Dish ID: ${dish._id}`)
-      );
+    const url = typeof window !== 'undefined' ? `${window.location.origin}?dishId=${dish._id}` : '';
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+      triggerToast('Ticket link copied to clipboard!');
     }
     setShowOptionsMenu(false);
   };
 
-  // Rate dish submission
+  // Submit rating helper
   const handleSubmitRating = () => {
-    triggerToast(`Thanks! You rated this dish ${userRating}/5 stars.`);
+    triggerToast(`Thanks for rating ${userRating} / 5 stars!`);
     setShowRateModal(false);
-    setShowOptionsMenu(false);
   };
 
   return (
@@ -309,52 +388,55 @@ export default function DishDetailModal({
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.55)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
         zIndex: 1200,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 24,
-        boxSizing: 'border-box',
+        backgroundColor: 'rgba(0, 0, 0, 0.48)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
         opacity: isVisible ? 1 : 0,
-        transition: 'opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+        transition: 'opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        padding: '20px',
+        boxSizing: 'border-box'
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Toast Feedback */}
+      {/* Toast Notification */}
       {toastMessage && (
         <div
           style={{
-            position: 'fixed',
+            position: 'absolute',
             top: 24,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1400,
-            background: '#09090b',
-            color: '#ffffff',
-            padding: '10px 22px',
-            borderRadius: 9999,
-            fontSize: 13,
-            fontWeight: 600,
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            animation: 'fadeIn 0.2s ease-out'
+            zIndex: 1500,
+            transform: 'translateY(0)',
+            transition: 'transform 0.2s ease'
           }}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          {toastMessage}
+          <GlassContainer
+            radius={9999}
+            innerStyle={{
+              padding: '8px 20px',
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#09090b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
+            }}
+          >
+            <span>✓</span>
+            <span>{toastMessage}</span>
+          </GlassContainer>
         </div>
       )}
 
-      {/* Main Large Rectangular Modal Box */}
+      {/* ========================================================= */}
+      {/* MAIN FULL-SIZE MODAL CONTAINER (92vw x 88vh Rectangular)  */}
+      {/* ========================================================= */}
       <GlassContainer
         radius={28}
         style={{
@@ -365,17 +447,17 @@ export default function DishDetailModal({
           display: 'flex',
           flexDirection: 'row',
           overflow: 'hidden',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.28)',
-          transform: isVisible ? 'scale(1)' : 'scale(0.96)',
-          transition: 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
+          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.28), 0 4px 16px rgba(0, 0, 0, 0.1)',
+          transform: isVisible ? 'scale(1)' : 'scale(0.97)',
+          transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
         innerStyle={{
-          padding: 0,
           display: 'flex',
           flexDirection: 'row',
           width: '100%',
           height: '100%',
-          boxSizing: 'border-box'
+          padding: 0,
+          overflow: 'hidden'
         }}
       >
         {/* ========================================================= */}
@@ -391,7 +473,7 @@ export default function DishDetailModal({
             justifyContent: 'space-between',
             height: '100%',
             borderRight: '1px solid rgba(0, 0, 0, 0.08)',
-            backgroundColor: 'rgba(255, 255, 255, 0.38)',
+            backgroundColor: 'transparent',
             boxSizing: 'border-box',
             position: 'relative'
           }}
@@ -400,7 +482,7 @@ export default function DishDetailModal({
           <div
             className="custom-scrollbar"
             style={{
-              padding: '26px 26px 16px 26px',
+              padding: '24px 24px 16px 24px',
               overflowY: 'auto',
               flex: 1
             }}
@@ -440,8 +522,8 @@ export default function DishDetailModal({
                     src={creatorAvatar}
                     alt={creatorName}
                     style={{
-                      width: 46,
-                      height: 46,
+                      width: 48,
+                      height: 48,
                       borderRadius: '50%',
                       objectFit: 'cover',
                       border: '1.5px solid rgba(0, 0, 0, 0.1)',
@@ -451,15 +533,15 @@ export default function DishDetailModal({
                 ) : (
                   <div
                     style={{
-                      width: 46,
-                      height: 46,
+                      width: 48,
+                      height: 48,
                       borderRadius: '50%',
-                      backgroundColor: '#f97316',
+                      backgroundColor: '#8257e5',
                       color: '#ffffff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 16,
+                      fontSize: 17,
                       fontWeight: 800,
                       flexShrink: 0
                     }}
@@ -470,7 +552,7 @@ export default function DishDetailModal({
 
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: '#09090b', letterSpacing: '-0.02em' }}>
+                    <span style={{ fontSize: 15.5, fontWeight: 700, color: '#09090b', letterSpacing: '-0.02em' }}>
                       {creatorName}
                     </span>
                     <span
@@ -479,7 +561,7 @@ export default function DishDetailModal({
                         fontWeight: 700,
                         padding: '2px 7px',
                         borderRadius: 9999,
-                        background: 'rgba(0, 0, 0, 0.07)',
+                        background: 'rgba(0, 0, 0, 0.08)',
                         color: '#09090b',
                         textTransform: 'uppercase',
                         letterSpacing: '0.4px'
@@ -510,25 +592,31 @@ export default function DishDetailModal({
 
             {/* 2. MIDDLE: ALL DETAILS OF THE DISH WITH DESCRIPTION */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {/* Category & Status Pill Bar */}
+              {/* Category & Status Pill Bar (GlassContainers) */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '4px 12px', borderRadius: 9999, background: 'rgba(0, 0, 0, 0.06)', color: '#09090b', fontSize: 12, fontWeight: 700, textTransform: 'capitalize' }}>
+                <GlassContainer
+                  radius={9999}
+                  innerStyle={{
+                    padding: '5px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: 'capitalize',
+                    color: '#09090b'
+                  }}
+                >
                   {getGenreIcon(dish.category, 14)}
                   <span>{dish.category}</span>
-                </div>
+                </GlassContainer>
 
-                <div
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 9999,
+                <GlassContainer
+                  radius={9999}
+                  innerStyle={{
+                    padding: '5px 12px',
                     fontSize: 11.5,
                     fontWeight: 700,
-                    backgroundColor:
-                      dish.status === 'cooked'
-                        ? 'rgba(113, 113, 122, 0.14)'
-                        : dish.status === 'cooking'
-                        ? 'rgba(249, 115, 22, 0.14)'
-                        : 'rgba(34, 197, 94, 0.14)',
                     color:
                       dish.status === 'cooked'
                         ? '#71717a'
@@ -542,35 +630,41 @@ export default function DishDetailModal({
                     : dish.status === 'cooking'
                     ? 'Cooking Now'
                     : "Let's Cook"}
-                </div>
+                </GlassContainer>
               </div>
 
-              {/* Dish Description Box */}
+              {/* Dish Description Box (GlassContainer) */}
               <div>
                 <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
                   Description:
                 </label>
-                <div
-                  style={{
+                <GlassContainer
+                  radius={16}
+                  innerStyle={{
+                    padding: '13px 15px',
                     fontSize: 14,
                     lineHeight: 1.55,
                     color: '#09090b',
                     whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                    padding: '12px 14px',
-                    borderRadius: 14,
-                    border: '1px solid rgba(0, 0, 0, 0.05)'
+                    wordBreak: 'break-word'
                   }}
                 >
                   {dish.description}
-                </div>
+                </GlassContainer>
               </div>
 
-              {/* Grid of Key Ticket Specs */}
+              {/* Grid of Key Ticket Specs (GlassContainers) */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 4 }}>
                 {/* Capacity */}
-                <div style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255, 255, 255, 0.45)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                <GlassContainer
+                  radius={16}
+                  innerStyle={{
+                    padding: '11px 13px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}
+                >
                   <div style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Capacity</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -579,10 +673,18 @@ export default function DishDetailModal({
                     </svg>
                     {participantsList.length}/{dish.capacity?.max || 4} spots ({spotsLeft} left)
                   </div>
-                </div>
+                </GlassContainer>
 
                 {/* Join Mode */}
-                <div style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255, 255, 255, 0.45)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                <GlassContainer
+                  radius={16}
+                  innerStyle={{
+                    padding: '11px 13px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}
+                >
                   <div style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Access Mode</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -590,27 +692,45 @@ export default function DishDetailModal({
                     </svg>
                     {dish.joinMode === 'auto' ? 'Auto-Join' : 'Approval Req.'}
                   </div>
-                </div>
+                </GlassContainer>
 
                 {/* Meetup / Area */}
-                <div style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255, 255, 255, 0.45)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                <GlassContainer
+                  radius={16}
+                  innerStyle={{
+                    padding: '11px 13px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}
+                >
                   <div style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Location</div>
                   <div style={{ fontSize: 12.5, fontWeight: 700, color: '#09090b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                       <circle cx="12" cy="10" r="3" />
                     </svg>
-                    <span>{dish.location?.areaName || 'Campus Spot'}</span>
+                    <span title={dish.location?.areaName || 'Campus Spot'}>
+                      {dish.location?.areaName || 'Campus Spot'}
+                    </span>
                   </div>
-                </div>
+                </GlassContainer>
 
                 {/* Visibility */}
-                <div style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255, 255, 255, 0.45)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                <GlassContainer
+                  radius={16}
+                  innerStyle={{
+                    padding: '11px 13px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}
+                >
                   <div style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Network</div>
                   <div style={{ fontSize: 12.5, fontWeight: 700, color: '#09090b', marginTop: 2, textTransform: 'capitalize' }}>
                     {dish.visibility === 'institute' ? 'Institute Only' : 'Global Campus'}
                   </div>
-                </div>
+                </GlassContainer>
               </div>
             </div>
           </div>
@@ -620,7 +740,7 @@ export default function DishDetailModal({
             style={{
               padding: '16px 20px',
               borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-              backgroundColor: 'rgba(255, 255, 255, 0.55)',
+              backgroundColor: 'transparent',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -641,8 +761,8 @@ export default function DishDetailModal({
               </span>
             </div>
 
-            {/* Bottom Right: Invite, Leave / Status action, and 3-dot options menu */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>
+            {/* Bottom Right: Action Buttons (Invite, Leave, Join, 3-dots) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               {/* Not Joined Yet */}
               {!isParticipant && !isExpired && (
                 <FluidButton
@@ -701,34 +821,26 @@ export default function DishDetailModal({
                 </>
               )}
 
-              {/* 3 Dot Options Button (Rate, Report, Share, Delete) */}
+              {/* 3 Dot Options Button (FluidButton icon) */}
               <div style={{ position: 'relative' }} ref={optionsMenuRef}>
-                <button
+                <FluidButton
+                  variant="icon"
                   type="button"
                   onClick={() => setShowOptionsMenu(!showOptionsMenu)}
                   title="More options"
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    border: '1px solid rgba(0, 0, 0, 0.1)',
-                    background: 'rgba(255, 255, 255, 0.75)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: '#09090b',
-                    transition: 'all 0.15s ease'
+                    width: 34,
+                    height: 34,
+                    minWidth: 34,
+                    minHeight: 34
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.08)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.75)')}
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="1.5" />
                     <circle cx="19" cy="12" r="1.5" />
                     <circle cx="5" cy="12" r="1.5" />
                   </svg>
-                </button>
+                </FluidButton>
 
                 {/* Options Dropdown Menu */}
                 {showOptionsMenu && (
@@ -754,7 +866,7 @@ export default function DishDetailModal({
                       onClick={handleShareTicket}
                       style={{
                         padding: '8px 10px',
-                        borderRadius: 8,
+                        borderRadius: 10,
                         border: 'none',
                         background: 'transparent',
                         color: '#09090b',
@@ -765,7 +877,8 @@ export default function DishDetailModal({
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
-                        fontFamily: 'inherit'
+                        fontFamily: 'inherit',
+                        transition: 'background 0.15s ease'
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -788,7 +901,7 @@ export default function DishDetailModal({
                       }}
                       style={{
                         padding: '8px 10px',
-                        borderRadius: 8,
+                        borderRadius: 10,
                         border: 'none',
                         background: 'transparent',
                         color: '#09090b',
@@ -799,7 +912,8 @@ export default function DishDetailModal({
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
-                        fontFamily: 'inherit'
+                        fontFamily: 'inherit',
+                        transition: 'background 0.15s ease'
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -807,7 +921,7 @@ export default function DishDetailModal({
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                       </svg>
-                      Rate & Review
+                      Rate Experience
                     </button>
 
                     <button
@@ -818,10 +932,10 @@ export default function DishDetailModal({
                       }}
                       style={{
                         padding: '8px 10px',
-                        borderRadius: 8,
+                        borderRadius: 10,
                         border: 'none',
                         background: 'transparent',
-                        color: '#ef4444',
+                        color: '#dc2626',
                         fontSize: 12.5,
                         fontWeight: 600,
                         cursor: 'pointer',
@@ -829,7 +943,8 @@ export default function DishDetailModal({
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
-                        fontFamily: 'inherit'
+                        fontFamily: 'inherit',
+                        transition: 'background 0.15s ease'
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -853,7 +968,7 @@ export default function DishDetailModal({
                         }}
                         style={{
                           padding: '8px 10px',
-                          borderRadius: 8,
+                          borderRadius: 10,
                           border: 'none',
                           background: 'transparent',
                           color: '#dc2626',
@@ -864,7 +979,8 @@ export default function DishDetailModal({
                           display: 'flex',
                           alignItems: 'center',
                           gap: 8,
-                          fontFamily: 'inherit'
+                          fontFamily: 'inherit',
+                          transition: 'background 0.15s ease'
                         }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(220, 38, 38, 0.08)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -892,7 +1008,7 @@ export default function DishDetailModal({
             display: 'flex',
             flexDirection: 'column',
             height: '100%',
-            backgroundColor: 'rgba(255, 255, 255, 0.22)',
+            backgroundColor: 'transparent',
             position: 'relative'
           }}
         >
@@ -908,33 +1024,32 @@ export default function DishDetailModal({
               height: 72,
               boxSizing: 'border-box',
               flexShrink: 0,
-              backgroundColor: 'rgba(255, 255, 255, 0.45)'
+              backgroundColor: 'transparent'
             }}
           >
-            {/* Left: Name of the Dish */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-              <div
-                style={{
+            {/* Left: Name of the Dish with Glass Icon */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+              <GlassContainer
+                radius={12}
+                style={{ flexShrink: 0 }}
+                innerStyle={{
                   width: 38,
                   height: 38,
-                  borderRadius: 12,
-                  background: 'rgba(0, 0, 0, 0.06)',
-                  color: '#09090b',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0
+                  color: '#09090b'
                 }}
               >
                 {getGenreIcon(dish.category, 20)}
-              </div>
+              </GlassContainer>
 
               <div style={{ minWidth: 0 }}>
                 <h3
                   style={{
                     margin: 0,
-                    fontSize: 16,
-                    fontWeight: 800,
+                    fontSize: 16.5,
+                    fontWeight: 700,
                     color: '#09090b',
                     letterSpacing: '-0.02em',
                     overflow: 'hidden',
@@ -945,30 +1060,26 @@ export default function DishDetailModal({
                 >
                   {dish.description ? (dish.description.length > 40 ? dish.description.slice(0, 40) + '...' : dish.description) : 'Dish Ticket'}
                 </h3>
-                <div style={{ fontSize: 11.5, color: '#71717a', marginTop: 1 }}>
+                <div style={{ fontSize: 12, color: '#71717a', marginTop: 1, fontWeight: 500 }}>
                   {participantsList.length} peer{participantsList.length === 1 ? '' : 's'} joined • {isExpired ? 'Ticket Expired' : 'Active Dish Room'}
                 </div>
               </div>
             </div>
 
             {/* Right: PFPs of Members (Max 7, + Sign) and Close Button */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              {/* Member PFPs Avatar Group */}
-              <div
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {/* Member PFPs Avatar Group in GlassContainer */}
+              <GlassContainer
+                radius={9999}
                 onClick={() => setShowMembersModal(true)}
                 title="Click to view all members"
-                style={{
+                style={{ cursor: 'pointer' }}
+                innerStyle={{
+                  padding: '4px 8px',
                   display: 'flex',
                   alignItems: 'center',
-                  cursor: 'pointer',
-                  padding: '4px 8px',
-                  borderRadius: 9999,
-                  background: 'rgba(255, 255, 255, 0.65)',
-                  border: '1px solid rgba(0, 0, 0, 0.08)',
-                  transition: 'all 0.15s ease'
+                  cursor: 'pointer'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.65)')}
               >
                 <div style={{ display: 'flex', alignItems: 'center', marginRight: participantsList.length > 7 ? 6 : 0 }}>
                   {participantsList.slice(0, 7).map((p, idx) => {
@@ -1036,39 +1147,31 @@ export default function DishDetailModal({
                     +{participantsList.length - 7}
                   </span>
                 )}
-              </div>
+              </GlassContainer>
 
-              {/* Close Button (X) */}
-              <button
+              {/* Close Button (FluidButton icon) */}
+              <FluidButton
+                variant="icon"
                 type="button"
                 onClick={onClose}
                 title="Close"
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  border: '1px solid rgba(0, 0, 0, 0.1)',
-                  background: 'rgba(255, 255, 255, 0.8)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#09090b',
-                  transition: 'all 0.15s ease'
+                  width: 34,
+                  height: 34,
+                  minWidth: 34,
+                  minHeight: 34
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)')}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
-              </button>
+              </FluidButton>
             </div>
           </div>
 
           {/* ========================================================= */}
-          {/* ALL OTHER PART: DISH CHAT                                 */}
+          {/* ALL OTHER PART: DISH CHAT (Copied from MessageArea)       */}
           {/* ========================================================= */}
           <div
             style={{
@@ -1076,115 +1179,122 @@ export default function DishDetailModal({
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
-              position: 'relative'
+              position: 'relative',
+              backgroundColor: 'transparent'
             }}
           >
             {/* Expired or Non-Participant Warning Banner */}
             {isExpired && (
-              <div
-                style={{
-                  padding: '9px 18px',
-                  background: 'rgba(244, 63, 94, 0.08)',
-                  borderBottom: '1px solid rgba(244, 63, 94, 0.2)',
-                  color: '#e11d48',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  justifyContent: 'center'
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                This dish ticket has expired (Cooked). Group chat is archived and read-only.
+              <div style={{ padding: '12px 24px 0 24px' }}>
+                <GlassContainer
+                  radius={16}
+                  innerStyle={{
+                    padding: '10px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: '#e11d48',
+                    backgroundColor: 'rgba(244, 63, 94, 0.06)'
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span>This dish ticket has expired and chat is archived.</span>
+                </GlassContainer>
               </div>
             )}
 
             {!isParticipant && !isExpired && (
-              <div
-                style={{
-                  padding: '9px 18px',
-                  background: 'rgba(59, 130, 246, 0.08)',
-                  borderBottom: '1px solid rgba(59, 130, 246, 0.2)',
-                  color: '#2563eb',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  justifyContent: 'center'
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                </svg>
-                You are viewing this dish. Join to participate in the real-time group chat!
+              <div style={{ padding: '12px 24px 0 24px' }}>
+                <GlassContainer
+                  radius={16}
+                  innerStyle={{
+                    padding: '10px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.06)'
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                  </svg>
+                  <span>Join this dish table to participate in the group chat!</span>
+                </GlassContainer>
               </div>
             )}
 
-            {/* Scrollable Chat Messages Area */}
+            {/* Scrollable Chat Messages Feed */}
             <div
               ref={chatScrollRef}
               className="custom-scrollbar"
               style={{
                 flex: 1,
                 overflowY: 'auto',
-                padding: '20px 24px',
+                padding: '24px 32px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 12
+                gap: 16
               }}
             >
-              {/* System Info Bubble */}
-              <div style={{ textAlign: 'center', margin: '8px 0 14px 0' }}>
-                <span
-                  style={{
+              {/* Dish Room Creation System Pill */}
+              <div style={{ textAlign: 'center', margin: '4px 0 10px 0' }}>
+                <GlassContainer
+                  radius={9999}
+                  style={{ display: 'inline-block' }}
+                  innerStyle={{
+                    padding: '5px 16px',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 6,
-                    padding: '5px 14px',
-                    borderRadius: 9999,
-                    background: 'rgba(0, 0, 0, 0.05)',
-                    color: '#71717a',
-                    fontSize: 11,
-                    fontWeight: 600
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: '#71717a'
                   }}
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
-                  Dish chat created • Host: @{creatorUsername}
-                </span>
+                  <span>Dish chat room created • Host: @{creatorUsername}</span>
+                </GlassContainer>
               </div>
 
-              {/* Messages Feed */}
+              {/* Empty / Loading State */}
               {isLoadingChat && messages.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '30px 0', color: '#71717a', fontSize: 13 }}>
+                <div style={{ textAlign: 'center', margin: 'auto', color: '#888888', fontSize: 13.5 }}>
                   Loading dish group messages...
+                </div>
+              ) : messages.length === 0 ? (
+                <div style={{ textAlign: 'center', margin: 'auto', color: '#888888', fontSize: 14 }}>
+                  No messages yet. Say hello to your dish crew!
                 </div>
               ) : (
                 messages.map((msg, idx) => {
+                  // System announcement
                   if (msg.isSystem) {
                     return (
                       <div key={msg._id || idx} style={{ textAlign: 'center', margin: '4px 0' }}>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '3px 12px',
-                            borderRadius: 9999,
-                            background: 'rgba(0, 0, 0, 0.04)',
-                            color: '#71717a',
+                        <GlassContainer
+                          radius={9999}
+                          style={{ display: 'inline-block' }}
+                          innerStyle={{
+                            padding: '4px 14px',
                             fontSize: 11,
-                            fontWeight: 500
+                            fontWeight: 500,
+                            color: '#71717a'
                           }}
                         >
                           {msg.content}
-                        </span>
+                        </GlassContainer>
                       </div>
                     );
                   }
@@ -1193,24 +1303,137 @@ export default function DishDetailModal({
                   const isOwn = (sender._id || sender).toString() === currentUser?._id?.toString();
                   const senderName = sender.name || sender.username || 'Peer';
                   const senderAvatar = sender.avatar;
+                  const isEmojiMsg = isOnlyEmojis(msg.content);
+                  const emojiSize = isEmojiMsg ? getEmojiFontSize(msg.content) : 15;
 
-                  return (
-                    <div
-                      key={msg._id || idx}
-                      style={{
-                        display: 'flex',
-                        flexDirection: isOwn ? 'row-reverse' : 'row',
-                        alignItems: 'flex-end',
-                        gap: 10,
-                        maxWidth: '82%',
-                        alignSelf: isOwn ? 'flex-end' : 'flex-start'
-                      }}
-                    >
-                      {/* Sender Avatar for others */}
-                      {!isOwn && (
+                  if (isOwn) {
+                    // Own message (aligned right)
+                    if (isEmojiMsg) {
+                      return (
+                        <div
+                          key={msg._id || idx}
+                          style={{
+                            alignSelf: 'flex-end',
+                            padding: '4px 6px',
+                            fontSize: emojiSize,
+                            lineHeight: 1.15,
+                            userSelect: 'none',
+                            marginBottom: 4,
+                            transition: 'transform 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.12)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                        >
+                          {msg.content}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <GlassContainer
+                        key={msg._id || idx}
+                        radius={24}
+                        style={{ alignSelf: 'flex-end', maxWidth: '72%' }}
+                        innerStyle={{
+                          padding: '13px 20px',
+                          color: '#000000',
+                          fontSize: 14.5,
+                          lineHeight: 1.45
+                        }}
+                      >
+                        {msg.content}
+                      </GlassContainer>
+                    );
+                  } else {
+                    // Other peer's message (aligned left with avatar & name)
+                    if (isEmojiMsg) {
+                      return (
+                        <div
+                          key={msg._id || idx}
+                          style={{
+                            alignSelf: 'flex-start',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            marginBottom: 4
+                          }}
+                        >
+                          <div
+                            onClick={() => onViewProfile && onViewProfile(sender)}
+                            style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0 }}
+                            title={`@${sender.username || 'user'}`}
+                          >
+                            {senderAvatar ? (
+                              <img
+                                src={senderAvatar}
+                                alt={senderName}
+                                style={{
+                                  width: 34,
+                                  height: 34,
+                                  borderRadius: '50%',
+                                  objectFit: 'cover',
+                                  display: 'block',
+                                  border: '1px solid rgba(0, 0, 0, 0.08)'
+                                }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  width: 34,
+                                  height: 34,
+                                  borderRadius: '50%',
+                                  backgroundColor: '#8257e5',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#fff',
+                                  fontSize: 13,
+                                  fontWeight: 'bold'
+                                }}
+                              >
+                                {(senderName[0] || 'U').toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div
+                            style={{
+                              padding: '4px 6px',
+                              fontSize: emojiSize,
+                              lineHeight: 1.15,
+                              userSelect: 'none',
+                              transition: 'transform 0.15s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'scale(1.12)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                          >
+                            {msg.content}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={msg._id || idx}
+                        style={{
+                          alignSelf: 'flex-start',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 12,
+                          maxWidth: '75%'
+                        }}
+                      >
                         <div
                           onClick={() => onViewProfile && onViewProfile(sender)}
-                          style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0 }}
+                          style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0, marginTop: 4 }}
                           title={`@${sender.username || 'user'}`}
                         >
                           {senderAvatar ? (
@@ -1218,182 +1441,194 @@ export default function DishDetailModal({
                               src={senderAvatar}
                               alt={senderName}
                               style={{
-                                width: 28,
-                                height: 28,
+                                width: 34,
+                                height: 34,
                                 borderRadius: '50%',
                                 objectFit: 'cover',
+                                display: 'block',
                                 border: '1px solid rgba(0, 0, 0, 0.08)'
                               }}
                             />
                           ) : (
                             <div
                               style={{
-                                width: 28,
-                                height: 28,
+                                width: 34,
+                                height: 34,
                                 borderRadius: '50%',
-                                backgroundColor: '#71717a',
-                                color: '#ffffff',
+                                backgroundColor: '#8257e5',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: 10,
-                                fontWeight: 700
+                                color: '#fff',
+                                fontSize: 13,
+                                fontWeight: 'bold'
                               }}
                             >
                               {(senderName[0] || 'U').toUpperCase()}
                             </div>
                           )}
                         </div>
-                      )}
 
-                      {/* Message Content Bubble */}
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: isOwn ? 'flex-end' : 'flex-start' }}>
-                        {!isOwn && (
-                          <span style={{ fontSize: 10.5, fontWeight: 700, color: '#71717a', marginBottom: 2, paddingLeft: 4 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: '#52525b', paddingLeft: 6 }}>
                             {senderName}
                           </span>
-                        )}
-
-                        <div
-                          style={{
-                            padding: '9px 15px',
-                            borderRadius: isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                            background: isOwn ? '#09090b' : 'rgba(255, 255, 255, 0.85)',
-                            color: isOwn ? '#ffffff' : '#09090b',
-                            fontSize: 13.5,
-                            lineHeight: 1.45,
-                            wordBreak: 'break-word',
-                            boxShadow: isOwn
-                              ? '0 2px 8px rgba(0, 0, 0, 0.16)'
-                              : '0 2px 8px rgba(0, 0, 0, 0.04)',
-                            border: isOwn ? 'none' : '1px solid rgba(0, 0, 0, 0.06)'
-                          }}
-                        >
-                          {msg.content}
+                          <GlassContainer
+                            radius={24}
+                            style={{ flex: 1 }}
+                            innerStyle={{
+                              padding: '13px 20px',
+                              color: '#000000',
+                              fontSize: 14.5,
+                              lineHeight: 1.45
+                            }}
+                          >
+                            {msg.content}
+                          </GlassContainer>
                         </div>
-
-                        <span style={{ fontSize: 9.5, color: '#a1a1aa', marginTop: 2, padding: '0 4px' }}>
-                          {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                        </span>
                       </div>
-                    </div>
-                  );
+                    );
+                  }
                 })
               )}
             </div>
 
             {/* Error banner if send failed */}
             {chatError && (
-              <div style={{ padding: '6px 16px', background: 'rgba(239, 68, 68, 0.1)', color: '#dc2626', fontSize: 11.5, fontWeight: 600 }}>
-                {chatError}
+              <div style={{ padding: '8px 24px' }}>
+                <GlassContainer
+                  radius={12}
+                  innerStyle={{
+                    padding: '6px 14px',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    color: '#dc2626',
+                    fontSize: 12,
+                    fontWeight: 600
+                  }}
+                >
+                  {chatError}
+                </GlassContainer>
               </div>
             )}
 
-            {/* Chat Input Bar */}
-            <div
-              style={{
-                padding: '14px 20px',
-                borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-                backgroundColor: 'rgba(255, 255, 255, 0.65)',
-                position: 'relative'
-              }}
-            >
-              {/* Emoji Picker Popup */}
-              {showEmojiPicker && (
-                <div style={{ position: 'absolute', bottom: 'calc(100% + 8px)', right: 20, zIndex: 1300 }}>
-                  <EmojiPicker
-                    onSelect={(emoji) => {
-                      setMessageInput((prev) => prev + emoji);
-                      setShowEmojiPicker(false);
-                    }}
-                    onClose={() => setShowEmojiPicker(false)}
-                  />
-                </div>
-              )}
-
-              <form onSubmit={handleSendMessage} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {/* Text input inside GlassContainer */}
+            {/* Chat Input Bar (Copied directly from MessageArea.jsx) */}
+            <div style={{ padding: '16px 24px', backgroundColor: 'transparent', position: 'relative' }}>
+              <EmojiPicker
+                isOpen={showEmojiPicker}
+                onClose={() => setShowEmojiPicker(false)}
+                onSelectEmoji={handleInsertEmoji}
+              />
+              <form onSubmit={handleSendMessage}>
                 <GlassContainer
-                  radius={16}
-                  style={{ flex: 1 }}
+                  radius={9999}
                   innerStyle={{
-                    padding: '0 14px',
-                    height: 44,
+                    padding: '6px 14px 6px 16px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 10,
-                    boxSizing: 'border-box'
+                    gap: 12
                   }}
                 >
+                  {/* Emoji Picker Button */}
+                  <button
+                    type="button"
+                    disabled={isExpired || !isParticipant}
+                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: isExpired || !isParticipant ? 'not-allowed' : 'pointer',
+                      padding: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: isExpired || !isParticipant ? 0.4 : showEmojiPicker ? 1 : 0.75,
+                      transition: 'transform 0.15s ease, opacity 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isExpired && isParticipant) {
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                        e.currentTarget.style.opacity = '1';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isExpired && isParticipant) {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        if (!showEmojiPicker) e.currentTarget.style.opacity = '0.75';
+                      }
+                    }}
+                    title="Choose emoji"
+                  >
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={showEmojiPicker ? '#09090b' : '#3f3f46'}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                      <line x1="9" y1="9" x2="9.01" y2="9" />
+                      <path d="M15 8.5a1.5 1.5 0 0 1 1.5 1.5" />
+                    </svg>
+                  </button>
+
+                  {/* Message Text Input */}
                   <input
+                    ref={inputRef}
                     type="text"
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     placeholder={
                       isExpired
-                        ? 'Dish is cooked • Chat is closed'
+                        ? 'This dish ticket has expired and chat is archived.'
                         : !isParticipant
                         ? 'Join dish to participate in group chat...'
-                        : 'Message your dish crew...'
+                        : 'Type a Message...'
                     }
                     disabled={isExpired || !isParticipant || isSending}
                     maxLength={2000}
                     style={{
-                      width: '100%',
-                      background: 'transparent',
                       border: 'none',
+                      background: 'transparent',
                       outline: 'none',
-                      fontSize: 13.5,
+                      fontSize: 14.5,
+                      flex: 1,
                       color: '#09090b',
                       fontFamily: 'inherit'
                     }}
                   />
 
-                  {/* Emoji Button */}
-                  <button
-                    type="button"
-                    disabled={isExpired || !isParticipant}
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    title="Insert emoji"
+                  {/* Send Button (FluidButton icon from MessageArea) */}
+                  <FluidButton
+                    type="submit"
+                    variant="icon"
+                    disabled={isExpired || !isParticipant || isSending || !messageInput.trim()}
                     style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      cursor: isExpired || !isParticipant ? 'not-allowed' : 'pointer',
-                      color: showEmojiPicker ? '#09090b' : '#71717a',
-                      display: 'flex',
-                      alignItems: 'center',
-                      opacity: isExpired || !isParticipant ? 0.4 : 1
+                      width: 36,
+                      height: 36,
+                      minWidth: 36,
+                      minHeight: 36,
+                      flexShrink: 0
                     }}
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                      <line x1="9" y1="9" x2="9.01" y2="9" />
-                      <line x1="15" y1="9" x2="15.01" y2="9" />
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
                     </svg>
-                  </button>
+                  </FluidButton>
                 </GlassContainer>
-
-                {/* Send Button: Normal grey glass FluidButton */}
-                <FluidButton
-                  type="submit"
-                  disabled={isExpired || !isParticipant || isSending || !messageInput.trim()}
-                  style={{
-                    padding: '10px 18px',
-                    fontSize: 13,
-                    fontWeight: 700,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6
-                  }}
-                >
-                  <span>Send</span>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                  </svg>
-                </FluidButton>
               </form>
             </div>
           </div>
@@ -1426,19 +1661,20 @@ export default function DishDetailModal({
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#09090b' }}>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#09090b' }}>
                   Dish Members ({participantsList.length})
                 </h3>
               </div>
-              <button
+              <FluidButton
+                variant="icon"
                 onClick={() => setShowMembersModal(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717a', padding: 0 }}
+                style={{ width: 30, height: 30, minWidth: 30, minHeight: 30 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
-              </button>
+              </FluidButton>
             </div>
 
             <div className="custom-scrollbar" style={{ maxHeight: 340, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1446,32 +1682,28 @@ export default function DishDetailModal({
                 const u = p.user || {};
                 const isHost = (u._id || u).toString() === (dish.creator?._id || dish.creator).toString();
                 return (
-                  <div
+                  <GlassContainer
                     key={u._id || idx}
+                    radius={14}
                     onClick={() => {
                       if (onViewProfile) {
                         setShowMembersModal(false);
                         onViewProfile(u);
                       }
                     }}
-                    style={{
+                    style={{ cursor: 'pointer' }}
+                    innerStyle={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: '8px 10px',
-                      borderRadius: 12,
-                      background: 'rgba(255, 255, 255, 0.5)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease'
+                      padding: '8px 12px'
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.85)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)')}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       {u.avatar ? (
                         <img src={u.avatar} alt={u.name} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} />
                       ) : (
-                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#71717a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#8257e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
                           {((u.name || u.username || 'U')[0]).toUpperCase()}
                         </div>
                       )}
@@ -1493,7 +1725,7 @@ export default function DishDetailModal({
                     >
                       {isHost ? 'Host' : 'Member'}
                     </span>
-                  </div>
+                  </GlassContainer>
                 );
               })}
             </div>
@@ -1526,18 +1758,19 @@ export default function DishDetailModal({
             innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#09090b' }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#09090b' }}>
                 Invite Peers to Dish
               </h3>
-              <button
+              <FluidButton
+                variant="icon"
                 onClick={() => setShowInviteDialog(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717a', padding: 0 }}
+                style={{ width: 30, height: 30, minWidth: 30, minHeight: 30 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
-              </button>
+              </FluidButton>
             </div>
 
             <form
@@ -1574,22 +1807,21 @@ export default function DishDetailModal({
                       (p) => (p.user?._id || p.user)?.toString() === u._id?.toString()
                     );
                     return (
-                      <div
+                      <GlassContainer
                         key={u._id || i}
-                        style={{
+                        radius={12}
+                        innerStyle={{
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '7px 10px',
-                          borderRadius: 10,
-                          background: 'rgba(255, 255, 255, 0.45)'
+                          padding: '7px 12px'
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           {u.avatar ? (
                             <img src={u.avatar} alt={u.name} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
                           ) : (
-                            <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#71717a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#8257e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>
                               {((u.name || u.username || 'U')[0]).toUpperCase()}
                             </div>
                           )}
@@ -1608,7 +1840,7 @@ export default function DishDetailModal({
                             Invite
                           </FluidButton>
                         )}
-                      </div>
+                      </GlassContainer>
                     );
                   })}
                 </div>
@@ -1642,9 +1874,22 @@ export default function DishDetailModal({
             style={{ width: 360, maxWidth: '92vw', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.25)' }}
             innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'center' }}
           >
-            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#09090b' }}>
-              Rate Dish Experience
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#09090b' }}>
+                Rate Dish Experience
+              </h3>
+              <FluidButton
+                variant="icon"
+                onClick={() => setShowRateModal(false)}
+                style={{ width: 28, height: 28, minWidth: 28, minHeight: 28 }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </FluidButton>
+            </div>
+
             <p style={{ margin: 0, fontSize: 12.5, color: '#71717a' }}>
               How was your experience participating in @{creatorUsername}'s dish?
             </p>
