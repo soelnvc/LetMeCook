@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import { apiFetch } from '@/lib/api';
+import { useToast } from '@/context/ToastContext';
 
 export default function NotificationsView({
   currentUser,
@@ -19,6 +20,7 @@ export default function NotificationsView({
   const [isMarkingAllRead, setIsMarkingAllRead] = useState(false);
   const [openingTicketId, setOpeningTicketId] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+  const { showStatus, showError } = useToast();
 
   const storageKey = currentUser?._id
     ? `letmecook_notifications_${currentUser._id}`
@@ -162,11 +164,13 @@ export default function NotificationsView({
   };
 
   // Show a gentle toast
-  const triggerToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage((cur) => (cur === msg ? null : cur));
-    }, 3200);
+  const triggerToast = (msg, isError = false) => {
+    if (!msg) return;
+    if (isError || (typeof msg === 'string' && (msg.toLowerCase().includes('fail') || msg.toLowerCase().includes('error') || msg.toLowerCase().includes('could not')))) {
+      showError(msg);
+    } else {
+      showStatus(msg);
+    }
   };
 
   // Accept Connection Request
@@ -330,35 +334,6 @@ export default function NotificationsView({
         boxSizing: 'border-box'
       }}
     >
-      {/* Toast Banner */}
-      {toastMessage && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 24,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 9999,
-            backgroundColor: '#09090b',
-            color: '#ffffff',
-            padding: '10px 20px',
-            borderRadius: 999,
-            fontSize: 13.5,
-            fontWeight: 600,
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.22)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            animation: 'fadeIn 0.2s ease-out'
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          {toastMessage}
-        </div>
-      )}
-
       {/* Main Glass Panel */}
       <GlassContainer radius={26} innerStyle={{ padding: '26px 28px' }}>
         {/* Header Row */}

@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import { apiFetch } from '@/lib/api';
+import { useToast } from '@/context/ToastContext';
 
 /**
  * Custom Input wrapped in GlassContainer to avoid browser default styles
@@ -588,13 +589,16 @@ export default function SettingsPage({
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteCode, setDeleteCode] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const { showStatus, showError } = useToast();
 
   // Toast Feedback Helper
   const triggerSuccess = (msg) => {
-    setSaveSuccessMsg(msg);
-    setTimeout(() => {
-      setSaveSuccessMsg('');
-    }, 3000);
+    if (!msg) return;
+    if (typeof msg === 'string' && (msg.toLowerCase().includes('fail') || msg.toLowerCase().includes('error'))) {
+      showError(msg);
+    } else {
+      showStatus(msg);
+    }
   };
 
   // Nav items configuration (Instagram grouped layout)
@@ -943,33 +947,6 @@ export default function SettingsPage({
         overflow: 'hidden'
       }}
     >
-      {/* Toast Feedback */}
-      {saveSuccessMsg && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 24,
-            right: 24,
-            zIndex: 9999,
-            background: '#09090b',
-            color: '#ffffff',
-            padding: '10px 18px',
-            borderRadius: 9999,
-            fontSize: 13,
-            fontWeight: 600,
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8
-          }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          {saveSuccessMsg}
-        </div>
-      )}
-
       {/* Main Split Layout (Static Nav, Independently Scrollable Right Panel) */}
       <div
         style={{

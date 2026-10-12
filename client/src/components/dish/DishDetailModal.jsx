@@ -5,6 +5,8 @@ import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import EmojiPicker from '@/components/messaging/EmojiPicker';
 import { apiFetch } from '@/lib/api';
+import { useConfirm } from '@/context/ConfirmContext';
+import { useToast } from '@/context/ToastContext';
 
 /**
  * Check if text contains only emojis (copied from MessageArea)
@@ -144,6 +146,9 @@ export default function DishDetailModal({
   const [actionLoadingUserId, setActionLoadingUserId] = useState(null);
   const [actionLoadingRequestId, setActionLoadingRequestId] = useState(null);
 
+  const { confirm } = useConfirm();
+  const { showStatus, showError } = useToast();
+
   const inputRef = useRef(null);
   const chatScrollRef = useRef(null);
   const optionsMenuRef = useRef(null);
@@ -155,10 +160,14 @@ export default function DishDetailModal({
     onDishUpdatedRef.current = onDishUpdated;
   }, [onDishUpdated]);
 
-  // Show transient toast notification
-  const triggerToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3000);
+  // Show transient toast notification via centered response toast
+  const triggerToast = (msg, isError = false) => {
+    if (!msg) return;
+    if (isError || (typeof msg === 'string' && (msg.toLowerCase().includes('fail') || msg.toLowerCase().includes('error') || msg.toLowerCase().includes('could not')))) {
+      showError(msg);
+    } else {
+      showStatus(msg);
+    }
   };
 
   // Mount/unmount animation
@@ -421,7 +430,14 @@ export default function DishDetailModal({
       triggerToast('This dish is cooked. Participant changes are locked.');
       return;
     }
-    if (!window.confirm(`Are you sure you want to remove @${targetUsername || 'this user'} from the dish?`)) return;
+    const ok = await confirm({
+      title: 'Remove Member',
+      message: `Are you sure you want to remove @${targetUsername || 'this user'} from the dish?`,
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      isDanger: true
+    });
+    if (!ok) return;
     setActionLoadingUserId(String(targetUserId));
     try {
       const res = await apiFetch(`/dishes/${dish._id}/kick`, {
@@ -587,36 +603,6 @@ export default function DishDetailModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 24,
-            zIndex: 1500,
-            transform: 'translateY(0)',
-            transition: 'transform 0.2s ease'
-          }}
-        >
-          <GlassContainer
-            radius={9999}
-            innerStyle={{
-              padding: '8px 20px',
-              fontSize: 13,
-              fontWeight: 600,
-              color: '#09090b',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
-            }}
-          >
-            <span>✓</span>
-            <span>{toastMessage}</span>
-          </GlassContainer>
-        </div>
-      )}
-
       {/* ========================================================= */}
       {/* MAIN FULL-SIZE MODAL CONTAINER (92vw x 88vh Rectangular)  */}
       {/* ========================================================= */}
@@ -982,7 +968,16 @@ export default function DishDetailModal({
                     Invite
                   </FluidButton>
                   <FluidButton
-                    onClick={() => onLeaveDish && onLeaveDish(dish._id)}
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: 'Leave Dish Table',
+                        message: 'Are you sure you want to leave this dish?',
+                        confirmText: 'Leave',
+                        cancelText: 'Stay',
+                        isDanger: true
+                      });
+                      if (ok && onLeaveDish) onLeaveDish(dish._id);
+                    }}
                     style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600 }}
                   >
                     Leave
@@ -1158,9 +1153,16 @@ export default function DishDetailModal({
                     {isCreator && !isExpired && (
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           setShowOptionsMenu(false);
-                          if (window.confirm('Are you sure you want to cancel and delete this dish?')) {
+                          const ok = await confirm({
+                            title: 'Cancel Dish',
+                            message: 'Are you sure you want to cancel and delete this dish? All diners will be notified.',
+                            confirmText: 'Delete Dish',
+                            cancelText: 'Keep Dish',
+                            isDanger: true
+                          });
+                          if (ok) {
                             if (onDeleteDish) onDeleteDish(dish._id);
                             onClose();
                           }

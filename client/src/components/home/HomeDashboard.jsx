@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
+import { useConfirm } from '@/context/ConfirmContext';
 
 export default function HomeDashboard({
   user,
@@ -17,6 +18,7 @@ export default function HomeDashboard({
   onViewProfile,
   onOpenDishDetail
 }) {
+  const { confirm } = useConfirm();
   const [historyFilter, setHistoryFilter] = useState('all'); // 'all' | 'hosted' | 'joined'
 
   // Category vector icon helper for Saved Recipes
@@ -737,9 +739,16 @@ export default function HomeDashboard({
                   </div>
                   {onDeleteRecipe && (
                     <button
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        if (confirm(`Delete saved recipe "${recipe.name}"?`)) {
+                        const ok = await confirm({
+                          title: 'Delete Saved Recipe',
+                          message: `Are you sure you want to delete saved recipe "${recipe.name}"?`,
+                          confirmText: 'Delete',
+                          cancelText: 'Cancel',
+                          isDanger: true
+                        });
+                        if (ok) {
                           onDeleteRecipe(recipe._id);
                         }
                       }}

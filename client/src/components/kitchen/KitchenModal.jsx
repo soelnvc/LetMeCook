@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
+import { useToast } from '@/context/ToastContext';
 
 // Minimal monochrome SVG icons for Step 2
 const CATEGORY_ICONS = {
@@ -199,6 +200,7 @@ export default function KitchenModal({
   const [isSavingRecipe, setIsSavingRecipe] = useState(false);
   const [saveRecipeError, setSaveRecipeError] = useState('');
   const [saveRecipeSuccess, setSaveRecipeSuccess] = useState(false);
+  const { showStatus } = useToast();
 
   // Sequential Step & Sub-Step State
   // mainStep: 1..5, subStep: 1..N
@@ -498,8 +500,7 @@ export default function KitchenModal({
       if (res && res.success) {
         setShowSaveRecipeModal(false);
         setRecipeName('');
-        setSaveRecipeSuccess(true);
-        setTimeout(() => setSaveRecipeSuccess(false), 4000);
+        showStatus('Recipe saved successfully!');
       } else {
         setSaveRecipeError(res?.message || 'Failed to save recipe');
       }
@@ -1402,33 +1403,6 @@ export default function KitchenModal({
           </div>
         </div>
 
-        {/* Success toast banner */}
-        {saveRecipeSuccess && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 18,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              backgroundColor: '#09090b',
-              color: '#ffffff',
-              padding: '8px 18px',
-              borderRadius: 9999,
-              fontSize: 12.5,
-              fontWeight: 600,
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              zIndex: 1300
-            }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-            Recipe saved successfully!
-          </div>
-        )}
       </GlassContainer>
     </div>
 

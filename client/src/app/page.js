@@ -18,6 +18,8 @@ import GlobalPage from '@/components/global/GlobalPage';
 import SettingsPage from '@/components/settings/SettingsPage';
 import GlobalSearchModal from '@/components/search/GlobalSearchModal';
 import NotificationsView from '@/components/notifications/NotificationsView';
+import { ToastProvider, useToast } from '@/context/ToastContext';
+import { ConfirmProvider, useConfirm } from '@/context/ConfirmContext';
 import { dishService } from '@/services/dish.service';
 import { authService } from '@/services/auth.service';
 import {
@@ -58,7 +60,9 @@ const getTabLabel = (tab) => {
   }
 };
 
-export default function App() {
+function AppContent() {
+  const { showError, showStatus } = useToast();
+  const { confirm } = useConfirm();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('home'); 
@@ -73,6 +77,23 @@ export default function App() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  // Auto-dispatch response messages to centered GlassContainer toast (fade in, fade out in 3s)
+  useEffect(() => {
+    if (error) {
+      showError(error);
+      const timer = setTimeout(() => setError(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, showError]);
+
+  useEffect(() => {
+    if (message) {
+      showStatus(message);
+      const timer = setTimeout(() => setMessage(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message, showStatus]);
 
   // Auth states
   const [isLogin, setIsLogin] = useState(true);
@@ -1156,9 +1177,6 @@ export default function App() {
             </button>
           </div>
 
-          {error && <div style={{ border: '1px solid red', padding: 8, marginBottom: 12, color: 'red', borderRadius: 8, backgroundColor: 'rgba(254, 242, 242, 0.7)' }}>Error: {error}</div>}
-          {message && <div style={{ border: '1px solid green', padding: 8, marginBottom: 12, color: 'green', borderRadius: 8, backgroundColor: 'rgba(240, 253, 244, 0.7)' }}>{message}</div>}
-
           <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {isLogin ? (
               <>
@@ -1363,10 +1381,6 @@ export default function App() {
         boxSizing: 'border-box',
         color: '#000000'
       }}>
-        {/* Global Feedback */}
-        {error && <div style={{ border: '1px solid red', padding: 10, marginBottom: 16, color: '#b91c1c', backgroundColor: '#fef2f2', borderRadius: 6 }}>Error: {error}</div>}
-        {message && <div style={{ border: '1px solid green', padding: 10, marginBottom: 16, color: '#15803d', backgroundColor: '#f0fdf4', borderRadius: 6 }}>{message}</div>}
-
       {/* ========================================================= */}
       {/* 1. HOME SCREEN (PRODUCT.md Section 13) */}
       {/* ========================================================= */}
@@ -2747,5 +2761,15 @@ export default function App() {
       />
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <ConfirmProvider>
+        <AppContent />
+      </ConfirmProvider>
+    </ToastProvider>
   );
 }
