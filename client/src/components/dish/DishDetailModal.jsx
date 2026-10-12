@@ -135,6 +135,7 @@ export default function DishDetailModal({
   const [userRating, setUserRating] = useState(5);
   const [toastMessage, setToastMessage] = useState('');
   const [actionLoadingUserId, setActionLoadingUserId] = useState(null);
+  const [actionLoadingRequestId, setActionLoadingRequestId] = useState(null);
 
   const inputRef = useRef(null);
   const chatScrollRef = useRef(null);
@@ -301,6 +302,7 @@ export default function DishDetailModal({
 
   const isExpired = dish.status === 'cooked';
   const isUnlocked = isParticipant || isCreator || isExpired;
+  const pendingRequestsList = (dish.requests || []).filter((r) => r.status === 'pending');
   const spotsLeft = dish.capacity?.unlimited
     ? '∞'
     : Math.max(0, (dish.capacity?.max || 4) - participantsList.length);
@@ -452,6 +454,52 @@ export default function DishDetailModal({
       triggerToast(err.message || 'Error updating mute status');
     } finally {
       setActionLoadingUserId(null);
+    }
+  };
+
+  // Host: Approve a join request
+  const handleApproveJoinRequest = async (requestId, targetUsername) => {
+    if (!isCreator || actionLoadingRequestId || isExpired) return;
+    setActionLoadingRequestId(String(requestId));
+    try {
+      const res = await apiFetch(`/dishes/${dish._id}/requests/${requestId}/approve`, {
+        method: 'POST'
+      });
+      if (res?.success) {
+        triggerToast(`@${targetUsername || 'User'} added to the table!`);
+        if (res.dish && onDishUpdatedRef.current) {
+          onDishUpdatedRef.current(res.dish);
+        }
+      } else {
+        triggerToast(res?.message || 'Failed to approve request');
+      }
+    } catch (err) {
+      triggerToast(err.message || 'Error approving request');
+    } finally {
+      setActionLoadingRequestId(null);
+    }
+  };
+
+  // Host: Reject a join request
+  const handleRejectJoinRequest = async (requestId, targetUsername) => {
+    if (!isCreator || actionLoadingRequestId || isExpired) return;
+    setActionLoadingRequestId(String(requestId));
+    try {
+      const res = await apiFetch(`/dishes/${dish._id}/requests/${requestId}/reject`, {
+        method: 'POST'
+      });
+      if (res?.success) {
+        triggerToast(`Request from @${targetUsername || 'User'} declined`);
+        if (res.dish && onDishUpdatedRef.current) {
+          onDishUpdatedRef.current(res.dish);
+        }
+      } else {
+        triggerToast(res?.message || 'Failed to decline request');
+      }
+    } catch (err) {
+      triggerToast(err.message || 'Error declining request');
+    } finally {
+      setActionLoadingRequestId(null);
     }
   };
 
@@ -1190,15 +1238,41 @@ export default function DishDetailModal({
               <GlassContainer
                 radius={9999}
                 onClick={() => setShowMembersModal(true)}
-                title="Click to view all members"
-                style={{ cursor: 'pointer' }}
+                title="Click to view all members, invited, and requested peers"
+                style={{ cursor: 'pointer', position: 'relative' }}
                 innerStyle={{
                   padding: '4px 8px',
                   display: 'flex',
                   alignItems: 'center',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  position: 'relative'
                 }}
               >
+                {/* Pending requests dot badge for Creator */}
+                {isCreator && pendingRequestsList.length > 0 && !isExpired && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: -4,
+                      right: -4,
+                      minWidth: 18,
+                      height: 18,
+                      padding: '0 5px',
+                      borderRadius: 9999,
+                      background: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
+                      color: '#ffffff',
+                      fontSize: 10,
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 6px rgba(225, 29, 72, 0.45)',
+                      zIndex: 10
+                    }}
+                  >
+                    {pendingRequestsList.length}
+                  </span>
+                )}
                 <div style={{ display: 'flex', alignItems: 'center', marginRight: participantsList.length > 7 ? 6 : 0 }}>
                   {participantsList.slice(0, 7).map((p, idx) => {
                     const u = p.user || {};
@@ -1964,7 +2038,7 @@ export default function DishDetailModal({
         >
           <GlassContainer
             radius={24}
-            style={{ width: 660, maxWidth: '94vw', boxShadow: '0 20px 50px rgba(0, 0, 0, 0.28)' }}
+            style={{ width: 960, maxWidth: '96vw', maxHeight: '90vh', boxShadow: '0 20px 50px rgba(0, 0, 0, 0.28)' }}
             innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}
           >
             {/* Modal Header */}
@@ -1980,6 +2054,18 @@ export default function DishDetailModal({
                   <span style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(249, 115, 22, 0.12)', color: '#ea580c' }}>
                     {invitedList.length} Invited
                   </span>
+                  <span
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: 9999,
+                      background: pendingRequestsList.length > 0 ? 'rgba(244, 63, 94, 0.12)' : 'rgba(0, 0, 0, 0.06)',
+                      color: pendingRequestsList.length > 0 ? '#e11d48' : '#71717a'
+                    }}
+                  >
+                    {pendingRequestsList.length} Requested
+                  </span>
                 </div>
               </div>
               <FluidButton
@@ -1994,13 +2080,13 @@ export default function DishDetailModal({
               </FluidButton>
             </div>
 
-            {/* 2 Separate Columns: Column 1 = Joined Members, Column 2 = Invited */}
+            {/* 3 Separate Columns: Joined Members, Invited, Requested */}
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                 gap: 16,
-                maxHeight: 420
+                maxHeight: 460
               }}
             >
               {/* Column 1: Joined Members */}
@@ -2231,6 +2317,135 @@ export default function DishDetailModal({
                           >
                             Invited
                           </span>
+                        </GlassContainer>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Column 3: Requested (Pending Host Approval) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                    Requested ({pendingRequestsList.length})
+                  </span>
+                  <span style={{ fontSize: 11, color: '#a1a1aa' }}>Pending host approval</span>
+                </div>
+
+                <div className="custom-scrollbar" style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
+                  {pendingRequestsList.length === 0 ? (
+                    <div
+                      style={{
+                        padding: '32px 16px',
+                        textAlign: 'center',
+                        color: '#71717a',
+                        fontSize: 12.5,
+                        borderRadius: 14,
+                        border: '1px dashed rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 10
+                      }}
+                    >
+                      <span>No pending requests.</span>
+                    </div>
+                  ) : (
+                    pendingRequestsList.map((req, idx) => {
+                      const u = req.user || {};
+                      const isRequestActionLoading = actionLoadingRequestId === String(req._id);
+                      return (
+                        <GlassContainer
+                          key={req._id || idx}
+                          radius={14}
+                          innerStyle={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '9px 12px',
+                            gap: 10
+                          }}
+                        >
+                          {/* User info */}
+                          <div
+                            onClick={() => {
+                              if (onViewProfile) {
+                                setShowMembersModal(false);
+                                onViewProfile(u);
+                              }
+                            }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, cursor: 'pointer', flex: 1 }}
+                          >
+                            {u.avatar ? (
+                              <img src={u.avatar} alt={u.name || u.username} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                            ) : (
+                              <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, #f43f5e, #e11d48)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                                {((u.name || u.username || 'U')[0] || 'U').toUpperCase()}
+                              </div>
+                            )}
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {u.name || u.username || 'Peer'}
+                              </div>
+                              <div style={{ fontSize: 11, color: '#71717a' }}>
+                                @{u.username || 'user'}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons for Host */}
+                          {isCreator && !isExpired ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                              <FluidButton
+                                disabled={isRequestActionLoading}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleApproveJoinRequest(req._id, u.username);
+                                }}
+                                style={{
+                                  padding: '4px 10px',
+                                  fontSize: 11.5,
+                                  fontWeight: 700,
+                                  color: '#16a34a'
+                                }}
+                                title="Accept join request"
+                              >
+                                {isRequestActionLoading ? '...' : 'Accept'}
+                              </FluidButton>
+
+                              <FluidButton
+                                disabled={isRequestActionLoading}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRejectJoinRequest(req._id, u.username);
+                                }}
+                                style={{
+                                  padding: '4px 8px',
+                                  fontSize: 11.5,
+                                  fontWeight: 600,
+                                  color: '#dc2626'
+                                }}
+                                title="Decline join request"
+                              >
+                                Reject
+                              </FluidButton>
+                            </div>
+                          ) : (
+                            <span
+                              style={{
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                padding: '3px 8px',
+                                borderRadius: 9999,
+                                background: 'rgba(244, 63, 94, 0.12)',
+                                color: '#e11d48',
+                                flexShrink: 0
+                              }}
+                            >
+                              Requested
+                            </span>
+                          )}
                         </GlassContainer>
                       );
                     })

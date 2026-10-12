@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import EmojiPicker from './EmojiPicker';
+import { apiFetch } from '@/lib/api';
 
 const isOnlyEmojis = (text) => {
   if (!text || typeof text !== 'string') return false;
@@ -45,7 +46,167 @@ export default function MessageArea({
   onBlockUser
 }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [dishActionLoadingId, setDishActionLoadingId] = useState(null);
+  const [localDishRequestStatuses, setLocalDishRequestStatuses] = useState({});
   const inputRef = useRef(null);
+
+  const handleDishRequestAction = async (msg, action) => {
+    if (!msg.dishRequest?.dishId || !msg.dishRequest?.dishRequestId) return;
+    const reqId = String(msg.dishRequest.dishRequestId);
+    setDishActionLoadingId(reqId);
+    try {
+      const res = await apiFetch(`/dishes/${msg.dishRequest.dishId}/requests/${reqId}/${action}`, {
+        method: 'POST'
+      });
+      if (res?.success) {
+        setLocalDishRequestStatuses((prev) => ({
+          ...prev,
+          [reqId]: action === 'approve' ? 'approved' : 'rejected'
+        }));
+      }
+    } catch (err) {
+      console.error('Failed responding to dish request in DM:', err);
+    } finally {
+      setDishActionLoadingId(null);
+    }
+  };
+
+  const renderDishRequestCard = (m, isBubbleMe) => {
+    const dr = m.dishRequest || {};
+    const reqId = String(dr.dishRequestId);
+    const effectiveStatus = localDishRequestStatuses[reqId] || dr.status || 'pending';
+    const isLoading = dishActionLoadingId === reqId;
+
+    return (
+      <GlassContainer
+        key={m._id}
+        radius={22}
+        style={{
+          alignSelf: isBubbleMe ? 'flex-end' : 'flex-start',
+          maxWidth: '82%',
+          marginLeft: isBubbleMe ? 'auto' : 46,
+          boxShadow: '0 4px 18px rgba(0, 0, 0, 0.06)'
+        }}
+        innerStyle={{
+          padding: '16px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          color: '#000000'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16 }}>🍽️</span>
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: '#09090b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+              Dish Join Request
+            </span>
+          </div>
+
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: 9999,
+              background:
+                effectiveStatus === 'approved'
+                  ? 'rgba(34, 197, 94, 0.12)'
+                  : effectiveStatus === 'rejected'
+                  ? 'rgba(239, 68, 68, 0.12)'
+                  : 'rgba(244, 63, 94, 0.12)',
+              color:
+                effectiveStatus === 'approved'
+                  ? '#16a34a'
+                  : effectiveStatus === 'rejected'
+                  ? '#dc2626'
+                  : '#e11d48'
+            }}
+          >
+            {effectiveStatus === 'approved'
+              ? 'Accepted'
+              : effectiveStatus === 'rejected'
+              ? 'Declined'
+              : 'Pending'}
+          </span>
+        </div>
+
+        {dr.dishDescription && (
+          <div
+            style={{
+              padding: '8px 12px',
+              borderRadius: 12,
+              backgroundColor: 'rgba(0, 0, 0, 0.04)',
+              border: '1px solid rgba(0, 0, 0, 0.06)',
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#18181b',
+              lineHeight: 1.4
+            }}
+          >
+            "{dr.dishDescription}"
+          </div>
+        )}
+
+        <div style={{ fontSize: 14, color: '#27272a', lineHeight: 1.45 }}>
+          {m.content}
+        </div>
+
+        {!isBubbleMe && effectiveStatus === 'pending' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+            <FluidButton
+              disabled={isLoading}
+              onClick={() => handleDishRequestAction(m, 'approve')}
+              style={{
+                flex: 1,
+                padding: '6px 14px',
+                fontSize: 12.5,
+                fontWeight: 700,
+                color: '#16a34a'
+              }}
+            >
+              {isLoading ? '...' : 'Accept Request'}
+            </FluidButton>
+
+            <FluidButton
+              disabled={isLoading}
+              onClick={() => handleDishRequestAction(m, 'reject')}
+              style={{
+                flex: 1,
+                padding: '6px 14px',
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: '#dc2626'
+              }}
+            >
+              Decline
+            </FluidButton>
+          </div>
+        )}
+
+        {!isBubbleMe && effectiveStatus === 'approved' && (
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#16a34a', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span>✓ Request Accepted • Added to table</span>
+          </div>
+        )}
+        {!isBubbleMe && effectiveStatus === 'rejected' && (
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#71717a' }}>
+            <span>✕ Request Declined</span>
+          </div>
+        )}
+
+        {isBubbleMe && (
+          <div style={{ fontSize: 12, fontWeight: 600, color: effectiveStatus === 'approved' ? '#16a34a' : effectiveStatus === 'rejected' ? '#dc2626' : '#71717a' }}>
+            {effectiveStatus === 'approved'
+              ? '✓ Host accepted your request!'
+              : effectiveStatus === 'rejected'
+              ? '✕ Request was declined'
+              : '⏳ Waiting for host to accept...'}
+          </div>
+        )}
+      </GlassContainer>
+    );
+  };
 
   const handleInsertEmoji = (emoji) => {
     const input = inputRef.current;
@@ -224,6 +385,10 @@ export default function MessageArea({
                 const emojiSize = isEmojiMsg ? getEmojiFontSize(m.content) : 15;
 
                 if (isBubbleMe) {
+                  // Render Dish Join Request card if message contains dishRequest payload
+                  if (m.dishRequest && m.dishRequest.dishId) {
+                    return renderDishRequestCard(m, true);
+                  }
                   // Instagram / Telegram style: Standalone emoji without bubble container
                   if (isEmojiMsg) {
                     return (
@@ -266,6 +431,11 @@ export default function MessageArea({
                     </GlassContainer>
                   );
                 } else {
+                  // Render Dish Join Request card if message contains dishRequest payload
+                  if (m.dishRequest && m.dishRequest.dishId) {
+                    return renderDishRequestCard(m, false);
+                  }
+
                   const bubbleUser = activeUser;
 
                   // Instagram / Telegram style: Standalone emoji without bubble container

@@ -128,10 +128,11 @@ const getConversations = async (userId) => {
       conversationMap.set(otherUserId, {
         conversationId: msg.conversationId,
         user: otherUser,
-        lastMessage: { content: msg.content, createdAt: msg.createdAt },
+        lastMessage: { content: msg.content, createdAt: msg.createdAt, dishRequest: msg.dishRequest },
         updatedAt: msg.createdAt,
         isRequest: isPendingRequest,
         requestStatus: msg.requestStatus,
+        dishRequest: msg.dishRequest,
         requestSender: msg.sender?.username,
         needsResponse: isPendingRequest && !isSender
       });

@@ -104,6 +104,8 @@ export default function NotificationsView({
               actionText = 'requested to join your dish.';
             } else if (notif.type === 'dish_join_approved') {
               actionText = 'approved your dish join request.';
+            } else if (notif.type === 'dish_join_rejected') {
+              actionText = 'declined your dish join request.';
             } else if (notif.type === 'message_request') {
               actionText = 'sent you a message request.';
             } else if (notif.type === 'new_message') {
@@ -259,7 +261,11 @@ export default function NotificationsView({
   // Filtered list
   const filteredNotifications = useMemo(() => {
     if (filter === 'requests') {
-      return notifications.filter((n) => n.type === 'connection_request' && n.status === 'pending');
+      return notifications.filter(
+        (n) =>
+          (n.type === 'connection_request' && n.status === 'pending') ||
+          n.type === 'dish_join_request'
+      );
     }
     if (filter === 'connections') {
       return notifications.filter(
@@ -270,7 +276,11 @@ export default function NotificationsView({
   }, [notifications, filter]);
 
   const pendingRequestsCount = useMemo(() => {
-    return notifications.filter((n) => n.type === 'connection_request' && n.status === 'pending').length;
+    return notifications.filter(
+      (n) =>
+        (n.type === 'connection_request' && n.status === 'pending') ||
+        n.type === 'dish_join_request'
+    ).length;
   }, [notifications]);
 
   const connectionsCount = useMemo(() => {
@@ -607,6 +617,8 @@ export default function NotificationsView({
                               ? '#0284c7'
                               : item.type === 'dish_invite'
                               ? '#ea580c'
+                              : item.type === 'dish_join_request'
+                              ? '#f43f5e'
                               : '#f97316',
                           color: '#ffffff',
                           display: 'flex',
@@ -626,10 +638,10 @@ export default function NotificationsView({
                             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                             <circle cx="8.5" cy="7" r="4" />
                           </svg>
-                        ) : item.type === 'dish_invite' ? (
+                        ) : item.type === 'dish_invite' || item.type === 'dish_join_request' ? (
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            <rect x="3" y="4" width="18" height="16" rx="2" />
+                            <line x1="7" y1="8" x2="17" y2="8" />
                           </svg>
                         ) : (
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
@@ -811,15 +823,15 @@ export default function NotificationsView({
                       </FluidButton>
                     )}
 
-                    {/* View Ticket button for dish invitations */}
-                    {item.type === 'dish_invite' && onOpenDishDetail && (
+                    {/* View Ticket button for dish invitations and join requests */}
+                    {(item.type === 'dish_invite' || item.type === 'dish_join_request') && onOpenDishDetail && (
                       <FluidButton
                         onClick={() => onOpenDishDetail(item.dishId || item.connectionId)}
                         style={{
                           padding: '5px 14px',
                           fontSize: 12.5,
                           fontWeight: 700,
-                          color: '#ea580c',
+                          color: item.type === 'dish_join_request' ? '#e11d48' : '#ea580c',
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: 5

@@ -13,6 +13,7 @@ const notificationSchema = new mongoose.Schema(
       enum: [
         'dish_join_request',
         'dish_join_approved',
+        'dish_join_rejected',
         'dish_invite',
         'new_message',
         'message_request',

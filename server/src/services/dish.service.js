@@ -107,6 +107,7 @@ const getDishes = async (userId, query = {}) => {
   const dishes = await Dish.find(filter)
     .populate('creator', 'username name avatar institute verification privacy isDeactivated blockedUsers')
     .populate('participants.user', 'username name avatar')
+    .populate('requests.user', 'username name avatar institute verification')
     .sort({ createdAt: -1 })
     .limit(50);
 
@@ -178,6 +179,7 @@ const getDishById = async (dishId) => {
     .populate('participants.user', 'username name avatar institute verification')
     .populate('invitedUsers.user', 'username name avatar institute verification')
     .populate('invitedUsers.invitedBy', 'username name avatar')
+    .populate('requests.user', 'username name avatar institute verification')
     .populate('mutedUsers', 'username name avatar');
 
   if (!dish) {
@@ -255,7 +257,7 @@ const joinDish = async (dishId, userId) => {
     return { joined: true, status: 'participant', dish: updatedDish };
   } else if (dish.joinMode === 'approval') {
     const existingReq = dish.requests.find(
-      (r) => r.user.toString() === userId.toString() && r.status === 'pending'
+      (r) => (r.user?._id || r.user).toString() === userId.toString() && r.status === 'pending'
     );
     if (existingReq) {
       throw new Error('Request already pending');
@@ -268,7 +270,53 @@ const joinDish = async (dishId, userId) => {
     });
     await dish.save();
 
-    return { joined: false, status: 'pending_approval' };
+    const savedRequest = dish.requests[dish.requests.length - 1];
+    const requester = await User.findById(userId).select('username name avatar institute');
+
+    // 1. Send dedicated dish join request notification to creator
+    try {
+      await Notification.create({
+        recipient: dish.creator,
+        actor: userId,
+        type: 'dish_join_request',
+        reference: dish._id,
+        metadata: {
+          dishId: dish._id,
+          dishDescription: dish.description,
+          dishRequestId: savedRequest._id,
+          requesterName: requester?.name || requester?.username,
+          requesterUsername: requester?.username
+        }
+      });
+    } catch (notifErr) {
+      console.error('[DishJoinRequest] Notification error:', notifErr);
+    }
+
+    // 2. Automatically send Default Request Message in DM to creator with accept/reject capability
+    try {
+      const Message = require('../models/Message');
+      const conversationId = [userId.toString(), dish.creator.toString()].sort().join('_');
+      const dmContent = `Hey! I requested to join your dish: "${dish.description}". Can I take a seat at the table? 🍽️`;
+      await Message.create({
+        sender: userId,
+        receiver: dish.creator,
+        conversationId,
+        content: dmContent,
+        isRequest: false,
+        requestStatus: 'none',
+        dishRequest: {
+          dishId: dish._id,
+          dishRequestId: savedRequest._id,
+          dishDescription: dish.description,
+          status: 'pending'
+        }
+      });
+    } catch (dmErr) {
+      console.error('[DishJoinRequest] DM creation error:', dmErr);
+    }
+
+    const updatedDish = await getDishById(dish._id);
+    return { joined: false, status: 'pending_approval', dish: updatedDish };
   } else {
     throw new Error('This Dish is invite only');
   }
@@ -404,13 +452,83 @@ const respondToJoinRequest = async (dishId, creatorId, requestId, action) => {
       currentDish: dish._id
     });
 
-    return { success: true, status: 'approved', user: request.user };
+    const approvedUser = await User.findById(request.user).select('username name');
+
+    // Announce in dish room chat
+    try {
+      await DishMessage.create({
+        dish: dish._id,
+        sender: creatorId,
+        content: `🎉 @${approvedUser?.username || 'user'}'s request to join was accepted! Welcome to the table!`,
+        isSystem: true
+      });
+    } catch (chatErr) {
+      console.error('[DishChat] Approve announcement error:', chatErr);
+    }
+
+    // Send approved notification to requester
+    try {
+      await Notification.create({
+        recipient: request.user,
+        actor: creatorId,
+        type: 'dish_join_approved',
+        reference: dish._id,
+        metadata: {
+          dishId: dish._id,
+          dishDescription: dish.description
+        }
+      });
+    } catch (notifErr) {
+      console.error('[DishApprove] Notification error:', notifErr);
+    }
+
+    // Sync any DM messages containing this dishRequestId
+    try {
+      const Message = require('../models/Message');
+      await Message.updateMany(
+        { 'dishRequest.dishRequestId': request._id },
+        { $set: { 'dishRequest.status': 'approved' } }
+      );
+    } catch (msgSyncErr) {
+      console.error('[DishApprove] Message sync error:', msgSyncErr);
+    }
+
+    const updatedDish = await getDishById(dishId);
+    return { success: true, status: 'approved', user: request.user, dish: updatedDish };
   } else if (action === 'reject') {
     request.status = 'rejected';
     request.respondedAt = new Date();
     await dish.save();
 
-    return { success: true, status: 'rejected' };
+    // Send rejected notification to requester
+    try {
+      await Notification.create({
+        recipient: request.user,
+        actor: creatorId,
+        type: 'dish_join_rejected',
+        reference: dish._id,
+        metadata: {
+          dishId: dish._id,
+          dishDescription: dish.description
+        }
+      });
+    } catch (notifErr) {
+      console.error('[DishReject] Notification error:', notifErr);
+    }
+
+    // Sync any DM messages containing this dishRequestId
+    try {
+      const Message = require('../models/Message');
+      await Message.updateMany(
+        { 'dishRequest.dishRequestId': request._id },
+        { $set: { 'dishRequest.status': 'rejected' } }
+      );
+    } catch (msgSyncErr) {
+      console.error('[DishReject] Message sync error:', msgSyncErr);
+    }
+
+    const updatedDish = await getDishById(dishId);
+    return { success: true, status: 'rejected', dish: updatedDish };
   } else {
     throw new Error('Invalid request action. Must be approve or reject');
   }

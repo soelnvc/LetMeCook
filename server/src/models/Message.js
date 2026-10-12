@@ -33,6 +33,26 @@ const messageSchema = new mongoose.Schema(
       enum: ['pending', 'accepted', 'rejected', 'none'],
       default: 'none'
     },
+    dishRequest: {
+      dishId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Dish',
+        default: null
+      },
+      dishRequestId: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null
+      },
+      dishDescription: {
+        type: String,
+        default: null
+      },
+      status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected', 'none'],
+        default: 'none'
+      }
+    },
     read: {
       type: Boolean,
       default: false

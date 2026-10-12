@@ -220,6 +220,9 @@ export default function DishCard({
     ? '∞'
     : Math.max(0, (dish.capacity?.max || 4) - (dish.participants?.length || 0));
 
+  const pendingRequestsCount =
+    dish.requests?.filter((r) => r.status === 'pending').length || 0;
+
   // Determine institution and connection relationship for the badge
   const getInstName = (inst) => {
     if (!inst) return '';
@@ -290,6 +293,37 @@ export default function DishCard({
         width: '100%'
       }}
     >
+      {/* Top Right: Red dot with number of pending requests (for Owner) */}
+      {isCreator && pendingRequestsCount > 0 && dish.status !== 'cooked' && (
+        <div
+          title={`${pendingRequestsCount} pending join request${pendingRequestsCount > 1 ? 's' : ''}`}
+          style={{
+            position: 'absolute',
+            top: 2,
+            right: 2,
+            transform: 'translate(45%, -45%)',
+            minWidth: 20,
+            height: 20,
+            padding: pendingRequestsCount > 9 ? '0 5px' : 0,
+            borderRadius: 9999,
+            backgroundColor: '#ef4444',
+            color: '#ffffff',
+            fontSize: 11,
+            fontWeight: 800,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1.5px solid #ffffff',
+            boxShadow: 'none',
+            zIndex: 10,
+            userSelect: 'none',
+            pointerEvents: 'none'
+          }}
+        >
+          {pendingRequestsCount}
+        </div>
+      )}
+
       {/* Left Icon: Genre-Specific Ticket SVG (Sport, Study, Gaming, etc.) */}
       <div
         style={{ paddingTop: 4, flexShrink: 0, cursor: onOpenDetail ? 'pointer' : 'default' }}
@@ -527,96 +561,6 @@ export default function DishCard({
             </span>
           )}
         </div>
-
-        {/* Creator Pending Requests Section */}
-        {isCreator &&
-          dish.status !== 'cooked' &&
-          dish.requests?.filter((r) => r.status === 'pending').length > 0 && (
-            <GlassContainer
-              radius={16}
-              innerStyle={{ padding: '8px 12px', marginBottom: 10, fontSize: 11, color: '#000000' }}
-            >
-              <strong>
-                Pending Requests ({dish.requests.filter((r) => r.status === 'pending').length}):
-              </strong>
-              {dish.requests
-                .filter((r) => r.status === 'pending')
-                .map((r) => (
-                  <div
-                    key={r._id}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginTop: 4
-                    }}
-                  >
-                    <span
-                      onClick={() => {
-                        if (onViewProfile) {
-                          onViewProfile(typeof r.user === 'object' ? r.user : { username: r.user });
-                        }
-                      }}
-                      style={{
-                        color: '#000000',
-                        cursor: onViewProfile ? 'pointer' : 'default',
-                        textDecoration: onViewProfile ? 'underline' : 'none',
-                        fontWeight: 600
-                      }}
-                      title={onViewProfile ? 'View profile' : ''}
-                    >
-                      User: {typeof r.user === 'object' ? (r.user.name || r.user.username) : r.user}
-                    </span>
-                    <div>
-                      <button
-                        onClick={() => onApproveRequest && onApproveRequest(dish._id, r._id)}
-                        style={{
-                          padding: '3px 8px',
-                          fontSize: 11,
-                          fontWeight: 600,
-                          marginRight: 6,
-                          color: '#15803d',
-                          background: 'rgba(34, 197, 94, 0.12)',
-                          border: '1px solid rgba(34, 197, 94, 0.3)',
-                          borderRadius: 6,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4
-                        }}
-                      >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => onRejectRequest && onRejectRequest(dish._id, r._id)}
-                        style={{
-                          padding: '3px 8px',
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: '#b91c1c',
-                          background: 'rgba(239, 68, 68, 0.12)',
-                          border: '1px solid rgba(239, 68, 68, 0.3)',
-                          borderRadius: 6,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4
-                        }}
-                      >
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                        Reject
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </GlassContainer>
-          )}
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
