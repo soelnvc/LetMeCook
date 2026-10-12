@@ -101,7 +101,8 @@ function getGenreIcon(category = '', size = 26) {
 
 export default function DishDetailModal({
   isOpen,
-  dish,
+  dish: propDish,
+  initialShowMembers = false,
   onClose,
   currentUser,
   connections = [],
@@ -114,6 +115,12 @@ export default function DishDetailModal({
   onReportDish,
   onDishUpdated
 }) {
+  const [localDish, setLocalDish] = useState(propDish);
+  useEffect(() => {
+    setLocalDish(propDish);
+  }, [propDish]);
+  const dish = localDish || propDish || {};
+
   const [isMounted, setIsMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -176,6 +183,13 @@ export default function DishDetailModal({
       return () => clearTimeout(timer);
     }
   }, [isOpen, dish]);
+
+  // Support direct opening of Dish Table Directory (e.g. from Join Request notification)
+  useEffect(() => {
+    if (isOpen && initialShowMembers) {
+      setShowMembersModal(true);
+    }
+  }, [isOpen, initialShowMembers]);
 
   // Close 3-dots menu on outside click
   useEffect(() => {
@@ -465,13 +479,35 @@ export default function DishDetailModal({
       const res = await apiFetch(`/dishes/${dish._id}/requests/${requestId}/approve`, {
         method: 'POST'
       });
-      if (res?.success) {
-        triggerToast(`@${targetUsername || 'User'} added to the table!`);
-        if (res.dish && onDishUpdatedRef.current) {
-          onDishUpdatedRef.current(res.dish);
+      const updatedDish = res?.data?.dish || res?.dish;
+      if (updatedDish) {
+        setLocalDish(updatedDish);
+        if (onDishUpdatedRef.current) {
+          onDishUpdatedRef.current(updatedDish);
         }
+        triggerToast(`@${targetUsername || 'User'} added to the table!`);
       } else {
-        triggerToast(res?.message || 'Failed to approve request');
+        // Optimistic update
+        setLocalDish((prev) => {
+          if (!prev) return prev;
+          const reqItem = (prev.requests || []).find((r) => String(r._id) === String(requestId));
+          const newParticipants = [...(prev.participants || [])];
+          if (reqItem?.user) {
+            newParticipants.push({
+              user: reqItem.user,
+              joinedAt: new Date(),
+              role: 'participant'
+            });
+          }
+          return {
+            ...prev,
+            participants: newParticipants,
+            requests: (prev.requests || []).map((r) =>
+              String(r._id) === String(requestId) ? { ...r, status: 'approved' } : r
+            )
+          };
+        });
+        triggerToast(`@${targetUsername || 'User'} added to the table!`);
       }
     } catch (err) {
       triggerToast(err.message || 'Error approving request');
@@ -488,13 +524,24 @@ export default function DishDetailModal({
       const res = await apiFetch(`/dishes/${dish._id}/requests/${requestId}/reject`, {
         method: 'POST'
       });
-      if (res?.success) {
-        triggerToast(`Request from @${targetUsername || 'User'} declined`);
-        if (res.dish && onDishUpdatedRef.current) {
-          onDishUpdatedRef.current(res.dish);
+      const updatedDish = res?.data?.dish || res?.dish;
+      if (updatedDish) {
+        setLocalDish(updatedDish);
+        if (onDishUpdatedRef.current) {
+          onDishUpdatedRef.current(updatedDish);
         }
+        triggerToast(`Request from @${targetUsername || 'User'} declined`);
       } else {
-        triggerToast(res?.message || 'Failed to decline request');
+        setLocalDish((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            requests: (prev.requests || []).map((r) =>
+              String(r._id) === String(requestId) ? { ...r, status: 'rejected' } : r
+            )
+          };
+        });
+        triggerToast(`Request from @${targetUsername || 'User'} declined`);
       }
     } catch (err) {
       triggerToast(err.message || 'Error declining request');
@@ -2368,22 +2415,25 @@ export default function DishDetailModal({
                           }}
                         >
                           {/* User info */}
-                          <div
-                            onClick={() => {
-                              if (onViewProfile) {
-                                setShowMembersModal(false);
-                                onViewProfile(u);
-                              }
-                            }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, cursor: 'pointer', flex: 1 }}
-                          >
-                            {u.avatar ? (
-                              <img src={u.avatar} alt={u.name || u.username} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                            ) : (
-                              <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, #f43f5e, #e11d48)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
-                                {((u.name || u.username || 'U')[0] || 'U').toUpperCase()}
-                              </div>
-                            )}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onViewProfile && (u.username || u._id)) {
+                                  onViewProfile(u);
+                                }
+                              }}
+                              style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0 }}
+                              title={onViewProfile ? `View @${u.username || 'user'}'s profile` : ''}
+                            >
+                              {u.avatar ? (
+                                <img src={u.avatar} alt={u.name || u.username} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} />
+                              ) : (
+                                <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, #f43f5e, #e11d48)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
+                                  {((u.name || u.username || 'U')[0] || 'U').toUpperCase()}
+                                </div>
+                              )}
+                            </div>
                             <div style={{ minWidth: 0 }}>
                               <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {u.name || u.username || 'Peer'}
@@ -2398,7 +2448,7 @@ export default function DishDetailModal({
                           {isCreator && !isExpired ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                               <FluidButton
-                                disabled={isRequestActionLoading}
+                                disabled={Boolean(isRequestActionLoading)}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleApproveJoinRequest(req._id, u.username);
@@ -2415,7 +2465,7 @@ export default function DishDetailModal({
                               </FluidButton>
 
                               <FluidButton
-                                disabled={isRequestActionLoading}
+                                disabled={Boolean(isRequestActionLoading)}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleRejectJoinRequest(req._id, u.username);

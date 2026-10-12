@@ -90,6 +90,7 @@ export default function App() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [dineInTab, setDineInTab] = useState('join_to_cook'); // 'join_to_cook', 'cooking', 'global', 'my_dishes'
   const [selectedDishDetail, setSelectedDishDetail] = useState(null);
+  const [initialOpenMembersModal, setInitialOpenMembersModal] = useState(false);
   const [expandedDishes, setExpandedDishes] = useState({});
   const [navHovered, setNavHovered] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -543,8 +544,9 @@ export default function App() {
     }
   };
 
-  const handleOpenDishByIdOrObj = async (dishOrId) => {
+  const handleOpenDishByIdOrObj = async (dishOrId, options = {}) => {
     if (!dishOrId) return;
+    setInitialOpenMembersModal(Boolean(options.openMembersModal));
     if (typeof dishOrId === 'object' && dishOrId._id) {
       setSelectedDishDetail(dishOrId);
       return;
@@ -2718,7 +2720,11 @@ export default function App() {
       <DishDetailModal
         isOpen={Boolean(selectedDishDetail)}
         dish={selectedDishDetail}
-        onClose={() => setSelectedDishDetail(null)}
+        initialShowMembers={initialOpenMembersModal}
+        onClose={() => {
+          setSelectedDishDetail(null);
+          setInitialOpenMembersModal(false);
+        }}
         currentUser={user}
         connections={connections}
         onJoinDish={handleJoinDish}

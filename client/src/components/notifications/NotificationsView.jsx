@@ -15,6 +15,9 @@ export default function NotificationsView({
   const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState('all'); // 'all' | 'requests' | 'connections'
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [isFetching, setIsFetching] = useState(true);
+  const [isMarkingAllRead, setIsMarkingAllRead] = useState(false);
+  const [openingTicketId, setOpeningTicketId] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
   const storageKey = currentUser?._id
@@ -122,11 +125,12 @@ export default function NotificationsView({
               status: notif.metadata?.status || 'info',
               actor: notif.actor,
               actionText,
-              dishId: notif.reference || notif.metadata?.dishId,
+              dishId: notif.reference?._id || notif.reference || notif.metadata?.dishId || null,
+              metadata: notif.metadata || {},
               timeAgo: formatRelativeTime(notif.createdAt, 'Recent'),
               createdAt: notif.createdAt,
               read: notif.read || false,
-              connectionId: notif.reference || notif.metadata?.connectionId
+              connectionId: notif.reference?._id || notif.reference || notif.metadata?.connectionId
             });
           }
         }
@@ -137,6 +141,8 @@ export default function NotificationsView({
         }
       } catch (err) {
         console.error('Failed fetching notifications from server:', err);
+      } finally {
+        setIsFetching(false);
       }
     };
 
@@ -248,14 +254,39 @@ export default function NotificationsView({
 
   // Mark all as read
   const handleMarkAllRead = async () => {
+    if (isMarkingAllRead) return;
+    setIsMarkingAllRead(true);
     const updated = notifications.map((n) => ({ ...n, read: true }));
     persistNotifications(updated);
     try {
       await apiFetch('/notifications/read-all', { method: 'POST' });
+      triggerToast('All notifications marked as read');
     } catch {
       // ignore
+    } finally {
+      setIsMarkingAllRead(false);
     }
-    triggerToast('All notifications marked as read');
+  };
+
+  // Open Dish Ticket helper with robust loading & section targeting
+  const handleViewTicket = async (item, e) => {
+    if (e) e.stopPropagation();
+    const dishId = item.dishId || item.metadata?.dishId || item.reference || item.connectionId;
+    if (!dishId) {
+      triggerToast('Dish ticket details not found');
+      return;
+    }
+    setOpeningTicketId(item.id);
+    try {
+      if (onOpenDishDetail) {
+        await onOpenDishDetail(dishId, { openMembersModal: item.type === 'dish_join_request' });
+      }
+    } catch (err) {
+      console.error('Failed opening dish ticket:', err);
+      triggerToast('Could not open dish ticket');
+    } finally {
+      setOpeningTicketId(null);
+    }
   };
 
   // Filtered list
@@ -382,6 +413,7 @@ export default function NotificationsView({
 
           {/* Action: Mark All As Read with FluidButton */}
           <FluidButton
+            disabled={isMarkingAllRead}
             onClick={handleMarkAllRead}
             style={{
               padding: '8px 16px',
@@ -393,10 +425,22 @@ export default function NotificationsView({
               gap: 6
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-            Mark all read
+            {isMarkingAllRead ? (
+              <>
+                <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                  <path d="M12 2a10 10 0 0 1 10 10" />
+                </svg>
+                Marking...
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Mark all read
+              </>
+            )}
           </FluidButton>
         </div>
 
@@ -483,9 +527,43 @@ export default function NotificationsView({
           </GlassContainer>
         </div>
 
-        {/* Notifications List */}
+        {/* Notifications List or Loading Skeleton */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
-          {filteredNotifications.length === 0 ? (
+          {isFetching && notifications.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[1, 2, 3, 4].map((idx) => (
+                <div
+                  key={`skeleton-notif-${idx}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 16px',
+                    borderRadius: 18,
+                    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+                    border: '1px solid rgba(0, 0, 0, 0.05)',
+                    opacity: 0.8
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1 }}>
+                    <div
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.07)'
+                      }}
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, maxWidth: 320 }}>
+                      <div style={{ height: 14, width: '75%', borderRadius: 6, backgroundColor: 'rgba(0, 0, 0, 0.07)' }} />
+                      <div style={{ height: 11, width: '45%', borderRadius: 4, backgroundColor: 'rgba(0, 0, 0, 0.04)' }} />
+                    </div>
+                  </div>
+                  <div style={{ width: 88, height: 28, borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)' }} />
+                </div>
+              ))}
+            </div>
+          ) : filteredNotifications.length === 0 ? (
             <div
               style={{
                 display: 'flex',
@@ -826,7 +904,8 @@ export default function NotificationsView({
                     {/* View Ticket button for dish invitations and join requests */}
                     {(item.type === 'dish_invite' || item.type === 'dish_join_request') && onOpenDishDetail && (
                       <FluidButton
-                        onClick={() => onOpenDishDetail(item.dishId || item.connectionId)}
+                        disabled={openingTicketId === item.id}
+                        onClick={(e) => handleViewTicket(item, e)}
                         style={{
                           padding: '5px 14px',
                           fontSize: 12.5,
@@ -837,13 +916,25 @@ export default function NotificationsView({
                           gap: 5
                         }}
                       >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="4" width="18" height="16" rx="2" />
-                          <line x1="7" y1="8" x2="17" y2="8" />
-                          <line x1="7" y1="12" x2="17" y2="12" />
-                          <line x1="7" y1="16" x2="13" y2="16" />
-                        </svg>
-                        View Ticket
+                        {openingTicketId === item.id ? (
+                          <>
+                            <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                              <path d="M12 2a10 10 0 0 1 10 10" />
+                            </svg>
+                            <span>Opening...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="4" width="18" height="16" rx="2" />
+                              <line x1="7" y1="8" x2="17" y2="8" />
+                              <line x1="7" y1="12" x2="17" y2="12" />
+                              <line x1="7" y1="16" x2="13" y2="16" />
+                            </svg>
+                            <span>View Ticket</span>
+                          </>
+                        )}
                       </FluidButton>
                     )}
 
