@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import FluidButton from '@/components/ui/FluidButton';
 import GlassContainer from '@/components/ui/GlassContainer';
 
@@ -34,7 +35,66 @@ export default function ProfileHeader({
   const [isUploading, setIsUploading] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const fileInputRef = React.useRef(null);
+  const [showDpOptionsModal, setShowDpOptionsModal] = useState(false);
+  const [isViewingLargeDp, setIsViewingLargeDp] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Keyboard navigation & lock background scroll when modal/viewer is open
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowDpOptionsModal(false);
+        setIsViewingLargeDp(false);
+      }
+    };
+    if (showDpOptionsModal || isViewingLargeDp) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [showDpOptionsModal, isViewingLargeDp]);
+
+  const handleDpClick = () => {
+    if (isSelf) {
+      setShowDpOptionsModal(true);
+    } else {
+      setIsViewingLargeDp(true);
+    }
+  };
+
+  const handleViewPhoto = () => {
+    setShowDpOptionsModal(false);
+    setIsViewingLargeDp(true);
+  };
+
+  const handleUpdatePhoto = () => {
+    setShowDpOptionsModal(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setShowDpOptionsModal(false);
+    if (!onUpdateUser) return;
+    try {
+      setIsUploading(true);
+      await Promise.resolve(onUpdateUser({ avatar: null }));
+    } catch (err) {
+      console.error('Failed to remove avatar:', err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleFileChange = (e) => {
     if (!isSelf) return;
@@ -112,25 +172,28 @@ export default function ProfileHeader({
           />
         )}
         <div
-          onClick={() => {
-            if (isSelf) fileInputRef.current?.click();
-          }}
+          onClick={handleDpClick}
           onMouseEnter={() => {
             if (isSelf) setIsHovered(true);
           }}
           onMouseLeave={() => {
             if (isSelf) setIsHovered(false);
           }}
-          title={isSelf ? 'Click to update profile photo' : `@${user?.username || 'user'}`}
+          title={isSelf ? 'Change profile photo' : `@${user?.username || 'user'}`}
           style={{
             width: 140,
             height: 140,
             borderRadius: '50%',
             position: 'relative',
-            cursor: isSelf ? 'pointer' : 'default',
+            cursor: 'pointer',
             overflow: 'hidden',
             border: '2px solid rgba(0, 0, 0, 0.08)',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.06)'
+            boxShadow: isHovered
+              ? '0 12px 28px rgba(0, 0, 0, 0.12)'
+              : '0 8px 24px rgba(0, 0, 0, 0.06)',
+            transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease',
+            transform: isHovered && !isSelf ? 'scale(1.02)' : 'scale(1)',
+            userSelect: 'none'
           }}
         >
           {hasAvatar ? (
@@ -163,31 +226,58 @@ export default function ProfileHeader({
             </div>
           )}
 
-          {/* Hover / Upload overlay (ONLY for self) */}
+          {/* Hover overlay (ONLY for self) - shows JUST camera icon */}
           {isSelf && (
             <div
               style={{
                 position: 'absolute',
                 inset: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                backgroundColor: 'rgba(0, 0, 0, 0.42)',
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 4,
                 color: '#ffffff',
                 opacity: isHovered || isUploading ? 1 : 0,
-                transition: 'opacity 0.2s ease',
-                backdropFilter: 'blur(2px)'
+                transition: 'opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                backdropFilter: 'blur(2px)',
+                WebkitBackdropFilter: 'blur(2px)',
+                pointerEvents: 'none'
               }}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.3px' }}>
-                {isUploading ? 'Saving...' : 'Update DP'}
-              </span>
+              {isUploading ? (
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ animation: 'dpSpin 0.9s linear infinite' }}
+                >
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+              ) : (
+                <svg
+                  width="30"
+                  height="30"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.5))',
+                    transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                    transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                  }}
+                >
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+              )}
             </div>
           )}
         </div>
@@ -595,6 +685,442 @@ export default function ProfileHeader({
           )}
         </div>
       </div>
+
+      {/* 1. Instagram-style DP Options Modal (Self Only) */}
+      {mounted && showDpOptionsModal && createPortal(
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowDpOptionsModal(false);
+            }
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9998,
+            backgroundColor: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+            animation: 'dpFadeIn 0.18s ease-out'
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 390,
+              backgroundColor: '#ffffff',
+              borderRadius: 20,
+              overflow: 'hidden',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.35)',
+              textAlign: 'center',
+              animation: 'dpModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
+              border: '1px solid rgba(0, 0, 0, 0.08)'
+            }}
+          >
+            {/* Header */}
+            <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid #f1f5f9' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.3px' }}>
+                Change Profile Photo
+              </h3>
+              <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
+                Manage your profile display picture
+              </p>
+            </div>
+
+            {/* Option 1: View */}
+            <button
+              type="button"
+              onClick={handleViewPhoto}
+              style={{
+                width: '100%',
+                padding: '15px 20px',
+                border: 'none',
+                borderBottom: '1px solid #f1f5f9',
+                backgroundColor: '#ffffff',
+                color: '#0f172a',
+                fontSize: 14.5,
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              View Photo
+            </button>
+
+            {/* Option 2: Update */}
+            <button
+              type="button"
+              onClick={handleUpdatePhoto}
+              style={{
+                width: '100%',
+                padding: '15px 20px',
+                border: 'none',
+                borderBottom: '1px solid #f1f5f9',
+                backgroundColor: '#ffffff',
+                color: '#0095f6',
+                fontSize: 14.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0f9ff')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Upload Photo
+            </button>
+
+            {/* Option 3: Remove */}
+            <button
+              type="button"
+              disabled={!hasAvatar}
+              onClick={hasAvatar ? handleRemovePhoto : undefined}
+              style={{
+                width: '100%',
+                padding: '15px 20px',
+                border: 'none',
+                borderBottom: '1px solid #f1f5f9',
+                backgroundColor: '#ffffff',
+                color: hasAvatar ? '#ed4956' : '#94a3b8',
+                fontSize: 14.5,
+                fontWeight: 700,
+                cursor: hasAvatar ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                opacity: hasAvatar ? 1 : 0.45,
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => {
+                if (hasAvatar) e.currentTarget.style.backgroundColor = '#fef2f2';
+              }}
+              onMouseLeave={(e) => {
+                if (hasAvatar) e.currentTarget.style.backgroundColor = '#ffffff';
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" />
+                <line x1="14" y1="11" x2="14" y2="17" />
+              </svg>
+              Remove Current Photo
+            </button>
+
+            {/* Cancel Button */}
+            <button
+              type="button"
+              onClick={() => setShowDpOptionsModal(false)}
+              style={{
+                width: '100%',
+                padding: '15px 20px',
+                border: 'none',
+                backgroundColor: '#ffffff',
+                color: '#64748b',
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* 2. Full-Screen Instagram-style Large DP Viewer (With Blurred Background) */}
+      {mounted && isViewingLargeDp && createPortal(
+        <div
+          onClick={(e) => {
+            // Dismiss whenever clicking on the background backdrop
+            if (e.target === e.currentTarget) {
+              setIsViewingLargeDp(false);
+            }
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.82)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            animation: 'dpFadeIn 0.2s ease-out'
+          }}
+        >
+          {/* Top Close Button (X) */}
+          <button
+            type="button"
+            onClick={() => setIsViewingLargeDp(false)}
+            title="Close (Esc)"
+            style={{
+              position: 'absolute',
+              top: 24,
+              right: 24,
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255, 255, 255, 0.14)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 10001,
+              transition: 'all 0.2s ease',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.28)';
+              e.currentTarget.style.transform = 'scale(1.08)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.14)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+
+          {/* Center Card with Large DP */}
+          <div
+            onClick={(e) => {
+              // Clicking inside the center card itself does not propagate to backdrop if clicking directly on elements
+            }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'dpViewerPop 0.26s cubic-bezier(0.16, 1, 0.3, 1)',
+              maxWidth: 420,
+              width: '100%',
+              pointerEvents: 'auto'
+            }}
+          >
+            {/* Large Circular DP */}
+            <div
+              style={{
+                width: 'min(340px, 80vw)',
+                height: 'min(340px, 80vw)',
+                borderRadius: '50%',
+                position: 'relative',
+                overflow: 'hidden',
+                border: '4px solid rgba(255, 255, 255, 0.28)',
+                boxShadow: '0 30px 80px -10px rgba(0, 0, 0, 0.8), 0 0 50px rgba(255, 255, 255, 0.14)',
+                backgroundColor: '#1e293b'
+              }}
+            >
+              {hasAvatar ? (
+                <img
+                  src={avatarUrl}
+                  alt={user?.name || user?.username || 'Profile'}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block'
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 120,
+                    fontWeight: 800,
+                    userSelect: 'none'
+                  }}
+                >
+                  {(user?.name || user?.username || 'S')[0].toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            {/* Profile Identity Details below photo */}
+            <div
+              style={{
+                marginTop: 24,
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  margin: 0,
+                  letterSpacing: '-0.3px',
+                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.5)'
+                }}
+              >
+                {user?.name || user?.username || 'Campus Peer'}
+              </h3>
+              <span
+                style={{
+                  fontSize: 14.5,
+                  fontWeight: 500,
+                  color: 'rgba(255, 255, 255, 0.72)',
+                  letterSpacing: '0.1px'
+                }}
+              >
+                @{user?.username || 'user'}
+              </span>
+
+              {/* Sub-pills (Institute / pronouns) */}
+              {(displayInstitute || pronouns) && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {displayInstitute && (
+                    <span
+                      style={{
+                        padding: '4px 12px',
+                        borderRadius: 20,
+                        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                        border: '1px solid rgba(255, 255, 255, 0.18)',
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        fontSize: 12,
+                        fontWeight: 500
+                      }}
+                    >
+                      {displayInstitute} {displayYear ? `· ${displayYear}` : ''}
+                    </span>
+                  )}
+                  {pronouns && (
+                    <span
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: 20,
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                        border: '1px solid rgba(255, 255, 255, 0.14)',
+                        color: 'rgba(255, 255, 255, 0.75)',
+                        fontSize: 12,
+                        fontWeight: 500
+                      }}
+                    >
+                      {pronouns}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* If self, provide convenient quick options right in viewer */}
+              {isSelf && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsViewingLargeDp(false);
+                      setShowDpOptionsModal(true);
+                    }}
+                    style={{
+                      padding: '7px 18px',
+                      borderRadius: 20,
+                      backgroundColor: 'rgba(255, 255, 255, 0.16)',
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
+                      color: '#ffffff',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.28)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.16)')}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                    Manage Photo
+                  </button>
+                </div>
+              )}
+
+              {/* Background dismissal hint */}
+              <span
+                style={{
+                  fontSize: 12,
+                  color: 'rgba(255, 255, 255, 0.42)',
+                  marginTop: 12,
+                  letterSpacing: '0.2px',
+                  userSelect: 'none'
+                }}
+              >
+                Click anywhere on background to dismiss
+              </span>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Dynamic Keyframes for Instagram-style popups & viewer */}
+      <style>{`
+        @keyframes dpFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes dpModalPop {
+          from { opacity: 0; transform: scale(0.92); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes dpViewerPop {
+          from { opacity: 0; transform: scale(0.85); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes dpSpin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
