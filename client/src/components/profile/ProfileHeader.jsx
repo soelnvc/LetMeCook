@@ -37,22 +37,34 @@ export default function ProfileHeader({
   const [linkCopied, setLinkCopied] = useState(false);
   const [showDpOptionsModal, setShowDpOptionsModal] = useState(false);
   const [isViewingLargeDp, setIsViewingLargeDp] = useState(false);
+  const [showRemoveConfirmModal, setShowRemoveConfirmModal] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [cropImageObj, setCropImageObj] = useState(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [rotation, setRotation] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isSavingCrop, setIsSavingCrop] = useState(false);
   const [mounted, setMounted] = useState(false);
   const fileInputRef = useRef(null);
+  const dragStartRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Keyboard navigation & lock background scroll when modal/viewer is open
+  // Keyboard navigation & lock background scroll when any modal/viewer is open
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setShowDpOptionsModal(false);
         setIsViewingLargeDp(false);
+        setShowRemoveConfirmModal(false);
+        setShowCropModal(false);
       }
     };
-    if (showDpOptionsModal || isViewingLargeDp) {
+    if (showDpOptionsModal || isViewingLargeDp || showRemoveConfirmModal || showCropModal) {
       window.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
     }
@@ -60,7 +72,27 @@ export default function ProfileHeader({
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
-  }, [showDpOptionsModal, isViewingLargeDp]);
+  }, [showDpOptionsModal, isViewingLargeDp, showRemoveConfirmModal, showCropModal]);
+
+  // Window drag listeners for DP Crop Tool
+  useEffect(() => {
+    if (!isDragging) return;
+    const onWindowMove = (e) => {
+      setPan({
+        x: e.clientX - dragStartRef.current.x,
+        y: e.clientY - dragStartRef.current.y
+      });
+    };
+    const onWindowUp = () => {
+      setIsDragging(false);
+    };
+    window.addEventListener('mousemove', onWindowMove);
+    window.addEventListener('mouseup', onWindowUp);
+    return () => {
+      window.removeEventListener('mousemove', onWindowMove);
+      window.removeEventListener('mouseup', onWindowUp);
+    };
+  }, [isDragging]);
 
   const handleDpClick = () => {
     if (isSelf) {
@@ -68,11 +100,6 @@ export default function ProfileHeader({
     } else {
       setIsViewingLargeDp(true);
     }
-  };
-
-  const handleViewPhoto = () => {
-    setShowDpOptionsModal(false);
-    setIsViewingLargeDp(true);
   };
 
   const handleUpdatePhoto = () => {
@@ -83,8 +110,13 @@ export default function ProfileHeader({
     }
   };
 
-  const handleRemovePhoto = async () => {
+  const handleInitiateRemove = () => {
     setShowDpOptionsModal(false);
+    setShowRemoveConfirmModal(true);
+  };
+
+  const handleConfirmRemove = async () => {
+    setShowRemoveConfirmModal(false);
     if (!onUpdateUser) return;
     try {
       setIsUploading(true);
@@ -100,42 +132,96 @@ export default function ProfileHeader({
     if (!isSelf) return;
     const file = e.target.files?.[0];
     if (!file) return;
-    setIsUploading(true);
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxDim = 400;
-        let width = img.width;
-        let height = img.height;
-        if (width > height) {
-          if (width > maxDim) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          }
-        } else {
-          if (height > maxDim) {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        if (onUpdateUser) {
-          Promise.resolve(onUpdateUser({ avatar: dataUrl }))
-            .catch(() => {})
-            .finally(() => setIsUploading(false));
-        } else {
-          setIsUploading(false);
-        }
+        setCropImageObj(img);
+        setCropImageSrc(event.target.result);
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+        setRotation(0);
+        setShowCropModal(true);
       };
       img.src = event.target.result;
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleApplyCrop = async () => {
+    if (!cropImageObj) return;
+    try {
+      setIsSavingCrop(true);
+      const exportDim = 500;
+      const canvas = document.createElement('canvas');
+      canvas.width = exportDim;
+      canvas.height = exportDim;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const circleRadius = 130; // 260px circle in 320px viewport
+      const canvasMultiplier = (exportDim / 2) / circleRadius; // 250 / 130 ≈ 1.923
+
+      const isRotated90 = (rotation % 180) !== 0;
+      const effectiveW = isRotated90 ? cropImageObj.naturalHeight : cropImageObj.naturalWidth;
+      const effectiveH = isRotated90 ? cropImageObj.naturalWidth : cropImageObj.naturalHeight;
+      const minDim = Math.min(effectiveW, effectiveH) || 260;
+      const baseScale = 260 / minDim;
+
+      const baseDrawW = cropImageObj.naturalWidth * baseScale;
+      const baseDrawH = cropImageObj.naturalHeight * baseScale;
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      // Move to canvas center
+      ctx.translate(exportDim / 2, exportDim / 2);
+
+      // Apply pan
+      ctx.translate(pan.x * canvasMultiplier, pan.y * canvasMultiplier);
+
+      // Apply rotation
+      ctx.rotate((rotation * Math.PI) / 180);
+
+      // Apply zoom
+      ctx.scale(zoom * canvasMultiplier, zoom * canvasMultiplier);
+
+      // Draw centered
+      ctx.drawImage(
+        cropImageObj,
+        -baseDrawW / 2,
+        -baseDrawH / 2,
+        baseDrawW,
+        baseDrawH
+      );
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      if (onUpdateUser) {
+        await Promise.resolve(onUpdateUser({ avatar: dataUrl }));
+      }
+      setShowCropModal(false);
+      setCropImageSrc(null);
+      setCropImageObj(null);
+    } catch (err) {
+      console.error('Failed to crop and save avatar:', err);
+    } finally {
+      setIsSavingCrop(false);
+    }
+  };
+
+  const handleFit = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const handleRotate = () => {
+    setRotation((r) => (r + 90) % 360);
+  };
+
+  const handleResetCrop = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+    setRotation(0);
   };
 
   const rawBio = user?.bio || bio || '';
@@ -226,22 +312,23 @@ export default function ProfileHeader({
             </div>
           )}
 
-          {/* Hover overlay (ONLY for self) - shows JUST camera icon */}
+          {/* Hover overlay (ONLY for self) - 2 icons: Camera and Eye */}
           {isSelf && (
             <div
               style={{
                 position: 'absolute',
                 inset: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.42)',
+                backgroundColor: 'rgba(0, 0, 0, 0.45)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                gap: 14,
                 color: '#ffffff',
                 opacity: isHovered || isUploading ? 1 : 0,
                 transition: 'opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                backdropFilter: 'blur(2px)',
-                WebkitBackdropFilter: 'blur(2px)',
-                pointerEvents: 'none'
+                backdropFilter: 'blur(3px)',
+                WebkitBackdropFilter: 'blur(3px)',
+                pointerEvents: isHovered ? 'auto' : 'none'
               }}
             >
               {isUploading ? (
@@ -250,7 +337,7 @@ export default function ProfileHeader({
                   height="28"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="currentColor"
+                  stroke="#ffffff"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -259,24 +346,85 @@ export default function ProfileHeader({
                   <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                 </svg>
               ) : (
-                <svg
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{
-                    filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.5))',
-                    transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-                    transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
-                  }}
-                >
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                  <circle cx="12" cy="13" r="4" />
-                </svg>
+                <>
+                  {/* Eye Icon (View) */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsViewingLargeDp(true);
+                    }}
+                    title="View profile photo"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.22)',
+                      border: '1.5px solid rgba(255, 255, 255, 0.45)',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
+                      backdropFilter: 'blur(6px)',
+                      WebkitBackdropFilter: 'blur(6px)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.42)';
+                      e.currentTarget.style.transform = 'scale(1.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.22)';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+
+                  {/* Camera Icon (Popup) */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDpOptionsModal(true);
+                    }}
+                    title="Change profile photo"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.22)',
+                      border: '1.5px solid rgba(255, 255, 255, 0.45)',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
+                      backdropFilter: 'blur(6px)',
+                      WebkitBackdropFilter: 'blur(6px)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.42)';
+                      e.currentTarget.style.transform = 'scale(1.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.22)';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                  </button>
+                </>
               )}
             </div>
           )}
@@ -686,7 +834,7 @@ export default function ProfileHeader({
         </div>
       </div>
 
-      {/* 1. Instagram-style DP Options Modal (Self Only) */}
+      {/* 1. App-Styled DP Options Modal (GlassContainer + FluidButton) */}
       {mounted && showDpOptionsModal && createPortal(
         <div
           onClick={(e) => {
@@ -698,9 +846,9 @@ export default function ProfileHeader({
             position: 'fixed',
             inset: 0,
             zIndex: 9998,
-            backgroundColor: 'rgba(0, 0, 0, 0.65)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -708,155 +856,610 @@ export default function ProfileHeader({
             animation: 'dpFadeIn 0.18s ease-out'
           }}
         >
-          <div
+          <GlassContainer
+            radius={28}
+            borderWidth={1.5}
             style={{
-              width: '100%',
               maxWidth: 390,
-              backgroundColor: '#ffffff',
-              borderRadius: 20,
-              overflow: 'hidden',
-              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.35)',
+              width: '100%',
+              boxShadow: '0 25px 70px rgba(0, 0, 0, 0.35)',
+              border: '1px solid rgba(255, 255, 255, 0.22)'
+            }}
+            innerStyle={{
+              padding: 24,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
               textAlign: 'center',
-              animation: 'dpModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-              border: '1px solid rgba(0, 0, 0, 0.08)'
+              animation: 'dpModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
           >
-            {/* Header */}
-            <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid #f1f5f9' }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.3px' }}>
-                Change Profile Photo
-              </h3>
-              <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
-                Manage your profile display picture
-              </p>
+            {/* Header Icon + Titles */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(249, 115, 22, 0.12)',
+                  border: '1px solid rgba(249, 115, 22, 0.28)',
+                  color: '#f97316',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 16px rgba(249, 115, 22, 0.15)'
+                }}
+              >
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </div>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.3px' }}>
+                  Change Profile Photo
+                </h3>
+                <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
+                  Upload a new photo or manage your display picture
+                </p>
+              </div>
             </div>
 
-            {/* Option 1: View */}
-            <button
-              type="button"
-              onClick={handleViewPhoto}
-              style={{
-                width: '100%',
-                padding: '15px 20px',
-                border: 'none',
-                borderBottom: '1px solid #f1f5f9',
-                backgroundColor: '#ffffff',
-                color: '#0f172a',
-                fontSize: 14.5,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                transition: 'background-color 0.15s ease'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              View Photo
-            </button>
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+              {/* Upload Action */}
+              <FluidButton
+                onClick={handleUpdatePhoto}
+                style={{
+                  width: '100%',
+                  padding: '13px 20px',
+                  fontSize: 14.5,
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  backgroundColor: '#f97316',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  boxShadow: '0 4px 14px rgba(249, 115, 22, 0.3)'
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Upload Photo
+              </FluidButton>
 
-            {/* Option 2: Update */}
-            <button
-              type="button"
-              onClick={handleUpdatePhoto}
-              style={{
-                width: '100%',
-                padding: '15px 20px',
-                border: 'none',
-                borderBottom: '1px solid #f1f5f9',
-                backgroundColor: '#ffffff',
-                color: '#0095f6',
-                fontSize: 14.5,
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                transition: 'background-color 0.15s ease'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0f9ff')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              Upload Photo
-            </button>
+              {/* Remove Action */}
+              <FluidButton
+                onClick={handleInitiateRemove}
+                disabled={!hasAvatar}
+                style={{
+                  width: '100%',
+                  padding: '13px 20px',
+                  fontSize: 14.5,
+                  fontWeight: 700,
+                  color: hasAvatar ? '#ef4444' : '#94a3b8',
+                  backgroundColor: hasAvatar ? 'rgba(239, 68, 68, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+                  border: hasAvatar ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid rgba(0, 0, 0, 0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  opacity: hasAvatar ? 1 : 0.5,
+                  cursor: hasAvatar ? 'pointer' : 'not-allowed'
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+                Remove Current Photo
+              </FluidButton>
 
-            {/* Option 3: Remove */}
-            <button
-              type="button"
-              disabled={!hasAvatar}
-              onClick={hasAvatar ? handleRemovePhoto : undefined}
+              {/* Cancel Button */}
+              <FluidButton
+                onClick={() => setShowDpOptionsModal(false)}
+                style={{
+                  width: '100%',
+                  padding: '12px 20px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#64748b'
+                }}
+              >
+                Cancel
+              </FluidButton>
+            </div>
+          </GlassContainer>
+        </div>,
+        document.body
+      )}
+
+      {/* 2. Remove Confirmation Modal */}
+      {mounted && showRemoveConfirmModal && createPortal(
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowRemoveConfirmModal(false);
+            }
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+            animation: 'dpFadeIn 0.18s ease-out'
+          }}
+        >
+          <GlassContainer
+            radius={28}
+            borderWidth={1.5}
+            style={{
+              maxWidth: 390,
+              width: '100%',
+              boxShadow: '0 25px 70px rgba(0, 0, 0, 0.4)',
+              border: '1px solid rgba(239, 68, 68, 0.25)'
+            }}
+            innerStyle={{
+              padding: 24,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              textAlign: 'center',
+              alignItems: 'center',
+              animation: 'dpModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            {/* Warning Icon Badge */}
+            <div
               style={{
-                width: '100%',
-                padding: '15px 20px',
-                border: 'none',
-                borderBottom: '1px solid #f1f5f9',
-                backgroundColor: '#ffffff',
-                color: hasAvatar ? '#ed4956' : '#94a3b8',
-                fontSize: 14.5,
-                fontWeight: 700,
-                cursor: hasAvatar ? 'pointer' : 'not-allowed',
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.28)',
+                color: '#ef4444',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 8,
-                opacity: hasAvatar ? 1 : 0.45,
-                transition: 'background-color 0.15s ease'
-              }}
-              onMouseEnter={(e) => {
-                if (hasAvatar) e.currentTarget.style.backgroundColor = '#fef2f2';
-              }}
-              onMouseLeave={(e) => {
-                if (hasAvatar) e.currentTarget.style.backgroundColor = '#ffffff';
+                boxShadow: '0 4px 16px rgba(239, 68, 68, 0.2)'
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 6h18" />
                 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
                 <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                 <line x1="10" y1="11" x2="10" y2="17" />
                 <line x1="14" y1="11" x2="14" y2="17" />
               </svg>
-              Remove Current Photo
-            </button>
+            </div>
 
-            {/* Cancel Button */}
-            <button
-              type="button"
-              onClick={() => setShowDpOptionsModal(false)}
-              style={{
-                width: '100%',
-                padding: '15px 20px',
-                border: 'none',
-                backgroundColor: '#ffffff',
-                color: '#64748b',
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: 'pointer',
-                transition: 'background-color 0.15s ease'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
-            >
-              Cancel
-            </button>
-          </div>
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.3px' }}>
+                Remove Profile Photo?
+              </h3>
+              <p style={{ fontSize: 13.5, color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.5 }}>
+                Are you sure you want to remove your profile photo? Your profile will revert to your default initial avatar.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 6 }}>
+              <FluidButton
+                onClick={() => setShowRemoveConfirmModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#64748b'
+                }}
+              >
+                Keep Photo
+              </FluidButton>
+
+              <FluidButton
+                onClick={handleConfirmRemove}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  backgroundColor: '#ef4444',
+                  color: '#ffffff',
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)'
+                }}
+              >
+                Yes, Remove
+              </FluidButton>
+            </div>
+          </GlassContainer>
         </div>,
         document.body
       )}
 
-      {/* 2. Full-Screen Instagram-style Large DP Viewer (With Blurred Background) */}
+      {/* 3. Proper DP Setting / Crop & Zoom Tool (LinkedIn / Instagram inspired) */}
+      {mounted && showCropModal && cropImageSrc && createPortal(
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSavingCrop) {
+              setShowCropModal(false);
+              setCropImageSrc(null);
+            }
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.76)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 18,
+            animation: 'dpFadeIn 0.2s ease-out'
+          }}
+        >
+          <GlassContainer
+            radius={28}
+            borderWidth={1.5}
+            style={{
+              maxWidth: 460,
+              width: '100%',
+              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.45)',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}
+            innerStyle={{
+              padding: 22,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              animation: 'dpModalPop 0.24s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.3px' }}>
+                  Set Profile Photo
+                </h3>
+                <p style={{ fontSize: 12.5, color: '#64748b', margin: '3px 0 0 0', fontWeight: 500 }}>
+                  Drag to reposition • Scroll or slider to zoom
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isSavingCrop) {
+                    setShowCropModal(false);
+                    setCropImageSrc(null);
+                  }
+                }}
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  border: '1px solid rgba(0, 0, 0, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)')}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Interactive Crop Viewport */}
+            <div
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+                dragStartRef.current = {
+                  x: e.clientX - pan.x,
+                  y: e.clientY - pan.y
+                };
+              }}
+              onTouchStart={(e) => {
+                if (e.touches.length === 1) {
+                  setIsDragging(true);
+                  dragStartRef.current = {
+                    x: e.touches[0].clientX - pan.x,
+                    y: e.touches[0].clientY - pan.y
+                  };
+                }
+              }}
+              onTouchMove={(e) => {
+                if (!isDragging || e.touches.length !== 1) return;
+                setPan({
+                  x: e.touches[0].clientX - dragStartRef.current.x,
+                  y: e.touches[0].clientY - dragStartRef.current.y
+                });
+              }}
+              onTouchEnd={() => setIsDragging(false)}
+              onWheel={(e) => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -0.06 : 0.06;
+                setZoom((z) => Number(Math.max(0.6, Math.min(3.5, z + delta)).toFixed(2)));
+              }}
+              style={{
+                width: '100%',
+                height: 320,
+                backgroundColor: '#0c1017',
+                borderRadius: 20,
+                position: 'relative',
+                overflow: 'hidden',
+                cursor: isDragging ? 'grabbing' : 'grab',
+                userSelect: 'none',
+                boxShadow: 'inset 0 0 40px rgba(0, 0, 0, 0.7)'
+              }}
+            >
+              {/* Dynamic Image Canvas/Element */}
+              {cropImageObj && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: cropImageObj.naturalWidth * (260 / (Math.min(
+                      (rotation % 180 !== 0 ? cropImageObj.naturalHeight : cropImageObj.naturalWidth),
+                      (rotation % 180 !== 0 ? cropImageObj.naturalWidth : cropImageObj.naturalHeight)
+                    ) || 260)),
+                    height: cropImageObj.naturalHeight * (260 / (Math.min(
+                      (rotation % 180 !== 0 ? cropImageObj.naturalHeight : cropImageObj.naturalWidth),
+                      (rotation % 180 !== 0 ? cropImageObj.naturalWidth : cropImageObj.naturalHeight)
+                    ) || 260)),
+                    transform: `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) rotate(${rotation}deg) scale(${zoom})`,
+                    transformOrigin: 'center center',
+                    pointerEvents: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <img
+                    src={cropImageSrc}
+                    alt="Crop preview"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      display: 'block'
+                    }}
+                    draggable={false}
+                  />
+                </div>
+              )}
+
+              {/* Instagram / LinkedIn Style Circle Cutout Mask */}
+              <svg
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  pointerEvents: 'none'
+                }}
+              >
+                <defs>
+                  <mask id="dpCircleMask">
+                    <rect width="100%" height="100%" fill="white" />
+                    <circle cx="50%" cy="50%" r="130" fill="black" />
+                  </mask>
+                </defs>
+                {/* Darkened backdrop outside avatar circle */}
+                <rect width="100%" height="100%" fill="rgba(0, 0, 0, 0.65)" mask="url(#dpCircleMask)" />
+
+                {/* Subtle Inner Crosshair Grid Guides */}
+                <line x1="50%" y1="calc(50% - 130px)" x2="50%" y2="calc(50% + 130px)" stroke="rgba(255, 255, 255, 0.15)" strokeWidth="1" strokeDasharray="3 3" />
+                <line x1="calc(50% - 130px)" y1="50%" x2="calc(50% + 130px)" y2="50%" stroke="rgba(255, 255, 255, 0.15)" strokeWidth="1" strokeDasharray="3 3" />
+
+                {/* Circle Boundary Guide Ring */}
+                <circle
+                  cx="50%"
+                  cy="50%"
+                  r="130"
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.9)"
+                  strokeWidth="2"
+                  strokeDasharray="4 4"
+                  style={{ filter: 'drop-shadow(0 0 4px rgba(0, 0, 0, 0.8))' }}
+                />
+              </svg>
+            </div>
+
+            {/* Zoom Slider Control Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 6px' }}>
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.max(0.6, Number((z - 0.1).toFixed(2))))}
+                title="Zoom Out"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  border: '1px solid rgba(0, 0, 0, 0.1)',
+                  backgroundColor: '#ffffff',
+                  color: '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  fontWeight: 700
+                }}
+              >
+                −
+              </button>
+
+              <input
+                type="range"
+                min="0.6"
+                max="3.5"
+                step="0.02"
+                value={zoom}
+                onChange={(e) => setZoom(Number(e.target.value))}
+                style={{
+                  flex: 1,
+                  cursor: 'pointer',
+                  accentColor: '#f97316'
+                }}
+              />
+
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.min(3.5, Number((z + 0.1).toFixed(2))))}
+                title="Zoom In"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  border: '1px solid rgba(0, 0, 0, 0.1)',
+                  backgroundColor: '#ffffff',
+                  color: '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  fontWeight: 700
+                }}
+              >
+                +
+              </button>
+
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: '#64748b', minWidth: 42, textAlign: 'right' }}>
+                {Math.round(zoom * 100)}%
+              </span>
+            </div>
+
+            {/* Secondary Toolbar: Fit, Rotate, Reset */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <FluidButton
+                onClick={handleFit}
+                style={{
+                  padding: '6px 14px',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: '#334155',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                </svg>
+                Fit Circle
+              </FluidButton>
+
+              <FluidButton
+                onClick={handleRotate}
+                style={{
+                  padding: '6px 14px',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: '#334155',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                </svg>
+                Rotate 90°
+              </FluidButton>
+
+              <FluidButton
+                onClick={handleResetCrop}
+                style={{
+                  padding: '6px 14px',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: '#64748b'
+                }}
+              >
+                Reset
+              </FluidButton>
+            </div>
+
+            {/* Footer Modal Actions */}
+            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+              <FluidButton
+                onClick={() => {
+                  if (!isSavingCrop) {
+                    setShowCropModal(false);
+                    setCropImageSrc(null);
+                  }
+                }}
+                disabled={isSavingCrop}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#64748b'
+                }}
+              >
+                Cancel
+              </FluidButton>
+
+              <FluidButton
+                onClick={handleApplyCrop}
+                disabled={isSavingCrop}
+                style={{
+                  flex: 1.4,
+                  padding: '12px',
+                  fontSize: 14.5,
+                  fontWeight: 700,
+                  backgroundColor: '#f97316',
+                  color: '#ffffff',
+                  boxShadow: '0 4px 14px rgba(249, 115, 22, 0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8
+                }}
+              >
+                {isSavingCrop ? (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'dpSpin 0.9s linear infinite' }}>
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  'Apply Photo'
+                )}
+              </FluidButton>
+            </div>
+          </GlassContainer>
+        </div>,
+        document.body
+      )}
+
+      {/* 4. Full-Screen Instagram-style Large DP Viewer (With Blurred Background) */}
       {mounted && isViewingLargeDp && createPortal(
         <div
           onClick={(e) => {
@@ -1102,7 +1705,7 @@ export default function ProfileHeader({
         document.body
       )}
 
-      {/* Dynamic Keyframes for Instagram-style popups & viewer */}
+      {/* Dynamic Keyframes for modals & viewer */}
       <style>{`
         @keyframes dpFadeIn {
           from { opacity: 0; }
