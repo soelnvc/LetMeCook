@@ -320,6 +320,10 @@ const leaveDish = async (dishId, userId) => {
     throw new Error('Dish not found');
   }
 
+  if (dish.status === 'cooked') {
+    throw new Error('Cannot leave a completed (Cooked) dish');
+  }
+
   const isCreator = dish.creator.toString() === userId.toString();
   if (isCreator) {
     throw new Error('The creator cannot leave their own Dish. You can mark it as cooked or delete it.');
@@ -359,6 +363,10 @@ const respondToJoinRequest = async (dishId, creatorId, requestId, action) => {
   const dish = await Dish.findById(dishId);
   if (!dish) {
     throw new Error('Dish not found');
+  }
+
+  if (dish.status === 'cooked') {
+    throw new Error('Cannot respond to join requests: Dish is already completed (Cooked)');
   }
 
   if (dish.creator.toString() !== creatorId.toString()) {
@@ -414,6 +422,10 @@ const inviteToDish = async (dishId, inviterId, targetUsername) => {
 
   const dish = await Dish.findById(dishId);
   if (!dish) throw new Error('Dish not found');
+
+  if (dish.status === 'cooked') {
+    throw new Error('Cannot invite users: Dish ticket is completed (Cooked)');
+  }
 
   const inviter = await User.findById(inviterId);
   const target = await User.findOne({ username: cleanUsername });
@@ -533,6 +545,10 @@ const kickParticipant = async (dishId, hostId, targetUserId) => {
   const dish = await Dish.findById(dishId);
   if (!dish) throw new Error('Dish not found');
 
+  if (dish.status === 'cooked') {
+    throw new Error('Cannot remove participants: Dish is already completed (Cooked)');
+  }
+
   if (dish.creator.toString() !== hostId.toString()) {
     throw new Error('Only the host can remove participants');
   }
@@ -587,6 +603,10 @@ const kickParticipant = async (dishId, hostId, targetUserId) => {
 const toggleMuteParticipant = async (dishId, hostId, targetUserId) => {
   const dish = await Dish.findById(dishId);
   if (!dish) throw new Error('Dish not found');
+
+  if (dish.status === 'cooked') {
+    throw new Error('Cannot mute or unmute participants: Dish is already completed (Cooked)');
+  }
 
   if (dish.creator.toString() !== hostId.toString()) {
     throw new Error('Only the host can mute or unmute participants');
@@ -726,6 +746,10 @@ const deleteDish = async (dishId, creatorId) => {
   const dish = await Dish.findById(dishId);
   if (!dish) {
     throw new Error('Dish not found');
+  }
+
+  if (dish.status === 'cooked') {
+    throw new Error('Cannot delete a completed (Cooked) dish');
   }
 
   if (dish.creator.toString() !== creatorId.toString()) {

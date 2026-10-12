@@ -530,6 +530,7 @@ export default function DishCard({
 
         {/* Creator Pending Requests Section */}
         {isCreator &&
+          dish.status !== 'cooked' &&
           dish.requests?.filter((r) => r.status === 'pending').length > 0 && (
             <GlassContainer
               radius={16}
@@ -637,11 +638,11 @@ export default function DishCard({
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
-              <span>Ticket & Chat</span>
+              <span>{dish.status === 'cooked' ? 'View Ticket' : 'Ticket & Chat'}</span>
             </FluidButton>
           )}
 
-          {!isParticipant && !hasPendingReq && (
+          {!isParticipant && !hasPendingReq && dish.status !== 'cooked' && (
             <FluidButton
               onClick={(e) => {
                 e.stopPropagation();
@@ -652,7 +653,7 @@ export default function DishCard({
               {dish.joinMode === 'auto' ? 'Join Dish' : 'Request to Join'}
             </FluidButton>
           )}
-          {hasPendingReq && (
+          {hasPendingReq && dish.status !== 'cooked' && (
             <span
               style={{
                 fontSize: 11,
@@ -665,7 +666,7 @@ export default function DishCard({
               Request pending approval
             </span>
           )}
-          {isParticipant && !isCreator && (
+          {isParticipant && !isCreator && dish.status !== 'cooked' && (
             <FluidButton
               onClick={() => onLeave && onLeave(dish._id)}
               style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600 }}

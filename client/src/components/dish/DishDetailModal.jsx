@@ -299,9 +299,8 @@ export default function DishDetailModal({
     return id && String(id) === String(currentUser?._id);
   });
 
-  const isUnlocked = isParticipant || isCreator;
-
   const isExpired = dish.status === 'cooked';
+  const isUnlocked = isParticipant || isCreator || isExpired;
   const spotsLeft = dish.capacity?.unlimited
     ? '∞'
     : Math.max(0, (dish.capacity?.max || 4) - participantsList.length);
@@ -370,7 +369,11 @@ export default function DishDetailModal({
 
   // Send real dish invitation
   const handleSendInvite = async (targetUsername) => {
-    if (!targetUsername || isInviting) return;
+    if (!targetUsername || isInviting || isExpired) return;
+    if (isExpired) {
+      triggerToast('This dish is cooked. Inviting is closed.');
+      return;
+    }
     setIsInviting(true);
     const clean = targetUsername.replace(/^@/, '').trim();
     try {
@@ -397,7 +400,11 @@ export default function DishDetailModal({
 
   // Host: Kick a member
   const handleKickMember = async (targetUserId, targetUsername) => {
-    if (!isCreator || actionLoadingUserId) return;
+    if (!isCreator || actionLoadingUserId || isExpired) return;
+    if (isExpired) {
+      triggerToast('This dish is cooked. Participant changes are locked.');
+      return;
+    }
     if (!window.confirm(`Are you sure you want to remove @${targetUsername || 'this user'} from the dish?`)) return;
     setActionLoadingUserId(String(targetUserId));
     try {
@@ -422,7 +429,11 @@ export default function DishDetailModal({
 
   // Host: Toggle mute for a member
   const handleToggleMute = async (targetUserId, targetUsername) => {
-    if (!isCreator || actionLoadingUserId) return;
+    if (!isCreator || actionLoadingUserId || isExpired) return;
+    if (isExpired) {
+      triggerToast('This dish is cooked. Participant changes are locked.');
+      return;
+    }
     setActionLoadingUserId(String(targetUserId));
     try {
       const res = await apiFetch(`/dishes/${dish._id}/mute`, {
@@ -834,7 +845,7 @@ export default function DishDetailModal({
                 {dish.createdAt ? new Date(dish.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Today'}
               </span>
               <span style={{ fontSize: 10.5, color: '#a1a1aa', fontWeight: 500 }}>
-                {isExpired ? 'Ticket Cooked • Archived' : 'Active Campus Ticket'}
+                {isExpired ? 'Ticket Cooked • View Only' : 'Active Campus Ticket'}
               </span>
             </div>
 
@@ -1049,7 +1060,7 @@ export default function DishDetailModal({
                       Report Dish
                     </button>
 
-                    {isCreator && (
+                    {isCreator && !isExpired && (
                       <button
                         type="button"
                         onClick={() => {
@@ -1674,128 +1685,150 @@ export default function DishDetailModal({
               </div>
             )}
 
-            {/* Chat Input Bar (Copied directly from MessageArea.jsx) */}
-            <div style={{ padding: '16px 24px', backgroundColor: 'transparent', position: 'relative' }}>
-              <EmojiPicker
-                isOpen={showEmojiPicker}
-                onClose={() => setShowEmojiPicker(false)}
-                onSelectEmoji={handleInsertEmoji}
-              />
-              <form onSubmit={handleSendMessage}>
+            {/* Chat Input Bar or Archived View-Only Indicator */}
+            {isExpired ? (
+              <div style={{ padding: '12px 24px 16px 24px', backgroundColor: 'transparent' }}>
                 <GlassContainer
                   radius={9999}
                   innerStyle={{
-                    padding: '6px 14px 6px 16px',
+                    padding: '10px 18px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 12
+                    justifyContent: 'center',
+                    gap: 8,
+                    color: '#71717a',
+                    fontSize: 13,
+                    fontWeight: 600
                   }}
                 >
-                  {/* Emoji Picker Button */}
-                  <button
-                    type="button"
-                    disabled={isExpired || !isParticipant || isMuted}
-                    onClick={() => setShowEmojiPicker((prev) => !prev)}
-                    style={{
-                      border: 'none',
-                      background: 'transparent',
-                      cursor: isExpired || !isParticipant || isMuted ? 'not-allowed' : 'pointer',
-                      padding: 2,
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  <span>Dish is Cooked • Chat is view only</span>
+                </GlassContainer>
+              </div>
+            ) : (
+              <div style={{ padding: '16px 24px', backgroundColor: 'transparent', position: 'relative' }}>
+                <EmojiPicker
+                  isOpen={showEmojiPicker}
+                  onClose={() => setShowEmojiPicker(false)}
+                  onSelectEmoji={handleInsertEmoji}
+                />
+                <form onSubmit={handleSendMessage}>
+                  <GlassContainer
+                    radius={9999}
+                    innerStyle={{
+                      padding: '6px 14px 6px 16px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      opacity: isExpired || !isParticipant || isMuted ? 0.4 : showEmojiPicker ? 1 : 0.75,
-                      transition: 'transform 0.15s ease, opacity 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isExpired && isParticipant && !isMuted) {
-                        e.currentTarget.style.transform = 'scale(1.1)';
-                        e.currentTarget.style.opacity = '1';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isExpired && isParticipant && !isMuted) {
-                        e.currentTarget.style.transform = 'scale(1)';
-                        if (!showEmojiPicker) e.currentTarget.style.opacity = '0.75';
-                      }
-                    }}
-                    title="Choose emoji"
-                  >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={showEmojiPicker ? '#09090b' : '#3f3f46'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                      <line x1="9" y1="9" x2="9.01" y2="9" />
-                      <path d="M15 8.5a1.5 1.5 0 0 1 1.5 1.5" />
-                    </svg>
-                  </button>
-
-                  {/* Message Text Input */}
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    placeholder={
-                      isExpired
-                        ? 'This dish ticket has expired and chat is archived.'
-                        : isMuted
-                        ? 'You are muted by the host in this room.'
-                        : !isParticipant
-                        ? 'Join dish to participate in group chat...'
-                        : 'Type a Message...'
-                    }
-                    disabled={isExpired || !isParticipant || isMuted || isSending}
-                    maxLength={2000}
-                    style={{
-                      border: 'none',
-                      background: 'transparent',
-                      outline: 'none',
-                      fontSize: 14.5,
-                      flex: 1,
-                      color: '#09090b',
-                      fontFamily: 'inherit'
-                    }}
-                  />
-
-                  {/* Send Button (FluidButton icon from MessageArea) */}
-                  <FluidButton
-                    type="submit"
-                    variant="icon"
-                    disabled={isExpired || !isParticipant || isMuted || isSending || !messageInput.trim()}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      minWidth: 36,
-                      minHeight: 36,
-                      flexShrink: 0
+                      gap: 12
                     }}
                   >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                    {/* Emoji Picker Button */}
+                    <button
+                      type="button"
+                      disabled={!isParticipant || isMuted}
+                      onClick={() => setShowEmojiPicker((prev) => !prev)}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: !isParticipant || isMuted ? 'not-allowed' : 'pointer',
+                        padding: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: !isParticipant || isMuted ? 0.4 : showEmojiPicker ? 1 : 0.75,
+                        transition: 'transform 0.15s ease, opacity 0.15s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (isParticipant && !isMuted) {
+                          e.currentTarget.style.transform = 'scale(1.1)';
+                          e.currentTarget.style.opacity = '1';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (isParticipant && !isMuted) {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          if (!showEmojiPicker) e.currentTarget.style.opacity = '0.75';
+                        }
+                      }}
+                      title="Choose emoji"
                     >
-                      <line x1="22" y1="2" x2="11" y2="13" />
-                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                    </svg>
-                  </FluidButton>
-                </GlassContainer>
-              </form>
-            </div>
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={showEmojiPicker ? '#09090b' : '#3f3f46'}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                        <line x1="9" y1="9" x2="9.01" y2="9" />
+                        <path d="M15 8.5a1.5 1.5 0 0 1 1.5 1.5" />
+                      </svg>
+                    </button>
+
+                    {/* Message Text Input */}
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      placeholder={
+                        isMuted
+                          ? 'You are muted by the host in this room.'
+                          : !isParticipant
+                          ? 'Join dish to participate in group chat...'
+                          : 'Type a Message...'
+                      }
+                      disabled={!isParticipant || isMuted || isSending}
+                      maxLength={2000}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        outline: 'none',
+                        fontSize: 14.5,
+                        flex: 1,
+                        color: '#09090b',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+
+                    {/* Send Button (FluidButton icon from MessageArea) */}
+                    <FluidButton
+                      type="submit"
+                      variant="icon"
+                      disabled={!isParticipant || isMuted || isSending || !messageInput.trim()}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        minWidth: 36,
+                        minHeight: 36,
+                        flexShrink: 0
+                      }}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="22" y1="2" x2="11" y2="13" />
+                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                      </svg>
+                    </FluidButton>
+                  </GlassContainer>
+                </form>
+              </div>
+            )}
           </div>
         </div>
 
@@ -2059,8 +2092,8 @@ export default function DishDetailModal({
                             </span>
                           )}
 
-                          {/* Host Controls: Kick & Mute for non-host participants */}
-                          {isCreator && !isHost && (
+                          {/* Host Controls: Kick & Mute for non-host participants (Disabled when Cooked) */}
+                          {isCreator && !isHost && !isExpired && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 2 }}>
                               <FluidButton
                                 disabled={isTargetLoading}
@@ -2130,7 +2163,7 @@ export default function DishDetailModal({
                       }}
                     >
                       <span>No pending invitations.</span>
-                      {isUnlocked && (
+                      {isUnlocked && !isExpired && (
                         <FluidButton
                           onClick={() => {
                             setShowMembersModal(false);
