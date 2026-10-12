@@ -298,7 +298,7 @@ export default function ProfileHeader({
               style={{
                 width: '100%',
                 height: '100%',
-                backgroundColor: '#f97316',
+                background: 'linear-gradient(135deg, #18181b 0%, #27272a 100%)',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
@@ -312,7 +312,7 @@ export default function ProfileHeader({
             </div>
           )}
 
-          {/* Hover overlay (ONLY for self) - 2 icons: Camera and Eye */}
+          {/* Hover overlay (ONLY for self) - Camera vertically over Eye, NO container */}
           {isSelf && (
             <div
               style={{
@@ -320,14 +320,15 @@ export default function ProfileHeader({
                 inset: 0,
                 backgroundColor: 'rgba(0, 0, 0, 0.45)',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 14,
+                gap: 16,
                 color: '#ffffff',
                 opacity: isHovered || isUploading ? 1 : 0,
                 transition: 'opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                backdropFilter: 'blur(3px)',
-                WebkitBackdropFilter: 'blur(3px)',
+                backdropFilter: 'blur(2px)',
+                WebkitBackdropFilter: 'blur(2px)',
                 pointerEvents: isHovered ? 'auto' : 'none'
               }}
             >
@@ -347,46 +348,7 @@ export default function ProfileHeader({
                 </svg>
               ) : (
                 <>
-                  {/* Eye Icon (View) */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsViewingLargeDp(true);
-                    }}
-                    title="View profile photo"
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(255, 255, 255, 0.22)',
-                      border: '1.5px solid rgba(255, 255, 255, 0.45)',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
-                      backdropFilter: 'blur(6px)',
-                      WebkitBackdropFilter: 'blur(6px)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.42)';
-                      e.currentTarget.style.transform = 'scale(1.12)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.22)';
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  >
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  </button>
-
-                  {/* Camera Icon (Popup) */}
+                  {/* Camera Icon on top (opens Options Popup) */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -395,33 +357,64 @@ export default function ProfileHeader({
                     }}
                     title="Change profile photo"
                     style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(255, 255, 255, 0.22)',
-                      border: '1.5px solid rgba(255, 255, 255, 0.45)',
+                      background: 'none',
+                      border: 'none',
+                      padding: 4,
                       color: '#ffffff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
-                      backdropFilter: 'blur(6px)',
-                      WebkitBackdropFilter: 'blur(6px)'
+                      opacity: 0.88,
+                      transition: 'transform 0.18s ease, opacity 0.18s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.42)';
-                      e.currentTarget.style.transform = 'scale(1.12)';
+                      e.currentTarget.style.opacity = '1';
+                      e.currentTarget.style.transform = 'scale(1.22)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.22)';
+                      e.currentTarget.style.opacity = '0.88';
                       e.currentTarget.style.transform = 'scale(1)';
                     }}
                   >
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                       <circle cx="12" cy="13" r="4" />
+                    </svg>
+                  </button>
+
+                  {/* Eye Icon below (opens View Feature) */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsViewingLargeDp(true);
+                    }}
+                    title="View profile photo"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 4,
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      opacity: 0.88,
+                      transition: 'transform 0.18s ease, opacity 0.18s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                      e.currentTarget.style.transform = 'scale(1.22)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '0.88';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
                     </svg>
                   </button>
                 </>
@@ -846,9 +839,9 @@ export default function ProfileHeader({
             position: 'fixed',
             inset: 0,
             zIndex: 9998,
-            backgroundColor: 'rgba(0, 0, 0, 0.55)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -862,8 +855,8 @@ export default function ProfileHeader({
             style={{
               maxWidth: 390,
               width: '100%',
-              boxShadow: '0 25px 70px rgba(0, 0, 0, 0.35)',
-              border: '1px solid rgba(255, 255, 255, 0.22)'
+              boxShadow: 'none',
+              border: '1px solid rgba(0, 0, 0, 0.1)'
             }}
             innerStyle={{
               padding: 24,
@@ -874,57 +867,34 @@ export default function ProfileHeader({
               animation: 'dpModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
           >
-            {/* Header Icon + Titles */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-              <div
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(249, 115, 22, 0.12)',
-                  border: '1px solid rgba(249, 115, 22, 0.28)',
-                  color: '#f97316',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 16px rgba(249, 115, 22, 0.15)'
-                }}
-              >
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
-              </div>
-              <div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.3px' }}>
-                  Change Profile Photo
-                </h3>
-                <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
-                  Upload a new photo or manage your display picture
-                </p>
-              </div>
+            {/* Header Titles */}
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#000000', margin: 0, letterSpacing: '-0.3px' }}>
+                Change Profile Photo
+              </h3>
+              <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
+                Upload a new photo or manage your display picture
+              </p>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons using default customized FluidButton */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
               {/* Upload Action */}
               <FluidButton
                 onClick={handleUpdatePhoto}
                 style={{
                   width: '100%',
-                  padding: '13px 20px',
-                  fontSize: 14.5,
-                  fontWeight: 700,
-                  color: '#ffffff',
-                  backgroundColor: '#f97316',
+                  padding: '11px 20px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#000000',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 8,
-                  boxShadow: '0 4px 14px rgba(249, 115, 22, 0.3)'
+                  gap: 8
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="17 8 12 3 7 8" />
                   <line x1="12" y1="3" x2="12" y2="15" />
@@ -938,12 +908,10 @@ export default function ProfileHeader({
                 disabled={!hasAvatar}
                 style={{
                   width: '100%',
-                  padding: '13px 20px',
-                  fontSize: 14.5,
-                  fontWeight: 700,
-                  color: hasAvatar ? '#ef4444' : '#94a3b8',
-                  backgroundColor: hasAvatar ? 'rgba(239, 68, 68, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-                  border: hasAvatar ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid rgba(0, 0, 0, 0.06)',
+                  padding: '11px 20px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: hasAvatar ? '#000000' : '#94a3b8',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -952,7 +920,7 @@ export default function ProfileHeader({
                   cursor: hasAvatar ? 'pointer' : 'not-allowed'
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 6h18" />
                   <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
                   <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
@@ -967,9 +935,9 @@ export default function ProfileHeader({
                 onClick={() => setShowDpOptionsModal(false)}
                 style={{
                   width: '100%',
-                  padding: '12px 20px',
-                  fontSize: 14,
-                  fontWeight: 600,
+                  padding: '11px 20px',
+                  fontSize: 13.5,
+                  fontWeight: 500,
                   color: '#64748b'
                 }}
               >
@@ -993,9 +961,9 @@ export default function ProfileHeader({
             position: 'fixed',
             inset: 0,
             zIndex: 9999,
-            backgroundColor: 'rgba(0, 0, 0, 0.65)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1009,8 +977,8 @@ export default function ProfileHeader({
             style={{
               maxWidth: 390,
               width: '100%',
-              boxShadow: '0 25px 70px rgba(0, 0, 0, 0.4)',
-              border: '1px solid rgba(239, 68, 68, 0.25)'
+              boxShadow: 'none',
+              border: '1px solid rgba(0, 0, 0, 0.1)'
             }}
             innerStyle={{
               padding: 24,
@@ -1022,32 +990,8 @@ export default function ProfileHeader({
               animation: 'dpModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
           >
-            {/* Warning Icon Badge */}
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: '50%',
-                backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                border: '1px solid rgba(239, 68, 68, 0.28)',
-                color: '#ef4444',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 16px rgba(239, 68, 68, 0.2)'
-              }}
-            >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 6h18" />
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                <line x1="10" y1="11" x2="10" y2="17" />
-                <line x1="14" y1="11" x2="14" y2="17" />
-              </svg>
-            </div>
-
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.3px' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#000000', margin: 0, letterSpacing: '-0.3px' }}>
                 Remove Profile Photo?
               </h3>
               <p style={{ fontSize: 13.5, color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.5 }}>
@@ -1055,12 +999,12 @@ export default function ProfileHeader({
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 6 }}>
+            <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 4 }}>
               <FluidButton
                 onClick={() => setShowRemoveConfirmModal(false)}
                 style={{
                   flex: 1,
-                  padding: '12px',
+                  padding: '11px',
                   fontSize: 14,
                   fontWeight: 600,
                   color: '#64748b'
@@ -1073,12 +1017,10 @@ export default function ProfileHeader({
                 onClick={handleConfirmRemove}
                 style={{
                   flex: 1,
-                  padding: '12px',
+                  padding: '11px',
                   fontSize: 14,
-                  fontWeight: 700,
-                  backgroundColor: '#ef4444',
-                  color: '#ffffff',
-                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)'
+                  fontWeight: 600,
+                  color: '#000000'
                 }}
               >
                 Yes, Remove
@@ -1102,9 +1044,9 @@ export default function ProfileHeader({
             position: 'fixed',
             inset: 0,
             zIndex: 9999,
-            backgroundColor: 'rgba(0, 0, 0, 0.76)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1118,8 +1060,8 @@ export default function ProfileHeader({
             style={{
               maxWidth: 460,
               width: '100%',
-              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.45)',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
+              boxShadow: 'none',
+              border: '1px solid rgba(0, 0, 0, 0.1)'
             }}
             innerStyle={{
               padding: 22,
@@ -1132,7 +1074,7 @@ export default function ProfileHeader({
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.3px' }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#000000', margin: 0, letterSpacing: '-0.3px' }}>
                   Set Profile Photo
                 </h3>
                 <p style={{ fontSize: 12.5, color: '#64748b', margin: '3px 0 0 0', fontWeight: 500 }}>
@@ -1148,8 +1090,8 @@ export default function ProfileHeader({
                   }
                 }}
                 style={{
-                  width: 34,
-                  height: 34,
+                  width: 32,
+                  height: 32,
                   borderRadius: '50%',
                   backgroundColor: 'rgba(0, 0, 0, 0.05)',
                   border: '1px solid rgba(0, 0, 0, 0.08)',
@@ -1322,7 +1264,7 @@ export default function ProfileHeader({
                 style={{
                   flex: 1,
                   cursor: 'pointer',
-                  accentColor: '#f97316'
+                  accentColor: '#101214'
                 }}
               />
 
@@ -1361,7 +1303,7 @@ export default function ProfileHeader({
                   padding: '6px 14px',
                   fontSize: 12.5,
                   fontWeight: 600,
-                  color: '#334155',
+                  color: '#101214',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6
@@ -1379,7 +1321,7 @@ export default function ProfileHeader({
                   padding: '6px 14px',
                   fontSize: 12.5,
                   fontWeight: 600,
-                  color: '#334155',
+                  color: '#101214',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6
@@ -1416,7 +1358,7 @@ export default function ProfileHeader({
                 disabled={isSavingCrop}
                 style={{
                   flex: 1,
-                  padding: '12px',
+                  padding: '11px',
                   fontSize: 14,
                   fontWeight: 600,
                   color: '#64748b'
@@ -1430,12 +1372,10 @@ export default function ProfileHeader({
                 disabled={isSavingCrop}
                 style={{
                   flex: 1.4,
-                  padding: '12px',
-                  fontSize: 14.5,
-                  fontWeight: 700,
-                  backgroundColor: '#f97316',
-                  color: '#ffffff',
-                  boxShadow: '0 4px 14px rgba(249, 115, 22, 0.35)',
+                  padding: '11px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#000000',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1547,7 +1487,7 @@ export default function ProfileHeader({
                 position: 'relative',
                 overflow: 'hidden',
                 border: '4px solid rgba(255, 255, 255, 0.28)',
-                boxShadow: '0 30px 80px -10px rgba(0, 0, 0, 0.8), 0 0 50px rgba(255, 255, 255, 0.14)',
+                boxShadow: '0 30px 80px -10px rgba(0, 0, 0, 0.8)',
                 backgroundColor: '#1e293b'
               }}
             >
@@ -1567,7 +1507,7 @@ export default function ProfileHeader({
                   style={{
                     width: '100%',
                     height: '100%',
-                    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                    background: 'linear-gradient(135deg, #18181b 0%, #27272a 100%)',
                     color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
