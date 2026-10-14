@@ -206,6 +206,8 @@ export default function HomeDashboard({
       <GlassContainer
         key={dish._id}
         radius={22}
+        className="dish-card-glass"
+        innerClassName="dish-card-inner"
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -287,8 +289,23 @@ export default function HomeDashboard({
                     {creatorName}
                   </span>
                   {sourceText && (
-                    <span style={{ fontSize: 11, fontWeight: 500, color: '#71717a' }}>
-                      • {sourceText}
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: '#71717a',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        maxWidth: 180,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title={sourceText}
+                    >
+                      <span>•</span>
+                      <span className="dish-source-text">{sourceText}</span>
                     </span>
                   )}
                 </div>

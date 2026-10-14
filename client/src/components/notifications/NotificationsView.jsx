@@ -335,7 +335,12 @@ export default function NotificationsView({
       }}
     >
       {/* Main Glass Panel */}
-      <GlassContainer radius={26} innerStyle={{ padding: '26px 28px' }}>
+      <GlassContainer
+        radius={26}
+        className="notif-container-glass"
+        innerClassName="notif-container-inner"
+        innerStyle={{ padding: '26px 28px' }}
+      >
         {/* Header Row */}
         <div
           style={{
@@ -421,11 +426,15 @@ export default function NotificationsView({
 
         {/* Customized Segmented Selector for All / Requests / Connections */}
         <div
+          className="mobile-horiz-scroll"
           style={{
             display: 'flex',
             alignItems: 'center',
             padding: '16px 0 18px 0',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
+            borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            maxWidth: '100%'
           }}
         >
           <GlassContainer
@@ -434,7 +443,8 @@ export default function NotificationsView({
               display: 'inline-flex',
               padding: 4,
               gap: 4,
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
+              whiteSpace: 'nowrap'
             }}
           >
             {[
@@ -509,6 +519,7 @@ export default function NotificationsView({
               {[1, 2, 3, 4].map((idx) => (
                 <div
                   key={`skeleton-notif-${idx}`}
+                  className="notification-item-card"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -520,21 +531,22 @@ export default function NotificationsView({
                     opacity: 0.8
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1 }}>
+                  <div className="notification-item-left" style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1 }}>
                     <div
                       style={{
-                        width: 48,
-                        height: 48,
+                        width: 44,
+                        height: 44,
                         borderRadius: '50%',
-                        backgroundColor: 'rgba(0, 0, 0, 0.07)'
+                        backgroundColor: 'rgba(0, 0, 0, 0.07)',
+                        flexShrink: 0
                       }}
                     />
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, maxWidth: 320 }}>
+                    <div className="notification-item-text" style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, maxWidth: 320 }}>
                       <div style={{ height: 14, width: '75%', borderRadius: 6, backgroundColor: 'rgba(0, 0, 0, 0.07)' }} />
                       <div style={{ height: 11, width: '45%', borderRadius: 4, backgroundColor: 'rgba(0, 0, 0, 0.04)' }} />
                     </div>
                   </div>
-                  <div style={{ width: 88, height: 28, borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)' }} />
+                  <div className="notification-item-actions" style={{ width: 88, height: 28, borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)' }} />
                 </div>
               ))}
             </div>
@@ -588,6 +600,7 @@ export default function NotificationsView({
               return (
                 <div
                   key={item.id}
+                  className="notification-item-card"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -612,6 +625,7 @@ export default function NotificationsView({
                 >
                   {/* Left: Avatar + Details */}
                   <div
+                    className="notification-item-left"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -629,8 +643,8 @@ export default function NotificationsView({
                     >
                       <div
                         style={{
-                          width: 48,
-                          height: 48,
+                          width: 44,
+                          height: 44,
                           borderRadius: '50%',
                           overflow: 'hidden',
                           backgroundColor: '#f97316',
@@ -639,7 +653,7 @@ export default function NotificationsView({
                           justifyContent: 'center',
                           color: '#ffffff',
                           fontWeight: 700,
-                          fontSize: 17,
+                          fontSize: 16,
                           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
                         }}
                       >
@@ -705,13 +719,14 @@ export default function NotificationsView({
                     </div>
 
                     {/* Notification Description Text */}
-                    <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <div className="notification-item-text" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
                       <div
                         style={{
                           fontSize: 14.5,
                           lineHeight: 1.4,
                           color: '#09090b',
-                          wordBreak: 'break-word'
+                          wordBreak: 'normal',
+                          overflowWrap: 'break-word'
                         }}
                       >
                         <span
@@ -747,7 +762,9 @@ export default function NotificationsView({
                         {actorInstitute && (
                           <>
                             <span>•</span>
-                            <span>{actorInstitute}</span>
+                            <span style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {actorInstitute}
+                            </span>
                           </>
                         )}
                       </div>
@@ -756,6 +773,7 @@ export default function NotificationsView({
 
                   {/* Right Side: Interactive Action Buttons with FluidButton + Event Timing */}
                   <div
+                    className="notification-item-actions"
                     style={{
                       display: 'flex',
                       alignItems: 'center',

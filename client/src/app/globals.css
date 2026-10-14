@@ -410,6 +410,80 @@ html, body, button, input, select, textarea {
   .settings-content-col.mobile-hidden {
     display: none !important;
   }
+
+  /* Notifications Mobile Responsive Layout */
+  .notif-container-glass {
+    border-radius: 20px !important;
+  }
+  .notif-container-inner {
+    padding: 16px 12px !important;
+  }
+  .notification-item-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 12px 10px !important;
+  }
+  .notification-item-left {
+    width: 100% !important;
+    margin-right: 0 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .notification-item-text {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+  .notification-item-actions {
+    display: flex !important;
+    align-items: center !important;
+    justifyContent: space-between !important;
+    width: 100% !important;
+    padding-left: 56px !important;
+    gap: 8px !important;
+  }
+
+  /* Dine-In mobile pills & subtabs */
+  .dinein-scope-container {
+    max-width: 100% !important;
+  }
+  .dinein-subtabs-glass {
+    max-width: 100% !important;
+  }
+  .dinein-pill-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Dish Card Mobile */
+  .dish-card-glass {
+    border-radius: 20px !important;
+  }
+  .dish-card-inner {
+    padding: 14px 14px !important;
+    gap: 12px !important;
+  }
+  .dish-source-text {
+    max-width: 160px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+  }
+}
+
+.mobile-horiz-scroll {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.mobile-horiz-scroll::-webkit-scrollbar {
+  display: none !important;
 }
 
 @media (min-width: 769px) {
@@ -433,4 +507,5 @@ html, body, button, input, select, textarea {
     display: flex !important;
   }
 }
+
 

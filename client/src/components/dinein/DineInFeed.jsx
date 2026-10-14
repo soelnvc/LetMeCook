@@ -372,115 +372,133 @@ export default function DineInFeed({
       {/* ========================================================= */}
       {/* 2. FEED TYPE SELECTOR (Same Institution vs Connections vs All) */}
       {/* ========================================================= */}
-      <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+      <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'nowrap', maxWidth: '100%' }}>
         <span
           style={{
             fontSize: 12,
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
-            color: '#71717a'
+            color: '#71717a',
+            flexShrink: 0
           }}
         >
           Feed:
         </span>
-        <GlassContainer
-          radius={9999}
-          style={{ display: 'inline-flex' }}
-          innerStyle={{
-            display: 'inline-flex',
-            padding: 4,
-            gap: 4,
-            boxSizing: 'border-box'
-          }}
-        >
-          {[
-            {
-              id: 'all',
-              label: 'All Dine In',
-              count: counts.allFeed
-            },
-            {
-              id: 'institution',
-              label: userInstituteName ? `Same Institution (${userInstituteName})` : 'Same Institution',
-              count: counts.sameInstFeed
-            },
-            {
-              id: 'connections',
-              label: 'The Connections',
-              count: counts.connFeed
-            }
-          ].map((feed) => {
-            const isSelected = feedScope === feed.id;
-            return (
-              <button
-                key={feed.id}
-                onClick={() => setFeedScope(feed.id)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '7px 14px',
-                  borderRadius: 9999,
-                  border: 'none',
-                  fontSize: 12.5,
-                  fontWeight: isSelected ? 600 : 500,
-                  cursor: 'pointer',
-                  background: isSelected ? '#09090b' : 'transparent',
-                  color: isSelected ? '#ffffff' : '#52525b',
-                  boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none',
-                  transition: 'all 0.18s ease'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
-                    e.currentTarget.style.color = '#18181b';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#52525b';
-                  }
-                }}
-              >
-                <span>{feed.label}</span>
-                <span
+        <div className="mobile-horiz-scroll" style={{ maxWidth: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 2 }}>
+          <GlassContainer
+            radius={9999}
+            style={{ display: 'inline-flex' }}
+            innerStyle={{
+              display: 'inline-flex',
+              padding: 4,
+              gap: 4,
+              boxSizing: 'border-box',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {[
+              {
+                id: 'all',
+                label: 'All Dine In',
+                shortLabel: 'All',
+                count: counts.allFeed
+              },
+              {
+                id: 'institution',
+                label: userInstituteName ? `Same Institution (${userInstituteName})` : 'Same Institution',
+                shortLabel: userInstituteName
+                  ? `Campus (${userInstituteName.length > 14 ? userInstituteName.slice(0, 11) + '…' : userInstituteName})`
+                  : 'Same Campus',
+                fullLabel: userInstituteName ? `Same Institution (${userInstituteName})` : 'Same Institution',
+                count: counts.sameInstFeed
+              },
+              {
+                id: 'connections',
+                label: 'The Connections',
+                shortLabel: 'Connections',
+                count: counts.connFeed
+              }
+            ].map((feed) => {
+              const isSelected = feedScope === feed.id;
+              return (
+                <button
+                  key={feed.id}
+                  onClick={() => setFeedScope(feed.id)}
+                  title={feed.fullLabel || feed.label}
+                  className="dinein-pill-btn"
                   style={{
-                    padding: '2px 7px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '7px 14px',
                     borderRadius: 9999,
-                    fontSize: 10.5,
-                    fontWeight: 700,
-                    background: isSelected ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)',
-                    color: isSelected ? '#ffffff' : '#71717a'
+                    border: 'none',
+                    fontSize: 12.5,
+                    fontWeight: isSelected ? 600 : 500,
+                    cursor: 'pointer',
+                    background: isSelected ? '#09090b' : 'transparent',
+                    color: isSelected ? '#ffffff' : '#52525b',
+                    boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none',
+                    transition: 'all 0.18s ease',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                      e.currentTarget.style.color = '#18181b';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = '#52525b';
+                    }
                   }}
                 >
-                  {feed.count}
-                </span>
-              </button>
-            );
-          })}
-        </GlassContainer>
+                  <span className="desktop-only">{feed.label}</span>
+                  <span className="mobile-only">{feed.shortLabel || feed.label}</span>
+                  <span
+                    style={{
+                      padding: '2px 7px',
+                      borderRadius: 9999,
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      background: isSelected ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)',
+                      color: isSelected ? '#ffffff' : '#71717a'
+                    }}
+                  >
+                    {feed.count}
+                  </span>
+                </button>
+              );
+            })}
+          </GlassContainer>
+        </div>
       </div>
 
       {/* ========================================================= */}
       {/* 3. SEGMENTED SUB-TAB SWITCHER (Wrapped in GlassContainer) */}
       {/* ========================================================= */}
-      <div style={{ marginBottom: 20 }}>
+      <div className="mobile-horiz-scroll" style={{ width: '100%', maxWidth: 580, overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginBottom: 20, paddingBottom: 2 }}>
         <GlassContainer
           radius={9999}
-          style={{ width: '100%', maxWidth: 580 }}
+          className="dinein-subtabs-glass"
+          style={{ width: '100%', minWidth: 'min-content' }}
           innerStyle={{
             display: 'flex',
             padding: 4,
             gap: 4,
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            whiteSpace: 'nowrap'
           }}
         >
           {[
             {
               key: 'join_to_cook',
               label: 'Join to Cook',
+              shortLabel: 'Join to Cook',
               count: counts.join_to_cook,
               icon: (
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -494,6 +512,7 @@ export default function DineInFeed({
             {
               key: 'cooking',
               label: 'Cooking Now',
+              shortLabel: 'Cooking',
               count: counts.cooking,
               isLive: counts.cooking > 0,
               icon: (
@@ -505,6 +524,7 @@ export default function DineInFeed({
             {
               key: 'my_dishes',
               label: 'My Dishes',
+              shortLabel: 'My Dishes',
               count: counts.my_dishes,
               icon: (
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -518,22 +538,25 @@ export default function DineInFeed({
               <button
                 key={tab.key}
                 onClick={() => setActiveSubTab(tab.key)}
+                className="dinein-pill-btn"
                 style={{
                   flex: 1,
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 8,
-                  padding: '9px 16px',
+                  gap: 7,
+                  padding: '9px 15px',
                   borderRadius: 9999,
                   border: 'none',
-                  fontSize: 13,
+                  fontSize: 12.5,
                   fontWeight: isActive ? 600 : 500,
                   cursor: 'pointer',
                   background: isActive ? '#09090b' : 'transparent',
                   color: isActive ? '#ffffff' : '#52525b',
                   boxShadow: isActive ? '0 2px 10px rgba(0, 0, 0, 0.16)' : 'none',
-                  transition: 'all 0.18s ease'
+                  transition: 'all 0.18s ease',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
@@ -549,7 +572,8 @@ export default function DineInFeed({
                 }}
               >
                 {tab.icon}
-                <span>{tab.label}</span>
+                <span className="desktop-only">{tab.label}</span>
+                <span className="mobile-only">{tab.shortLabel || tab.label}</span>
 
                 {/* Live pulsing dot for Cooking tab */}
                 {tab.isLive && (
@@ -572,7 +596,8 @@ export default function DineInFeed({
                     fontSize: 11,
                     fontWeight: 700,
                     background: isActive ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)',
-                    color: isActive ? '#ffffff' : '#52525b'
+                    color: isActive ? '#ffffff' : '#52525b',
+                    marginLeft: 2
                   }}
                 >
                   {tab.count}

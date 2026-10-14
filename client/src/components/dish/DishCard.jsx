@@ -282,6 +282,8 @@ export default function DishCard({
   return (
     <GlassContainer
       radius={28}
+      className="dish-card-glass"
+      innerClassName="dish-card-inner"
       style={{
         width: '100%',
         cursor: onOpenDetail ? 'pointer' : 'default',
@@ -367,7 +369,8 @@ export default function DishCard({
             gap: 10,
             marginBottom: 8,
             cursor: onViewProfile ? 'pointer' : 'default',
-            width: 'fit-content'
+            width: '100%',
+            maxWidth: '100%'
           }}
           title={onViewProfile ? `View @${creatorObj.username || 'user'}'s profile` : ''}
         >
@@ -435,11 +438,18 @@ export default function DishCard({
                     textTransform: 'none',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 5
+                    gap: 5,
+                    maxWidth: 220,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
                   }}
+                  title={sourceText}
                 >
                   <span style={{ color: '#a1a1aa' }}>•</span>
-                  <span>{sourceText}</span>
+                  <span className="dish-source-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {sourceText}
+                  </span>
                 </span>
               )}
             </div>
