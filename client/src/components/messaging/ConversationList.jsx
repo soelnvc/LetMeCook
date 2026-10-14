@@ -2,6 +2,7 @@
 
 import React from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
+import { getGlobalAvatar } from '@/lib/userAvatarRegistry';
 
 const formatInstagramTime = (dateStr) => {
   if (!dateStr) return '';
@@ -229,6 +230,10 @@ export default function ConversationList({
                 : c.lastMessage || 'Hey there...';
             const timeAgo = formatInstagramTime(c.updatedAt || c.lastMessage?.createdAt);
 
+            const userAvatar =
+              (c.user?.avatar && typeof c.user.avatar === 'string' && c.user.avatar.trim() ? c.user.avatar : null) ||
+              getGlobalAvatar(c.user?.username || c.user?._id || c.requestSender);
+
             return (
               <div
                 key={c.conversationId}
@@ -253,9 +258,9 @@ export default function ConversationList({
               >
                 {/* Avatar with subtle border */}
                 <div style={{ flexShrink: 0 }}>
-                  {c.user?.avatar ? (
+                  {userAvatar ? (
                     <img
-                      src={c.user.avatar}
+                      src={userAvatar}
                       alt={displayName}
                       style={{
                         width: 48,

@@ -5,6 +5,7 @@ import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import EmojiPicker from './EmojiPicker';
 import { apiFetch } from '@/lib/api';
+import { getGlobalAvatar } from '@/lib/userAvatarRegistry';
 
 const isOnlyEmojis = (text) => {
   if (!text || typeof text !== 'string') return false;
@@ -49,6 +50,14 @@ export default function MessageArea({
   const [dishActionLoadingId, setDishActionLoadingId] = useState(null);
   const [localDishRequestStatuses, setLocalDishRequestStatuses] = useState({});
   const inputRef = useRef(null);
+
+  const resolveUserAvatar = (targetU) => {
+    if (!targetU) return null;
+    if (targetU.avatar && typeof targetU.avatar === 'string' && targetU.avatar.trim()) {
+      return targetU.avatar;
+    }
+    return getGlobalAvatar(targetU.username || targetU._id || targetU.id);
+  };
 
   const handleDishRequestAction = async (msg, action) => {
     if (!msg.dishRequest?.dishId || !msg.dishRequest?.dishRequestId) return;
@@ -282,38 +291,41 @@ export default function MessageArea({
               }}
               title={onViewProfile ? `View @${activeUser.username}'s profile` : ''}
             >
-              {activeUser.avatar ? (
-                <img
-                  src={activeUser.avatar}
-                  alt={activeUser.name || 'User'}
-                  style={{
-                    width: 58,
-                    height: 58,
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    flexShrink: 0,
-                    border: '1px solid rgba(0, 0, 0, 0.08)'
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: 58,
-                    height: 58,
-                    borderRadius: '50%',
-                    backgroundColor: '#8257e5',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    fontSize: 22,
-                    fontWeight: 'bold',
-                    flexShrink: 0
-                  }}
-                >
-                  {(activeUser.name || activeUser.username || 'U')[0].toUpperCase()}
-                </div>
-              )}
+              {(() => {
+                const headerAvatar = resolveUserAvatar(activeUser);
+                return headerAvatar ? (
+                  <img
+                    src={headerAvatar}
+                    alt={activeUser.name || 'User'}
+                    style={{
+                      width: 58,
+                      height: 58,
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                      border: '1px solid rgba(0, 0, 0, 0.08)'
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 58,
+                      height: 58,
+                      borderRadius: '50%',
+                      backgroundColor: '#8257e5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
+                      fontSize: 22,
+                      fontWeight: 'bold',
+                      flexShrink: 0
+                    }}
+                  >
+                    {(activeUser.name || activeUser.username || 'U')[0].toUpperCase()}
+                  </div>
+                );
+              })()}
               <div style={{ minWidth: 0 }}>
                 <div
                   style={{
@@ -458,37 +470,40 @@ export default function MessageArea({
                           style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0 }}
                           title={onViewProfile ? `View @${bubbleUser?.username}'s profile` : ''}
                         >
-                          {bubbleUser?.avatar ? (
-                            <img
-                              src={bubbleUser.avatar}
-                              alt={bubbleUser.name || 'User'}
-                              style={{
-                                width: 34,
-                                height: 34,
-                                borderRadius: '50%',
-                                objectFit: 'cover',
-                                display: 'block',
-                                border: '1px solid rgba(0, 0, 0, 0.08)'
-                              }}
-                            />
-                          ) : (
-                            <div
-                              style={{
-                                width: 34,
-                                height: 34,
-                                borderRadius: '50%',
-                                backgroundColor: '#8257e5',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#fff',
-                                fontSize: 13,
-                                fontWeight: 'bold'
-                              }}
-                            >
-                              {(bubbleUser?.name || bubbleUser?.username || 'U')[0].toUpperCase()}
-                            </div>
-                          )}
+                          {(() => {
+                            const bubbleAvatar = resolveUserAvatar(m.sender) || resolveUserAvatar(bubbleUser);
+                            return bubbleAvatar ? (
+                              <img
+                                src={bubbleAvatar}
+                                alt={bubbleUser?.name || 'User'}
+                                style={{
+                                  width: 34,
+                                  height: 34,
+                                  borderRadius: '50%',
+                                  objectFit: 'cover',
+                                  display: 'block',
+                                  border: '1px solid rgba(0, 0, 0, 0.08)'
+                                }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  width: 34,
+                                  height: 34,
+                                  borderRadius: '50%',
+                                  backgroundColor: '#8257e5',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#fff',
+                                  fontSize: 13,
+                                  fontWeight: 'bold'
+                                }}
+                              >
+                                {(bubbleUser?.name || bubbleUser?.username || 'U')[0].toUpperCase()}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div
                           style={{
@@ -529,37 +544,40 @@ export default function MessageArea({
                         style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0 }}
                         title={onViewProfile ? `View @${bubbleUser?.username}'s profile` : ''}
                       >
-                        {bubbleUser?.avatar ? (
-                          <img
-                            src={bubbleUser.avatar}
-                            alt={bubbleUser.name || 'User'}
-                            style={{
-                              width: 34,
-                              height: 34,
-                              borderRadius: '50%',
-                              objectFit: 'cover',
-                              display: 'block',
-                              border: '1px solid rgba(0, 0, 0, 0.08)'
-                            }}
-                          />
-                        ) : (
-                          <div
-                            style={{
-                              width: 34,
-                              height: 34,
-                              borderRadius: '50%',
-                              backgroundColor: '#8257e5',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#fff',
-                              fontSize: 13,
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            {(bubbleUser?.name || bubbleUser?.username || 'U')[0].toUpperCase()}
-                          </div>
-                        )}
+                        {(() => {
+                          const bubbleAvatar = resolveUserAvatar(m.sender) || resolveUserAvatar(bubbleUser);
+                          return bubbleAvatar ? (
+                            <img
+                              src={bubbleAvatar}
+                              alt={bubbleUser?.name || 'User'}
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                                display: 'block',
+                                border: '1px solid rgba(0, 0, 0, 0.08)'
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: '50%',
+                                backgroundColor: '#8257e5',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#fff',
+                                fontSize: 13,
+                                fontWeight: 'bold'
+                              }}
+                            >
+                              {(bubbleUser?.name || bubbleUser?.username || 'U')[0].toUpperCase()}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <GlassContainer
                         radius={24}

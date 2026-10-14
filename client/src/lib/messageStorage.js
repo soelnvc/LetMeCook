@@ -1,3 +1,5 @@
+import { setGlobalUser, setGlobalAvatar, getGlobalAvatar } from './userAvatarRegistry';
+
 /**
  * messageStorage.js
  * Persistent client-side storage engine for LetMeCook messaging.
@@ -91,12 +93,20 @@ export const deduplicateConversations = (conversations = []) => {
   if (!Array.isArray(conversations)) return [];
   const map = new Map();
 
-  for (const c of conversations) {
+  for (let c of conversations) {
     if (!c) continue;
     if (String(c.conversationId).startsWith('demo-') || String(c.user?._id).startsWith('demo-')) continue;
     const userKey = getUserKey(c) || String(c.conversationId);
 
     if (!map.has(userKey)) {
+      if (c.user?.avatar) {
+        setGlobalUser(c.user);
+      } else {
+        const foundAvatar = getGlobalAvatar(userKey || c.user?.username || c.user?._id);
+        if (foundAvatar) {
+          c = { ...c, user: { ...(c.user || {}), avatar: foundAvatar } };
+        }
+      }
       map.set(userKey, c);
     } else {
       const existing = map.get(userKey);
@@ -131,11 +141,29 @@ export const deduplicateConversations = (conversations = []) => {
 
       const isAccepted = !isPending && (newer.requestStatus === 'accepted' || existing.requestStatus === 'accepted');
 
+      // CRITICAL: NEVER overwrite a valid avatar with null/empty!
+      const userA = existing.user || {};
+      const userB = c.user || {};
+      const validAvatar =
+        (userA.avatar && typeof userA.avatar === 'string' && userA.avatar.trim() ? userA.avatar : null) ||
+        (userB.avatar && typeof userB.avatar === 'string' && userB.avatar.trim() ? userB.avatar : null) ||
+        getGlobalAvatar(userKey || userA.username || userB.username || userA._id || userB._id);
+
+      if (validAvatar) {
+        setGlobalAvatar(userKey, validAvatar);
+      }
+
+      const mergedUser = {
+        ...userA,
+        ...userB,
+        ...(validAvatar ? { avatar: validAvatar } : {})
+      };
+
       map.set(userKey, {
         ...existing,
         ...newer,
         conversationId: preferredId,
-        user: { ...(existing.user || {}), ...(c.user || {}) },
+        user: mergedUser,
         isRequest: isPending,
         requestStatus: isPending ? 'pending' : (isAccepted ? 'accepted' : 'none'),
         needsResponse: isPending ? Boolean(newer.needsResponse || existing.needsResponse) : false
@@ -156,7 +184,12 @@ export const loadLocalConversations = (userId) => {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(getStorageKey('conversations', userId));
-    return raw ? deduplicateConversations(JSON.parse(raw)) : [];
+    const list = raw ? deduplicateConversations(JSON.parse(raw)) : [];
+    return list.map((c) => {
+      const u = c.user || {};
+      const av = u.avatar || getGlobalAvatar(u.username || u._id || getUserKey(c));
+      return av && av !== u.avatar ? { ...c, user: { ...u, avatar: av } } : c;
+    });
   } catch (err) {
     console.error('Failed to load local conversations:', err);
     return [];

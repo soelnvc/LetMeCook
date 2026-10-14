@@ -35,6 +35,7 @@ import {
   getUserKey,
   migrateConversationId
 } from '@/lib/messageStorage';
+import { setGlobalUser, getGlobalAvatar } from '@/lib/userAvatarRegistry';
 
 const DEMO_PEER_PROFILES = {};
 
@@ -318,15 +319,27 @@ function AppContent() {
     try {
       const res = await apiFetch('/messages/conversations');
       const data = res.data || [];
+      // 1. Register all incoming conversation users in global avatar registry
+      data.forEach((c) => {
+        if (c.user) setGlobalUser(c.user);
+      });
       const local = loadLocalConversations(user._id);
       const mergedList = deduplicateConversations([...data, ...local]);
-      setConversations(mergedList);
-      saveLocalConversations(mergedList, user._id);
+
+      // 2. Ensure every conversation has its avatar resolved from global state if missing
+      const enrichedList = mergedList.map((c) => {
+        const u = c.user || {};
+        const av = u.avatar || getGlobalAvatar(u.username || u._id || getUserKey(c));
+        return av && av !== u.avatar ? { ...c, user: { ...u, avatar: av } } : c;
+      });
+
+      setConversations(enrichedList);
+      saveLocalConversations(enrichedList, user._id);
 
       const rawTargetId = forceConvId || selectedConvIdRef.current || selectedConvId || loadActiveConvId(user._id);
       let targetId = rawTargetId;
       if (rawTargetId) {
-        const match = mergedList.find(
+        const match = enrichedList.find(
           (c) => c.conversationId === rawTargetId || getUserKey(c) === getUserKey({ conversationId: rawTargetId })
         );
         if (match) {
@@ -338,8 +351,8 @@ function AppContent() {
         selectedConvIdRef.current = targetId;
         setSelectedConvId(targetId);
         saveActiveConvId(targetId, user._id);
-      } else if (mergedList.length > 0) {
-        const first = mergedList.find((c) => !c.isRequest) || mergedList[0];
+      } else if (enrichedList.length > 0) {
+        const first = enrichedList.find((c) => !c.isRequest) || enrichedList[0];
         if (first) {
           handleOpenConversation(first.conversationId);
         }
@@ -357,6 +370,31 @@ function AppContent() {
       ]);
       const data = connRes.status === 'fulfilled' && connRes.value?.data ? connRes.value.data : [];
       setConnections(data);
+
+      // Register all connections into global avatar registry
+      data.forEach((conn) => {
+        if (conn.user) setGlobalUser(conn.user);
+      });
+
+      // Synchronize conversations with connection avatars
+      setConversations((prev) => {
+        let changed = false;
+        const next = prev.map((c) => {
+          const u = c.user || {};
+          if (u.avatar) return c;
+          const match = data.find((conn) => getUserKey(conn.user) === getUserKey(u));
+          if (match?.user?.avatar) {
+            changed = true;
+            return {
+              ...c,
+              user: { ...u, avatar: match.user.avatar }
+            };
+          }
+          return c;
+        });
+        if (changed && user?._id) saveLocalConversations(next, user._id);
+        return changed ? next : prev;
+      });
 
       const sentData = sentRes.status === 'fulfilled' && sentRes.value?.data ? sentRes.value.data : [];
       const sentIds = sentData.map(s => String(s.recipient?._id || s.recipient)).filter(Boolean);
@@ -838,9 +876,45 @@ function AppContent() {
         setConvMessages(res.data);
         setConvMessagesMap((prev) => {
           const next = { ...prev, [convId]: res.data };
-          saveLocalMessagesMap(next);
+          if (user?._id) saveLocalMessagesMap(next, user._id);
           return next;
         });
+
+        // Register senders/receivers into global avatar registry
+        res.data.forEach((m) => {
+          if (m.sender && typeof m.sender === 'object') setGlobalUser(m.sender);
+          if (m.receiver && typeof m.receiver === 'object') setGlobalUser(m.receiver);
+        });
+
+        // If the other participant in messages has an avatar, enrich conversation user
+        const otherParticipant = res.data.find((m) => {
+          const sId = String(m.sender?._id || m.sender);
+          return sId !== String(user?._id);
+        })?.sender;
+
+        if (otherParticipant?.avatar) {
+          setGlobalUser(otherParticipant);
+          setConversations((prev) => {
+            let changed = false;
+            const updated = prev.map((c) => {
+              if (c.conversationId === convId || getUserKey(c) === getUserKey(otherParticipant)) {
+                if (c.user?.avatar !== otherParticipant.avatar) {
+                  changed = true;
+                  return {
+                    ...c,
+                    user: {
+                      ...(c.user || {}),
+                      avatar: otherParticipant.avatar
+                    }
+                  };
+                }
+              }
+              return c;
+            });
+            if (changed && user?._id) saveLocalConversations(updated, user._id);
+            return changed ? updated : prev;
+          });
+        }
       }
     } catch (err) {
       // Keep optimistic/cached messages
@@ -1008,6 +1082,29 @@ function AppContent() {
           .then((res) => {
             if (res.data) {
               setViewingProfileUser((prev) => (prev ? { ...prev, ...res.data } : res.data));
+              setGlobalUser(res.data);
+              // Instantly synchronize conversations with this user's avatar
+              setConversations((prev) => {
+                let changed = false;
+                const updated = prev.map((c) => {
+                  if (getUserKey(c) === getUserKey(res.data)) {
+                    if (c.user?.avatar !== res.data.avatar) {
+                      changed = true;
+                      return {
+                        ...c,
+                        user: {
+                          ...(c.user || {}),
+                          ...res.data,
+                          avatar: res.data.avatar || c.user?.avatar
+                        }
+                      };
+                    }
+                  }
+                  return c;
+                });
+                if (changed && user?._id) saveLocalConversations(updated, user._id);
+                return changed ? updated : prev;
+              });
             }
           })
           .catch(() => {});
@@ -1513,13 +1610,21 @@ function AppContent() {
             {/* Right Panel: Chat Thread */}
             {(() => {
               const activeConv = conversations.find((c) => c.conversationId === selectedConvId);
-              const activeUser =
+              const rawActiveUser =
                 activeConv?.user ||
                 (convMessages.length > 0
-                  ? convMessages[0].sender?._id === user._id
+                  ? String(convMessages[0].sender?._id || convMessages[0].sender) === String(user?._id)
                     ? convMessages[0].receiver
                     : convMessages[0].sender
                   : null);
+              const activeUser = rawActiveUser
+                ? {
+                    ...rawActiveUser,
+                    avatar:
+                      rawActiveUser.avatar ||
+                      getGlobalAvatar(rawActiveUser.username || rawActiveUser._id || activeConv?.user?.username)
+                  }
+                : null;
 
               return (
                 <MessageArea
