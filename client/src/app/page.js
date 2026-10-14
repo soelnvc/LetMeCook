@@ -466,6 +466,15 @@ function AppContent() {
           })
         });
       }
+      // Clear sensitive credentials and all input state as soon as user logged in response comes from express
+      setIdentifier('');
+      setPassword('');
+      setUsername('');
+      setName('');
+      setEmail('');
+      setMobile('');
+      setRegisterAge('');
+
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
       setMessage('Authenticated successfully');
@@ -478,6 +487,14 @@ function AppContent() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    // Ensure all auth credentials and inputs are completely wiped on logout
+    setIdentifier('');
+    setPassword('');
+    setUsername('');
+    setName('');
+    setEmail('');
+    setMobile('');
+    setRegisterAge('');
     setUser(null);
     setConversations([]);
     setConvMessages([]);
@@ -516,14 +533,20 @@ function AppContent() {
         return;
       }
       const res = await dishService.joinDish(dishId);
-      setMessage(`Join status: ${res.data.status}`);
+      const isPending = res.data?.status === 'pending_approval';
+      setMessage(isPending ? 'Request sent! Waiting for host approval' : 'Joined dish successfully!');
       fetchDishes();
+      if (res.data?.dish && selectedDishDetail?._id === dishId) {
+        setSelectedDishDetail(res.data.dish);
+      }
+      return res.data;
     } catch (err) {
       if (String(dishId).startsWith('dish-') || String(dishId).startsWith('demo-')) {
         setMessage('Joined dish successfully!');
       } else {
         setError(err.message);
       }
+      throw err;
     }
   };
 
@@ -570,6 +593,14 @@ function AppContent() {
     setInitialOpenMembersModal(Boolean(options.openMembersModal));
     if (typeof dishOrId === 'object' && dishOrId._id) {
       setSelectedDishDetail(dishOrId);
+      try {
+        const freshRes = await apiFetch(`/dishes/${dishOrId._id}`);
+        if (freshRes?.data) {
+          setSelectedDishDetail(freshRes.data);
+        }
+      } catch (err) {
+        // silent fallback to cached object
+      }
       return;
     }
     const dishId = typeof dishOrId === 'string' ? dishOrId : dishOrId?.toString();
@@ -711,37 +742,43 @@ function AppContent() {
     setSelectedConvId(convId);
     saveActiveConvId(convId);
 
+    // Optimistically show cached messages so UI responds immediately
+    let hasCached = false;
     if (convMessagesMap[convId] && convMessagesMap[convId].length > 0) {
       setConvMessages(convMessagesMap[convId]);
-      return;
-    }
-
-    const cachedMap = loadLocalMessagesMap();
-    if (cachedMap[convId] && cachedMap[convId].length > 0) {
-      setConvMessages(cachedMap[convId]);
-      setConvMessagesMap((prev) => ({ ...prev, [convId]: cachedMap[convId] }));
-      return;
-    }
-
-    // Check alternate user keys (e.g. conv-<username>)
-    const activeConv = conversations.find((c) => c.conversationId === convId);
-    const uKey = activeConv ? getUserKey(activeConv) : null;
-    if (uKey) {
-      const altKey = `conv-${uKey}`;
-      if (convMessagesMap[altKey] && convMessagesMap[altKey].length > 0) {
-        setConvMessages(convMessagesMap[altKey]);
-        setConvMessagesMap((prev) => ({ ...prev, [convId]: convMessagesMap[altKey] }));
-        return;
+      hasCached = true;
+    } else {
+      const cachedMap = loadLocalMessagesMap();
+      if (cachedMap[convId] && cachedMap[convId].length > 0) {
+        setConvMessages(cachedMap[convId]);
+        setConvMessagesMap((prev) => ({ ...prev, [convId]: cachedMap[convId] }));
+        hasCached = true;
       }
-      if (cachedMap[altKey] && cachedMap[altKey].length > 0) {
-        setConvMessages(cachedMap[altKey]);
-        setConvMessagesMap((prev) => ({ ...prev, [convId]: cachedMap[altKey] }));
-        return;
+    }
+
+    // Check alternate user keys (e.g. conv-<username>) if not found in primary cache
+    if (!hasCached) {
+      const activeConv = conversations.find((c) => c.conversationId === convId);
+      const uKey = activeConv ? getUserKey(activeConv) : null;
+      if (uKey) {
+        const altKey = `conv-${uKey}`;
+        if (convMessagesMap[altKey] && convMessagesMap[altKey].length > 0) {
+          setConvMessages(convMessagesMap[altKey]);
+          setConvMessagesMap((prev) => ({ ...prev, [convId]: convMessagesMap[altKey] }));
+          hasCached = true;
+        } else {
+          const cachedMap = loadLocalMessagesMap();
+          if (cachedMap[altKey] && cachedMap[altKey].length > 0) {
+            setConvMessages(cachedMap[altKey]);
+            setConvMessagesMap((prev) => ({ ...prev, [convId]: cachedMap[altKey] }));
+            hasCached = true;
+          }
+        }
       }
     }
 
     if (String(convId).startsWith('conv-')) {
-      setConvMessages([]);
+      if (!hasCached) setConvMessages([]);
       return;
     }
 
@@ -794,9 +831,10 @@ function AppContent() {
       return;
     }
 
+    // Always fetch latest authoritative message history from backend
     try {
       const res = await apiFetch(`/messages/conversations/${convId}`);
-      if (res.data) {
+      if (res?.data && selectedConvIdRef.current === convId) {
         setConvMessages(res.data);
         setConvMessagesMap((prev) => {
           const next = { ...prev, [convId]: res.data };
@@ -805,7 +843,7 @@ function AppContent() {
         });
       }
     } catch (err) {
-      // Keep existing messages
+      // Keep optimistic/cached messages
     }
   };
 
@@ -1187,6 +1225,7 @@ function AppContent() {
                   disabled={isAuthSubmitting}
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
+                  autoComplete="off"
                   placeholder="chef_arjun or arjun@example.com"
                   style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
@@ -1197,6 +1236,7 @@ function AppContent() {
                   disabled={isAuthSubmitting}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
                   style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <button
@@ -1244,6 +1284,7 @@ function AppContent() {
                   disabled={isAuthSubmitting}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="off"
                   style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Display Name:</label>
@@ -1253,6 +1294,7 @@ function AppContent() {
                   disabled={isAuthSubmitting}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  autoComplete="off"
                   style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Email:</label>
@@ -1262,6 +1304,7 @@ function AppContent() {
                   disabled={isAuthSubmitting}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="off"
                   style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Mobile Number:</label>
@@ -1271,6 +1314,7 @@ function AppContent() {
                   disabled={isAuthSubmitting}
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
+                  autoComplete="off"
                   style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Age (must be entered):</label>
@@ -1283,6 +1327,7 @@ function AppContent() {
                   disabled={isAuthSubmitting}
                   value={registerAge}
                   onChange={(e) => setRegisterAge(e.target.value)}
+                  autoComplete="off"
                   style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <label style={{ fontSize: 13, fontWeight: 600 }}>Password (min 6 chars):</label>
@@ -1292,6 +1337,7 @@ function AppContent() {
                   disabled={isAuthSubmitting}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
                 />
                 <button
@@ -1400,7 +1446,7 @@ function AppContent() {
           onExploreDineIn={() => setActiveTab('dine-in')}
           onNavigateTab={(tab) => setActiveTab(tab)}
           onViewProfile={(profile) => handleNavigateToProfile(profile, 'home')}
-          onOpenDishDetail={(d) => setSelectedDishDetail(d)}
+          onOpenDishDetail={(d) => handleOpenDishByIdOrObj(d)}
         />
       )}
 
@@ -1424,7 +1470,7 @@ function AppContent() {
             setShowKitchenModal(true);
           }}
           onViewProfile={(profile) => handleNavigateToProfile(profile, 'dine-in')}
-          onOpenDishDetail={(d) => setSelectedDishDetail(d)}
+          onOpenDishDetail={(d) => handleOpenDishByIdOrObj(d)}
           initialTab={dineInTab}
           initialCategory={categoryFilter}
         />
@@ -1844,14 +1890,46 @@ function AppContent() {
                                 <span style={{ fontSize: 11, fontWeight: 600, color: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.1)', padding: '3px 10px', borderRadius: 9999 }}>
                                   Cooking
                                 </span>
-                                {isViewingPeer && (
-                                  <FluidButton
-                                    onClick={() => handleJoinDish(activeDish._id)}
-                                    style={{ padding: '4px 14px', fontSize: 12, fontWeight: 600 }}
-                                  >
-                                    Join Dish
-                                  </FluidButton>
-                                )}
+                                {isViewingPeer && (() => {
+                                  const isDishParticipant = activeDish.participants?.some(
+                                    (p) => String(p.user?._id || p.user || p) === String(user?._id || user?.id)
+                                  );
+                                  const hasDishPendingReq = Boolean(
+                                    activeDish.requests?.some((r) => {
+                                      const reqUid = String(r.user?._id || r.user || r.userId || '');
+                                      const myUid = String(user?._id || user?.id || '');
+                                      return reqUid && myUid && reqUid === myUid && r.status === 'pending';
+                                    })
+                                  );
+                                  if (isDishParticipant) {
+                                    return (
+                                      <FluidButton
+                                        onClick={() => { setShowProfileModal(false); setActiveTab('messages'); }}
+                                        style={{ padding: '4px 14px', fontSize: 12, fontWeight: 600 }}
+                                      >
+                                        Chat & Joined
+                                      </FluidButton>
+                                    );
+                                  }
+                                  if (hasDishPendingReq) {
+                                    return (
+                                      <FluidButton
+                                        disabled
+                                        style={{ padding: '4px 14px', fontSize: 12, fontWeight: 600, color: '#71717a', opacity: 0.85, cursor: 'not-allowed' }}
+                                      >
+                                        Request Pending
+                                      </FluidButton>
+                                    );
+                                  }
+                                  return (
+                                    <FluidButton
+                                      onClick={() => handleJoinDish(activeDish._id)}
+                                      style={{ padding: '4px 14px', fontSize: 12, fontWeight: 600 }}
+                                    >
+                                      {activeDish.joinMode === 'auto' ? 'Join Dish' : 'Request to Join'}
+                                    </FluidButton>
+                                  );
+                                })()}
                               </div>
                             </div>
 

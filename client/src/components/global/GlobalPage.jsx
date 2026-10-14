@@ -426,7 +426,14 @@ export default function GlobalPage({
               String(dish.creator) === String(user?._id);
             const creatorAvatar = isCreator ? (user?.avatar || dish.creator?.avatar) : dish.creator?.avatar;
             const isParticipant = dish.participants?.some(
-              (p) => (p.user?._id || p.user) === user?._id
+              (p) => String(p.user?._id || p.user || p) === String(user?._id || user?.id)
+            );
+            const hasPendingReq = Boolean(
+              dish.requests?.some((r) => {
+                const reqUid = String(r.user?._id || r.user || r.userId || '');
+                const myUid = String(user?._id || user?.id || '');
+                return reqUid && myUid && reqUid === myUid && r.status === 'pending';
+              })
             );
             const spotsLeft = dish.capacity?.unlimited
               ? '∞'
@@ -643,9 +650,9 @@ export default function GlobalPage({
                       <span
                         style={{
                           fontSize: 12,
-                          fontWeight: 700,
-                          color: '#ea580c',
-                          backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                          fontWeight: 600,
+                          color: '#27272a',
+                          backgroundColor: 'rgba(0, 0, 0, 0.05)',
                           padding: '6px 14px',
                           borderRadius: 9999
                         }}
@@ -659,6 +666,20 @@ export default function GlobalPage({
                       >
                         Chat & Joined
                       </FluidButton>
+                    ) : hasPendingReq ? (
+                      <FluidButton
+                        disabled
+                        style={{
+                          padding: '6px 18px',
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          color: '#71717a',
+                          opacity: 0.85,
+                          cursor: 'not-allowed'
+                        }}
+                      >
+                        Request Pending
+                      </FluidButton>
                     ) : (
                       <FluidButton
                         onClick={() => onJoinDish && onJoinDish(dish._id)}
@@ -669,7 +690,7 @@ export default function GlobalPage({
                           color: '#000000'
                         }}
                       >
-                        Join Dish
+                        {dish.joinMode === 'auto' ? 'Join Dish' : 'Request to Join'}
                       </FluidButton>
                     )}
                   </div>

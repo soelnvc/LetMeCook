@@ -621,27 +621,6 @@ const inviteToDish = async (dishId, inviterId, targetUsername) => {
     console.error('[DishInvite] Notification create error:', notifErr);
   }
 
-  // 2. Standard Message DM
-  const dmContent = `Hey! I invited you to join my dish: "${dish.description}". Check out the dish ticket to accept! 🍽️`;
-  try {
-    await messageService.sendMessage(inviterId, target._id, dmContent);
-  } catch (dmErr) {
-    console.log('[DishInvite] standard DM via service:', dmErr.message);
-    try {
-      const Message = require('../models/Message');
-      const conversationId = [inviterId.toString(), target._id.toString()].sort().join('_');
-      await Message.create({
-        sender: inviterId,
-        receiver: target._id,
-        conversationId,
-        content: dmContent,
-        isRequest: false,
-        requestStatus: 'none'
-      });
-    } catch (directMsgErr) {
-      console.error('[DishInvite] Direct message fallback error:', directMsgErr);
-    }
-  }
 
   // 3. Post system announcement to dish chat
   try {
@@ -782,6 +761,7 @@ const getDishChat = async (dishId, userId) => {
     .populate('participants.user', 'username name avatar institute verification')
     .populate('invitedUsers.user', 'username name avatar institute verification')
     .populate('invitedUsers.invitedBy', 'username name avatar')
+    .populate('requests.user', 'username name avatar institute verification')
     .populate('mutedUsers', 'username name avatar');
 
   if (!dish) {

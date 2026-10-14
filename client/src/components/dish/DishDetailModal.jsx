@@ -326,6 +326,13 @@ export default function DishDetailModal({
   const isExpired = dish.status === 'cooked';
   const isUnlocked = isParticipant || isCreator || isExpired;
   const pendingRequestsList = (dish.requests || []).filter((r) => r.status === 'pending');
+  const hasPendingReq =
+    !isParticipant &&
+    (dish.requests || []).some((r) => {
+      const reqUid = (r.user?._id || r.user || r.userId)?.toString();
+      const myUid = (currentUser?._id || currentUser?.id)?.toString();
+      return reqUid && myUid && reqUid === myUid && r.status === 'pending';
+    });
   const spotsLeft = dish.capacity?.unlimited
     ? '∞'
     : Math.max(0, (dish.capacity?.max || 4) - participantsList.length);
@@ -786,12 +793,7 @@ export default function DishDetailModal({
                     padding: '5px 12px',
                     fontSize: 11.5,
                     fontWeight: 700,
-                    color:
-                      dish.status === 'cooked'
-                        ? '#71717a'
-                        : dish.status === 'cooking'
-                        ? '#ea580c'
-                        : '#16a34a'
+                    color: dish.status === 'cooked' ? '#71717a' : '#09090b'
                   }}
                 >
                   {dish.status === 'cooked'
@@ -932,28 +934,49 @@ export default function DishDetailModal({
 
             {/* Bottom Right: Action Buttons (Invite, Leave, Join, 3-dots) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              {/* Not Joined Yet: Show "You are Invited!" if invited, otherwise "Join Dish" */}
+              {/* Not Joined Yet: Show "Request Pending" if pending, "You are Invited!" if invited, otherwise "Join Dish" / "Request to Join" */}
               {!isParticipant && !isExpired && (
-                isInvited ? (
+                hasPendingReq ? (
                   <FluidButton
-                    onClick={() => onJoinDish && onJoinDish(dish._id)}
+                    disabled
                     style={{
                       padding: '8px 18px',
                       fontSize: 12.5,
-                      fontWeight: 700,
-                      backgroundColor: 'rgba(249, 115, 22, 0.15)',
-                      color: '#ea580c',
-                      border: '1px solid rgba(249, 115, 22, 0.3)'
+                      fontWeight: 600,
+                      color: '#71717a',
+                      opacity: 0.85,
+                      cursor: 'not-allowed'
+                    }}
+                  >
+                    Request Pending
+                  </FluidButton>
+                ) : isInvited ? (
+                  <FluidButton
+                    onClick={async () => {
+                      if (onJoinDish) {
+                        const res = await onJoinDish(dish._id);
+                        if (res?.dish) setLocalDish(res.dish);
+                      }
+                    }}
+                    style={{
+                      padding: '8px 18px',
+                      fontSize: 12.5,
+                      fontWeight: 600
                     }}
                   >
                     You are Invited!
                   </FluidButton>
                 ) : (
                   <FluidButton
-                    onClick={() => onJoinDish && onJoinDish(dish._id)}
+                    onClick={async () => {
+                      if (onJoinDish) {
+                        const res = await onJoinDish(dish._id);
+                        if (res?.dish) setLocalDish(res.dish);
+                      }
+                    }}
                     style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 700 }}
                   >
-                    {dish.joinMode === 'auto' ? 'Join Dish' : 'Request'}
+                    {dish.joinMode === 'auto' ? 'Join Dish' : 'Request to Join'}
                   </FluidButton>
                 )
               )}
@@ -1497,7 +1520,11 @@ export default function DishDetailModal({
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
                   </svg>
-                  <span>Join this dish table to participate in the group chat!</span>
+                  <span>
+                    {hasPendingReq
+                      ? 'Your request to join this dish table is pending host approval.'
+                      : 'Join this dish table to participate in the group chat!'}
+                  </span>
                 </div>
               </div>
             )}
@@ -1905,7 +1932,9 @@ export default function DishDetailModal({
                         isMuted
                           ? 'You are muted by the host in this room.'
                           : !isParticipant
-                          ? 'Join dish to participate in group chat...'
+                          ? hasPendingReq
+                            ? 'Request pending host approval...'
+                            : 'Join dish to participate in group chat...'
                           : 'Type a Message...'
                       }
                       disabled={!isParticipant || isMuted || isSending}
@@ -1987,26 +2016,19 @@ export default function DishDetailModal({
                   gap: 16
                 }}
               >
-                <div
-                  style={{
-                    width: 58,
-                    height: 58,
-                    borderRadius: '50%',
-                    backgroundColor: isInvited ? 'rgba(249, 115, 22, 0.12)' : 'rgba(0, 0, 0, 0.05)',
-                    color: isInvited ? '#ea580c' : '#09090b',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.06)'
-                  }}
-                >
-                  {isInvited ? (
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <div style={{ color: '#09090b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {hasPendingReq ? (
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                  ) : isInvited ? (
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                     </svg>
                   ) : (
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
@@ -2015,28 +2037,50 @@ export default function DishDetailModal({
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <h4 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#09090b', letterSpacing: '-0.02em' }}>
-                    {isInvited ? 'You are Invited!' : 'Dish Room Locked'}
+                    {hasPendingReq ? 'Request Pending Approval' : isInvited ? 'You are Invited!' : 'Dish Room Locked'}
                   </h4>
                   <p style={{ margin: 0, fontSize: 13, color: '#71717a', lineHeight: 1.5, maxWidth: 320 }}>
-                    {isInvited
+                    {hasPendingReq
+                      ? 'You requested to join this dish table. Waiting for the host to review and accept your request.'
+                      : isInvited
                       ? 'You were invited to this dish table! Accept your invitation to unlock the group chat and view member interactions.'
                       : 'Join this dish table as a confirmed member to unlock the live group chat and connect with other diners.'}
                   </p>
                 </div>
 
-                <FluidButton
-                  onClick={() => onJoinDish && onJoinDish(dish._id)}
-                  style={{
-                    padding: '10px 28px',
-                    fontSize: 13.5,
-                    fontWeight: 700,
-                    backgroundColor: isInvited ? '#ea580c' : undefined,
-                    color: isInvited ? '#ffffff' : undefined,
-                    marginTop: 4
-                  }}
-                >
-                  {isInvited ? 'Accept Invite to Unlock' : (dish.joinMode === 'auto' ? 'Join Dish to Unlock' : 'Request to Join')}
-                </FluidButton>
+                {hasPendingReq ? (
+                  <FluidButton
+                    disabled
+                    style={{
+                      padding: '10px 28px',
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                      marginTop: 4,
+                      color: '#71717a',
+                      opacity: 0.85,
+                      cursor: 'not-allowed'
+                    }}
+                  >
+                    Request Pending
+                  </FluidButton>
+                ) : (
+                  <FluidButton
+                    onClick={async () => {
+                      if (onJoinDish) {
+                        const res = await onJoinDish(dish._id);
+                        if (res?.dish) setLocalDish(res.dish);
+                      }
+                    }}
+                    style={{
+                      padding: '10px 28px',
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                      marginTop: 4
+                    }}
+                  >
+                    {isInvited ? 'Accept Invite to Unlock' : (dish.joinMode === 'auto' ? 'Join Dish to Unlock' : 'Request to Join')}
+                  </FluidButton>
+                )}
               </GlassContainer>
             </div>
           )}
@@ -2100,7 +2144,7 @@ export default function DishDetailModal({
                   <span style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)', color: '#27272a' }}>
                     {participantsList.length} Joined
                   </span>
-                  <span style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(249, 115, 22, 0.12)', color: '#ea580c' }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)', color: '#27272a' }}>
                     {invitedList.length} Invited
                   </span>
                   <span
@@ -2338,7 +2382,7 @@ export default function DishDetailModal({
                             {u.avatar ? (
                               <img src={u.avatar} alt={u.name} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                             ) : (
-                              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#f97316', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#27272a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
                                 {((u.name || u.username || 'U')[0]).toUpperCase()}
                               </div>
                             )}
@@ -2359,8 +2403,8 @@ export default function DishDetailModal({
                               fontWeight: 700,
                               padding: '3px 8px',
                               borderRadius: 9999,
-                              background: 'rgba(249, 115, 22, 0.12)',
-                              color: '#ea580c',
+                              background: 'rgba(0, 0, 0, 0.06)',
+                              color: '#52525b',
                               flexShrink: 0
                             }}
                           >

@@ -213,8 +213,12 @@ export default function DishCard({
   const isParticipant = dish.participants?.some(
     (p) => (p.user?._id || p.user) === currentUser?._id
   );
-  const hasPendingReq = dish.requests?.some(
-    (r) => (r.user?._id || r.user) === currentUser?._id && r.status === 'pending'
+  const hasPendingReq = Boolean(
+    dish.requests?.some((r) => {
+      const reqUid = String(r.user?._id || r.user || r.userId || '');
+      const myUid = String(currentUser?._id || currentUser?.id || '');
+      return reqUid && myUid && reqUid === myUid && r.status === 'pending';
+    })
   );
   const spotsLeft = dish.capacity?.unlimited
     ? '∞'
@@ -598,17 +602,19 @@ export default function DishCard({
             </FluidButton>
           )}
           {hasPendingReq && dish.status !== 'cooked' && (
-            <span
+            <FluidButton
+              disabled
               style={{
-                fontSize: 11,
-                color: '#000000',
-                fontStyle: 'italic',
-                alignSelf: 'center',
-                fontWeight: 'bold'
+                padding: '5px 14px',
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#71717a',
+                opacity: 0.85,
+                cursor: 'not-allowed'
               }}
             >
-              Request pending approval
-            </span>
+              Request Pending
+            </FluidButton>
           )}
           {isParticipant && !isCreator && dish.status !== 'cooked' && (
             <FluidButton

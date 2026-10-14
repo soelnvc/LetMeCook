@@ -669,10 +669,10 @@ export default function NotificationsView({
                               : item.type === 'connection_added'
                               ? '#0284c7'
                               : item.type === 'dish_invite'
-                              ? '#ea580c'
+                              ? '#18181b'
                               : item.type === 'dish_join_request'
                               ? '#f43f5e'
-                              : '#f97316',
+                              : '#18181b',
                           color: '#ffffff',
                           display: 'flex',
                           alignItems: 'center',
@@ -884,8 +884,8 @@ export default function NotificationsView({
                         style={{
                           padding: '5px 14px',
                           fontSize: 12.5,
-                          fontWeight: 700,
-                          color: item.type === 'dish_join_request' ? '#e11d48' : '#ea580c',
+                          fontWeight: 600,
+                          color: '#09090b',
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: 5
