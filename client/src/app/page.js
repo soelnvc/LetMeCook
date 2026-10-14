@@ -6,6 +6,7 @@ import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import KitchenModal from '@/components/kitchen/KitchenModal';
 import Sidebar from '@/components/layout/Sidebar';
+import MobileNav from '@/components/layout/MobileNav';
 import DishCard from '@/components/dish/DishCard';
 import DishDetailModal from '@/components/dish/DishDetailModal';
 import ProfileHeader from '@/components/profile/ProfileHeader';
@@ -137,6 +138,35 @@ function AppContent() {
   const [msgContent, setMsgContent] = useState('');
   const [messagesTab, setMessagesTab] = useState('message'); // 'message' | 'requests'
   const [searchMsgQuery, setSearchMsgQuery] = useState('');
+
+  const unreadMessagesCount = useMemo(() => {
+    return conversations.filter((c) => (c.unreadCount > 0) || (c.isRequest && c.needsResponse)).length;
+  }, [conversations]);
+
+  const activeChatUser = useMemo(() => {
+    if (!selectedConvId) return null;
+    const activeConv = conversations.find((c) => c.conversationId === selectedConvId);
+    const rawActiveUser =
+      activeConv?.user ||
+      (convMessages.length > 0
+        ? String(convMessages[0].sender?._id || convMessages[0].sender) === String(user?._id)
+          ? convMessages[0].receiver
+          : convMessages[0].sender
+        : null);
+    if (!rawActiveUser) return null;
+    return {
+      ...rawActiveUser,
+      avatar:
+        rawActiveUser.avatar ||
+        getGlobalAvatar(rawActiveUser.username || rawActiveUser._id || activeConv?.user?.username)
+    };
+  }, [selectedConvId, conversations, convMessages, user?._id]);
+
+  const isViewingPeerProfile = Boolean(
+    viewingProfileUser &&
+    ((viewingProfileUser._id && user?._id && String(viewingProfileUser._id) !== String(user._id)) ||
+     (viewingProfileUser.username && user?.username && viewingProfileUser.username.toLowerCase() !== user.username.toLowerCase()))
+  );
 
   // Hydrate persistent messaging cache per logged-in user
   useEffect(() => {
@@ -1488,7 +1518,36 @@ function AppContent() {
   // Authenticated View
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#e6dfe4', fontFamily: "'Inter', sans-serif", color: '#000000' }}>
-      {/* Sidebar Navigation */}
+      {/* Mobile Top Header & Bottom Bar (Instagram UX) */}
+      <MobileNav
+        user={user}
+        activeTab={activeTab}
+        setActiveTab={(tab) => {
+          if (tab === 'profile') {
+            setViewingProfileUser(null);
+          }
+          if (tab === 'notifications') {
+            setUnreadNotificationsCount(0);
+          }
+          setActiveTab(tab);
+        }}
+        showKitchenModal={showKitchenModal}
+        setShowKitchenModal={setShowKitchenModal}
+        showSearchModal={showSearchModal}
+        setShowSearchModal={setShowSearchModal}
+        unreadNotificationsCount={unreadNotificationsCount}
+        unreadMessagesCount={unreadMessagesCount}
+        isViewingPeer={isViewingPeerProfile}
+        onBackFromPeer={handleBackFromProfile}
+        activeChatUser={activeChatUser}
+        onBackFromChat={() => setSelectedConvId(null)}
+        settingsSection={settingsSection}
+        onBackFromSettings={() => {
+          setActiveTab('profile');
+        }}
+      />
+
+      {/* Sidebar Navigation (Desktop only) */}
       <Sidebar
         user={user}
         activeTab={activeTab}
@@ -1514,21 +1573,14 @@ function AppContent() {
       />
 
       {/* Main App Container */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        minHeight: '100vh',
-        height: activeTab === 'settings' ? '100vh' : 'auto',
-        maxHeight: activeTab === 'settings' ? '100vh' : 'none',
-        overflow: activeTab === 'settings' ? 'hidden' : 'visible',
-        padding: activeTab === 'settings' ? '20px 32px' : (activeTab === 'profile' ? '54px 24px 80px' : (activeTab === 'notifications' ? '36px 32px 80px' : '40px 32px')),
-        minWidth: 0,
-        boxSizing: 'border-box',
-        color: '#000000'
-      }}>
+      <div
+        className="main-content-layout"
+        style={{
+          height: activeTab === 'settings' ? '100vh' : 'auto',
+          maxHeight: activeTab === 'settings' ? '100vh' : 'none',
+          overflow: activeTab === 'settings' ? 'hidden' : 'visible'
+        }}
+      >
       {/* ========================================================= */}
       {/* 1. HOME SCREEN (PRODUCT.md Section 13) */}
       {/* ========================================================= */}
@@ -1591,6 +1643,7 @@ function AppContent() {
         <section style={{ width: '100%', maxWidth: 1040, height: 'calc(100vh - 64px)' }}>
           <GlassContainer
             radius={28}
+            className="messages-container-glass"
             style={{ width: '100%', height: '100%' }}
             innerStyle={{
               display: 'flex',
@@ -1600,17 +1653,19 @@ function AppContent() {
             }}
           >
             {/* Left Panel: Conversations List */}
-            <ConversationList
-              userName={user.name || user.username}
-              conversations={conversations}
-              selectedConvId={selectedConvId}
-              onSelectConversation={handleOpenConversation}
-              messagesTab={messagesTab}
-              setMessagesTab={setMessagesTab}
-              searchQuery={searchMsgQuery}
-              setSearchQuery={setSearchMsgQuery}
-              onRespondRequest={handleRespondMessageRequest}
-            />
+            <div className={`messages-conv-panel ${selectedConvId ? 'mobile-hidden-chat' : ''}`}>
+              <ConversationList
+                userName={user.name || user.username}
+                conversations={conversations}
+                selectedConvId={selectedConvId}
+                onSelectConversation={handleOpenConversation}
+                messagesTab={messagesTab}
+                setMessagesTab={setMessagesTab}
+                searchQuery={searchMsgQuery}
+                setSearchQuery={setSearchMsgQuery}
+                onRespondRequest={handleRespondMessageRequest}
+              />
+            </div>
 
             {/* Right Panel: Chat Thread */}
             {(() => {
@@ -1632,19 +1687,25 @@ function AppContent() {
                 : null;
 
               return (
-                <MessageArea
-                  currentUser={user}
-                  activeUser={activeUser}
-                  conversation={activeConv}
-                  messages={convMessages}
-                  messageText={msgContent}
-                  setMessageText={setMsgContent}
-                  onSendMessage={handleSendMessage}
-                  onViewProfile={(profile) => handleNavigateToProfile(profile, 'messages')}
-                  onAcceptRequest={handleAcceptMessageRequest}
-                  onRejectRequest={handleRejectMessageRequest}
-                  onBlockUser={(targetUsername) => handleBlockMessageRequest(activeConv?.conversationId, targetUsername)}
-                />
+                <div
+                  className={`messages-area-panel ${!selectedConvId ? 'mobile-hidden-list' : ''}`}
+                  style={{ flex: 1, display: 'flex', height: '100%', minWidth: 0 }}
+                >
+                  <MessageArea
+                    currentUser={user}
+                    activeUser={activeUser}
+                    conversation={activeConv}
+                    messages={convMessages}
+                    messageText={msgContent}
+                    setMessageText={setMsgContent}
+                    onSendMessage={handleSendMessage}
+                    onViewProfile={(profile) => handleNavigateToProfile(profile, 'messages')}
+                    onAcceptRequest={handleAcceptMessageRequest}
+                    onRejectRequest={handleRejectMessageRequest}
+                    onBlockUser={(targetUsername) => handleBlockMessageRequest(activeConv?.conversationId, targetUsername)}
+                    onBack={() => setSelectedConvId(null)}
+                  />
+                </div>
               );
             })()}
           </GlassContainer>
@@ -1743,8 +1804,16 @@ function AppContent() {
               user={activeProfile}
               isSelf={!isViewingPeer}
               pronouns={activeProfile?.pronouns || (isViewingPeer ? '' : pronouns)}
-              instituteName={activeProfile?.institute?.name || (isViewingPeer ? '' : instituteName)}
-              instituteYear={activeProfile?.institute?.year ? String(activeProfile.institute.year) : (isViewingPeer ? '' : instituteYear)}
+              instituteName={
+                (activeProfile?.institute?.verified || activeProfile?.verification?.institute || (Array.isArray(activeProfile?.verifiedInstitutes) && activeProfile.verifiedInstitutes.length > 0))
+                  ? (activeProfile?.institute?.name || (isViewingPeer ? '' : instituteName))
+                  : ''
+              }
+              instituteYear={
+                (activeProfile?.institute?.verified || activeProfile?.verification?.institute || (Array.isArray(activeProfile?.verifiedInstitutes) && activeProfile.verifiedInstitutes.length > 0))
+                  ? (activeProfile?.institute?.year ? String(activeProfile.institute.year) : (isViewingPeer ? '' : instituteYear))
+                  : ''
+              }
               bio={activeProfile?.bio || (isViewingPeer ? '' : bio)}
               interests={activeProfile?.interests || (isViewingPeer ? [] : interests)}
               dishesCreatedCount={dishes.filter(d => {

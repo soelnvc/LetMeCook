@@ -38,7 +38,12 @@ export default function DineInFeed({
     return '';
   };
 
-  const userInstituteName = getInstName(user?.institute);
+  const isUserInstituteVerified = Boolean(
+    user?.institute?.verified ||
+    user?.verification?.institute ||
+    (Array.isArray(user?.verifiedInstitutes) && user.verifiedInstitutes.length > 0)
+  );
+  const userInstituteName = isUserInstituteVerified ? getInstName(user?.institute) : '';
 
   const isDishFromSameInstitute = (dish) => {
     const creatorInst = getInstName(dish.creator?.institute || dish.institute);
@@ -936,9 +941,10 @@ export default function DineInFeed({
         </GlassContainer>
       ) : (
         <div
+          className="mobile-single-column"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(390px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 1fr))',
             gap: 20,
             alignItems: 'start',
             width: '100%'

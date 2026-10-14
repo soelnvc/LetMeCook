@@ -249,3 +249,188 @@ html, body, button, input, select, textarea {
   scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
+/* ========================================================= */
+/* Responsive & Instagram Mobile UX Rules                   */
+/* ========================================================= */
+
+.main-content-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  min-width: 0;
+  box-sizing: border-box;
+  color: #000000;
+  padding: 40px 32px;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .desktop-flex {
+    display: none !important;
+  }
+  .mobile-only {
+    display: block !important;
+  }
+  .mobile-flex {
+    display: flex !important;
+  }
+  .mobile-hidden {
+    display: none !important;
+  }
+  .mobile-full-width {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .mobile-single-column {
+    grid-template-columns: 1fr !important;
+  }
+  .mobile-horiz-scroll {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .mobile-horiz-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .mobile-bottom-safe {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 12px)) !important;
+  }
+
+  .mobile-glass-compact {
+    border-radius: 20px !important;
+  }
+
+  .mobile-nav-item {
+    transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.4, 1);
+  }
+  .mobile-nav-item:active {
+    transform: scale(0.86);
+  }
+
+  .main-content-layout {
+    padding: calc(56px + env(safe-area-inset-top, 0px)) 12px calc(76px + env(safe-area-inset-bottom, 12px)) 12px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden;
+  }
+
+  /* Messages Mobile Instagram Layout */
+  .messages-container-glass {
+    height: calc(100vh - 130px) !important;
+    max-height: calc(100vh - 130px) !important;
+  }
+
+  .messages-conv-panel {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+    border-right: none !important;
+  }
+  .messages-conv-panel.mobile-hidden-chat {
+    display: none !important;
+  }
+
+  .messages-area-panel {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+  .messages-area-panel.mobile-hidden-list {
+    display: none !important;
+  }
+
+  /* Profile Instagram Mobile Layout */
+  .profile-ig-header-desktop {
+    display: none !important;
+  }
+  .profile-ig-header-mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+
+  /* Dish Detail Modal Mobile */
+  .dish-detail-modal-glass {
+    width: 96vw !important;
+    height: 90vh !important;
+    max-height: 90vh !important;
+  }
+  .dish-detail-modal-inner {
+    flex-direction: column !important;
+  }
+  .dish-detail-left-col {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    border-right: none !important;
+    flex: 1 1 100% !important;
+  }
+  .dish-detail-right-col {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .search-modal-container {
+    margin-top: calc(18px + env(safe-area-inset-top, 0px)) !important;
+    max-width: 100% !important;
+  }
+
+  .kitchen-modal-glass {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    height: auto !important;
+    min-height: 480px !important;
+    max-height: 94vh !important;
+  }
+  .kitchen-modal-inner {
+    padding: 16px 14px !important;
+    overflow-y: auto !important;
+  }
+
+  .settings-menu-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+  .settings-menu-col.mobile-hidden {
+    display: none !important;
+  }
+  .settings-content-col {
+    width: 100% !important;
+    min-width: 100% !important;
+    flex: 1 1 100% !important;
+    padding-right: 0 !important;
+  }
+  .settings-content-col.mobile-hidden {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+  .mobile-flex {
+    display: none !important;
+  }
+  .desktop-only {
+    display: block !important;
+  }
+  .desktop-flex {
+    display: flex !important;
+  }
+
+  .profile-ig-header-mobile {
+    display: none !important;
+  }
+  .profile-ig-header-desktop {
+    display: flex !important;
+  }
+}
+

@@ -235,8 +235,19 @@ export default function DishCard({
     return '';
   };
 
-  const userInst = getInstName(currentUser?.institute);
-  const creatorInst = getInstName(creatorObj.institute || dish.institute);
+  const isCurrentUserVerified = Boolean(
+    currentUser?.institute?.verified ||
+    currentUser?.verification?.institute ||
+    (Array.isArray(currentUser?.verifiedInstitutes) && currentUser.verifiedInstitutes.length > 0)
+  );
+  const userInst = isCurrentUserVerified ? getInstName(currentUser?.institute) : '';
+
+  const isCreatorVerified = Boolean(
+    creatorObj.institute?.verified ||
+    creatorObj.verification?.institute ||
+    (Array.isArray(creatorObj.verifiedInstitutes) && creatorObj.verifiedInstitutes.length > 0)
+  );
+  const creatorInst = isCreatorVerified ? getInstName(creatorObj.institute || dish.institute) : '';
   const displayInst = creatorInst || userInst || 'Campus';
 
   const isSameInstitute = Boolean(

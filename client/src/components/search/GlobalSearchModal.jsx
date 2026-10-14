@@ -225,6 +225,7 @@ export default function GlobalSearchModal({
       {/* Central Modal Container */}
       <div
         onClick={(e) => e.stopPropagation()}
+        className="search-modal-container"
         style={{
           width: '100%',
           maxWidth: 540,

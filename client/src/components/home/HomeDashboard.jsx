@@ -91,7 +91,12 @@ export default function HomeDashboard({
   }, []);
 
   const displayName = user?.name?.split(' ')[0] || user?.username || 'Sid';
-  const instituteName = user?.institute?.name || '';
+  const isInstituteVerified = Boolean(
+    user?.institute?.verified ||
+    user?.verification?.institute ||
+    (Array.isArray(user?.verifiedInstitutes) && user.verifiedInstitutes.length > 0)
+  );
+  const instituteName = isInstituteVerified ? (user?.institute?.name || '') : '';
 
   // Top Picks for the user: "Things you might actually want to do."
   const topPicks = useMemo(() => {
@@ -589,7 +594,7 @@ export default function HomeDashboard({
       {/* ========================================================= */}
       {/* 3. MONOCHROMATIC METRICS BAR                              */}
       {/* ========================================================= */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14, marginBottom: 34 }}>
+      <div className="mobile-single-column" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14, marginBottom: 34 }}>
         {[
           {
             label: 'COOKED',
@@ -735,7 +740,7 @@ export default function HomeDashboard({
             </FluidButton>
           </GlassContainer>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
+          <div className="mobile-single-column" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
             {recipes.map((recipe) => (
               <GlassContainer
                 key={recipe._id}
@@ -874,7 +879,7 @@ export default function HomeDashboard({
             </div>
           </GlassContainer>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 16 }}>
+          <div className="mobile-single-column" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 16 }}>
             {topPicks.map(renderDishCard)}
           </div>
         )}
@@ -904,7 +909,9 @@ export default function HomeDashboard({
               </span>
             </div>
             <p style={{ margin: '3px 0 0 0', fontSize: 12.5, color: '#71717a' }}>
-              Verified peers from {instituteName} & affiliated tuition, coaching, and campus network
+              {isInstituteVerified && instituteName
+                ? `Verified peers from ${instituteName} & affiliated tuition, coaching, and campus network`
+                : 'Connect and cook with verified campus peers and local student network'}
             </p>
           </div>
 
@@ -936,7 +943,7 @@ export default function HomeDashboard({
             </div>
           </GlassContainer>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 16 }}>
+          <div className="mobile-single-column" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 16 }}>
             {networkDishes.map(renderDishCard)}
           </div>
         )}

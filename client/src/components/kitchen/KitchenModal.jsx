@@ -596,6 +596,7 @@ export default function KitchenModal({
       {/* Sized Main Container (580px x 470px) - Spacious, zero scrolling */}
       <GlassContainer
         radius={28}
+        className="kitchen-modal-glass"
         style={{
           width: 580,
           maxWidth: '94vw',
@@ -613,6 +614,7 @@ export default function KitchenModal({
           boxSizing: 'border-box',
           overflow: 'hidden'
         }}
+        innerClassName="kitchen-modal-inner"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header: Step Indicator & Close */}

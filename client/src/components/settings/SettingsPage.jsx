@@ -298,6 +298,7 @@ export default function SettingsPage({
 }) {
   // Navigation active section
   const [activeSection, setActiveSection] = useState(initialSection || 'privacy');
+  const [mobileSectionOpen, setMobileSectionOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
@@ -309,6 +310,7 @@ export default function SettingsPage({
 
   const handleSelectSection = (secId) => {
     setActiveSection(secId);
+    setMobileSectionOpen(true);
     if (onSectionChange) onSectionChange(secId);
   };
 
@@ -411,6 +413,11 @@ export default function SettingsPage({
       if (user.bio !== undefined) setBio(user.bio || '');
       if (user.interests !== undefined) setInterests(user.interests || ['music', 'Gym', 'Sports', 'Anime', 'Coffee']);
       if (user.avatar !== undefined) setEditAvatar(user.avatar || '');
+      if (user.email !== undefined) setEmailAddress(user.email || '');
+      if (user.mobile !== undefined) setMobileNumber(user.mobile || '');
+      if (user.age !== undefined) setAge(user.age ? String(user.age) : '');
+      if (user.gender !== undefined) setGender(user.gender || 'Male');
+      if (user.address !== undefined) setAddress(user.address || '');
 
       const isVerified = Boolean(
         user.institute?.verified ||
@@ -641,11 +648,11 @@ export default function SettingsPage({
   const [currentTheme, setCurrentTheme] = useState(themePreference || 'system');
 
   // 5. Credentials & Verification States
-  const [mobileNumber, setMobileNumber] = useState(user?.mobile || '+91 98765 43210');
-  const [emailAddress, setEmailAddress] = useState(user?.email || 's.sharma@smail.iitm.ac.in');
-  const [age, setAge] = useState(user?.age || '21');
+  const [mobileNumber, setMobileNumber] = useState(user?.mobile || '');
+  const [emailAddress, setEmailAddress] = useState(user?.email || '');
+  const [age, setAge] = useState(user?.age ? String(user.age) : '20');
   const [gender, setGender] = useState(user?.gender || 'Male');
-  const [address, setAddress] = useState(user?.address || 'Mandakini Hostel, Room 314, Campus Zone');
+  const [address, setAddress] = useState(user?.address || '');
   const [idVerificationStatus, setIdVerificationStatus] = useState(user?.idVerified ? 'verified' : 'unverified');
 
   // 6. Security & Management States
@@ -1042,6 +1049,7 @@ export default function SettingsPage({
         {/* LEFT COLUMN: SETTINGS NAVIGATION (Static / Fixed Menu)   */}
         {/* ========================================================= */}
         <aside
+          className={`settings-menu-col ${mobileSectionOpen ? 'mobile-hidden' : ''}`}
           style={{
             width: 270,
             maxWidth: 270,
@@ -1232,7 +1240,7 @@ export default function SettingsPage({
         {/* RIGHT COLUMN: ACTIVE SETTINGS PANEL (Scrolls smoothly)    */}
         {/* ========================================================= */}
         <main
-          className="custom-scrollbar"
+          className={`custom-scrollbar settings-content-col ${!mobileSectionOpen ? 'mobile-hidden' : ''}`}
           style={{
             flex: 1,
             minWidth: 320,
@@ -1244,6 +1252,31 @@ export default function SettingsPage({
             boxSizing: 'border-box'
           }}
         >
+          {/* Mobile Back Button to Settings Menu */}
+          <div className="mobile-flex" style={{ display: 'none', marginBottom: 14 }}>
+            <button
+              type="button"
+              onClick={() => setMobileSectionOpen(false)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'none',
+                border: 'none',
+                padding: '6px 0',
+                cursor: 'pointer',
+                color: '#09090b',
+                fontWeight: 600,
+                fontSize: 13.5
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>Back to Settings</span>
+            </button>
+          </div>
+
           {/* SECTION 0: EDIT PROFILE */}
           {activeSection === 'edit_profile' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -2541,13 +2574,13 @@ export default function SettingsPage({
 
                     <div>
                       <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#52525b', marginBottom: 6 }}>
-                        Institute Email
+                        Account Email
                       </label>
                       <CustomInput
                         type="email"
                         value={emailAddress}
                         onChange={(e) => setEmailAddress(e.target.value)}
-                        placeholder="s.sharma@smail.iitm.ac.in"
+                        placeholder="you@example.com"
                       />
                     </div>
 

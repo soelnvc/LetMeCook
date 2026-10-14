@@ -44,7 +44,8 @@ export default function MessageArea({
   onViewProfile,
   onAcceptRequest,
   onRejectRequest,
-  onBlockUser
+  onBlockUser,
+  onBack
 }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [dishActionLoadingId, setDishActionLoadingId] = useState(null);
@@ -257,6 +258,7 @@ export default function MessageArea({
 
   return (
     <div
+      className="messages-area-panel"
       style={{
         flex: 1,
         display: 'flex',
@@ -278,19 +280,43 @@ export default function MessageArea({
               backgroundColor: 'transparent'
             }}
           >
-            <div
-              onClick={() => {
-                if (onViewProfile) onViewProfile(activeUser);
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 18,
-                cursor: onViewProfile ? 'pointer' : 'default',
-                minWidth: 0
-              }}
-              title={onViewProfile ? `View @${activeUser.username}'s profile` : ''}
-            >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="mobile-flex"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '4px 6px 4px 0',
+                    cursor: 'pointer',
+                    color: '#09090b',
+                    display: 'none',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}
+                  title="Back to conversations"
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+              )}
+              <div
+                onClick={() => {
+                  if (onViewProfile) onViewProfile(activeUser);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 14,
+                  cursor: onViewProfile ? 'pointer' : 'default',
+                  minWidth: 0
+                }}
+                title={onViewProfile ? `View @${activeUser.username}'s profile` : ''}
+              >
               {(() => {
                 const headerAvatar = resolveUserAvatar(activeUser);
                 return headerAvatar ? (
@@ -344,6 +370,7 @@ export default function MessageArea({
                 </div>
               </div>
             </div>
+          </div>
           </div>
 
           {/* Pending Invitation Banner (Sender: 1 message allowed) */}

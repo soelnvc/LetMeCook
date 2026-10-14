@@ -125,6 +125,7 @@ export default function DishDetailModal({
 
   const [isMounted, setIsMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [mobileTab, setMobileTab] = useState('details'); // 'details' | 'chat'
 
   // Chat state
   const [messages, setMessages] = useState([]);
@@ -615,6 +616,7 @@ export default function DishDetailModal({
       {/* ========================================================= */}
       <GlassContainer
         radius={28}
+        className="dish-detail-modal-glass"
         style={{
           width: '92vw',
           maxWidth: 1240,
@@ -635,11 +637,80 @@ export default function DishDetailModal({
           padding: 0,
           overflow: 'hidden'
         }}
+        innerClassName="dish-detail-modal-inner"
       >
+        {/* Mobile Header: Tab Switcher (Details vs Chat) + Close Button */}
+        <div
+          className="mobile-flex"
+          style={{
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '10px 14px',
+            borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+            backgroundColor: 'rgba(255, 255, 255, 0.45)',
+            width: '100%',
+            boxSizing: 'border-box',
+            flexShrink: 0
+          }}
+        >
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => setMobileTab('details')}
+              style={{
+                padding: '5px 14px',
+                borderRadius: 9999,
+                border: 'none',
+                fontSize: 12.5,
+                fontWeight: mobileTab === 'details' ? 700 : 500,
+                background: mobileTab === 'details' ? '#09090b' : 'transparent',
+                color: mobileTab === 'details' ? '#ffffff' : '#52525b',
+                cursor: 'pointer'
+              }}
+            >
+              Details
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileTab('chat')}
+              style={{
+                padding: '5px 14px',
+                borderRadius: 9999,
+                border: 'none',
+                fontSize: 12.5,
+                fontWeight: mobileTab === 'chat' ? 700 : 500,
+                background: mobileTab === 'chat' ? '#09090b' : 'transparent',
+                color: mobileTab === 'chat' ? '#ffffff' : '#52525b',
+                cursor: 'pointer'
+              }}
+            >
+              Chat
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 4,
+              cursor: 'pointer',
+              color: '#52525b'
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
         {/* ========================================================= */}
         {/* LEFT COLUMN: 35% OF POPUP (Ticket Profile, Details, Actions) */}
         {/* ========================================================= */}
         <div
+          className={`dish-detail-left-col ${mobileTab !== 'details' ? 'mobile-hidden' : ''}`}
           style={{
             width: '35%',
             minWidth: 340,
@@ -1227,6 +1298,7 @@ export default function DishDetailModal({
         {/* RIGHT COLUMN: 65% OF POPUP (Header with Member PFPs & Chat) */}
         {/* ========================================================= */}
         <div
+          className={`dish-detail-right-col ${mobileTab !== 'chat' ? 'mobile-hidden' : ''}`}
           style={{
             flex: 1,
             display: 'flex',

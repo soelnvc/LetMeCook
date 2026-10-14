@@ -54,6 +54,7 @@ export default function ConversationList({
 
   return (
     <div
+      className="messages-conv-panel"
       style={{
         width: 360,
         flexShrink: 0,
