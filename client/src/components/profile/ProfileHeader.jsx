@@ -241,8 +241,15 @@ export default function ProfileHeader({
       ? user.interests
       : (interests && interests.length > 0 ? interests : []);
 
-  const displayInstitute = user?.institute?.name || (typeof user?.institute === 'string' ? user.institute : instituteName) || '';
-  const displayYear = user?.institute?.year || instituteYear || '';
+  const isCampusVerified = Boolean(
+    user?.institute?.verified ||
+    user?.verification?.institute ||
+    (Array.isArray(user?.verifiedInstitutes) && user.verifiedInstitutes.length > 0)
+  );
+  const displayInstitute = isCampusVerified
+    ? (user?.institute?.name || (typeof user?.institute === 'string' ? user.institute : instituteName) || '')
+    : '';
+  const displayYear = isCampusVerified ? (user?.institute?.year || instituteYear || '') : '';
 
   return (
     <div style={{ display: 'flex', gap: 64, alignItems: 'flex-start', marginBottom: 44, position: 'relative' }}>
@@ -440,20 +447,22 @@ export default function ProfileHeader({
             >
               {user?.username || 'user'}
             </h2>
-            {/* Verified badge */}
-            <span
-              title="Verified Campus Peer"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#0095f6'
-              }}
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="#0095f6">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-            </span>
+            {/* Verified badge (Only when institute is verified) */}
+            {isCampusVerified && (
+              <span
+                title="Verified Campus Peer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#0095f6'
+                }}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="#0095f6">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+              </span>
+            )}
           </div>
 
           {/* Action Buttons: Self vs 2nd Person */}

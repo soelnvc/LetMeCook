@@ -20,7 +20,27 @@ const verificationSchema = new mongoose.Schema(
     },
     provider: {
       type: String,
-      default: 'manual'
+      default: 'institutional_email'
+    },
+    instituteEmail: {
+      type: String,
+      default: null,
+      trim: true,
+      lowercase: true,
+      index: true
+    },
+    otp: {
+      type: String,
+      default: null,
+      select: false
+    },
+    otpExpiresAt: {
+      type: Date,
+      default: null
+    },
+    attempts: {
+      type: Number,
+      default: 0
     },
     submittedAt: {
       type: Date,

@@ -248,8 +248,13 @@ function AppContent() {
       setPronouns(res.data.pronouns || 'He/Him');
       setBio(res.data.bio || '');
       setEditAvatar(res.data.avatar || '');
-      setInstituteName(res.data.institute?.name || '');
-      setInstituteYear(res.data.institute?.year ? String(res.data.institute.year) : '');
+      const isVerified = Boolean(
+        res.data.institute?.verified ||
+        res.data.verification?.institute ||
+        (Array.isArray(res.data.verifiedInstitutes) && res.data.verifiedInstitutes.length > 0)
+      );
+      setInstituteName(isVerified ? (res.data.institute?.name || '') : '');
+      setInstituteYear(isVerified && res.data.institute?.year ? String(res.data.institute.year) : '');
       setSecondaryInstituteName(res.data.secondaryInstitute?.name || '');
       setSecondaryInstituteYear(res.data.secondaryInstitute?.year ? String(res.data.secondaryInstitute.year) : '');
       if (res.data.interests && Array.isArray(res.data.interests)) {
@@ -1709,14 +1714,20 @@ function AppContent() {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: '#000000' }}>
                   <span>@{activeProfile?.username || 'user'}</span>
-                  <span
-                    title="Verified Campus Peer"
-                    style={{ display: 'inline-flex', color: '#0095f6' }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#0095f6">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                    </svg>
-                  </span>
+                  {Boolean(
+                    activeProfile?.institute?.verified ||
+                    activeProfile?.verification?.institute ||
+                    (Array.isArray(activeProfile?.verifiedInstitutes) && activeProfile.verifiedInstitutes.length > 0)
+                  ) && (
+                    <span
+                      title="Verified Campus Peer"
+                      style={{ display: 'inline-flex', color: '#0095f6' }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#0095f6">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                      </svg>
+                    </span>
+                  )}
                 </div>
 
                 <div style={{ width: 120, display: 'flex', justifyContent: 'flex-end' }}>
@@ -2492,8 +2503,13 @@ function AppContent() {
               if (res.data.bio !== undefined) setBio(res.data.bio);
               if (res.data.interests !== undefined) setInterests(res.data.interests);
               if (res.data.avatar !== undefined) setEditAvatar(res.data.avatar);
-              if (res.data.institute?.name !== undefined) setInstituteName(res.data.institute.name);
-              if (res.data.institute?.year !== undefined) setInstituteYear(String(res.data.institute.year));
+              const isSavedVerified = Boolean(
+                res.data.institute?.verified ||
+                res.data.verification?.institute ||
+                (Array.isArray(res.data.verifiedInstitutes) && res.data.verifiedInstitutes.length > 0)
+              );
+              setInstituteName(isSavedVerified ? (res.data.institute?.name || '') : '');
+              setInstituteYear(isSavedVerified && res.data.institute?.year ? String(res.data.institute.year) : '');
               if (res.data.secondaryInstitute?.name !== undefined) setSecondaryInstituteName(res.data.secondaryInstitute.name);
               if (res.data.secondaryInstitute?.year !== undefined) setSecondaryInstituteYear(String(res.data.secondaryInstitute.year));
               setMessage('Settings saved successfully');
@@ -2509,8 +2525,13 @@ function AppContent() {
             if (newUser.bio !== undefined) setBio(newUser.bio);
             if (newUser.interests !== undefined) setInterests(newUser.interests);
             if (newUser.avatar !== undefined) setEditAvatar(newUser.avatar);
-            if (newUser.institute?.name !== undefined) setInstituteName(newUser.institute.name || '');
-            if (newUser.institute?.year !== undefined) setInstituteYear(newUser.institute.year ? String(newUser.institute.year) : '');
+            const isReloadVerified = Boolean(
+              newUser.institute?.verified ||
+              newUser.verification?.institute ||
+              (Array.isArray(newUser.verifiedInstitutes) && newUser.verifiedInstitutes.length > 0)
+            );
+            setInstituteName(isReloadVerified ? (newUser.institute?.name || '') : '');
+            setInstituteYear(isReloadVerified && newUser.institute?.year ? String(newUser.institute.year) : '');
             if (newUser.secondaryInstitute?.name !== undefined) setSecondaryInstituteName(newUser.secondaryInstitute.name || '');
             if (newUser.secondaryInstitute?.year !== undefined) setSecondaryInstituteYear(newUser.secondaryInstitute.year ? String(newUser.secondaryInstitute.year) : '');
           }}

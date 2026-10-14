@@ -359,12 +359,50 @@ export default function SettingsPage({
 
   // Verification Modal State
   const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [verifyInstName, setVerifyInstName] = useState('');
+  const [verifyStep, setVerifyStep] = useState(1); // 1: Email/Details, 2: OTP
   const [verifyInstEmail, setVerifyInstEmail] = useState('');
   const [verifyInstYear, setVerifyInstYear] = useState('');
   const [verifyInstCourse, setVerifyInstCourse] = useState('');
+  const [verifyOtp, setVerifyOtp] = useState('');
+  const [verifyDetectedUni, setVerifyDetectedUni] = useState(null);
+  const [verifyResendCooldown, setVerifyResendCooldown] = useState(0);
+  const [verifyDevCode, setVerifyDevCode] = useState('');
   const [isSubmittingVerification, setIsSubmittingVerification] = useState(false);
   const [verifyError, setVerifyError] = useState('');
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (verifyResendCooldown > 0) {
+      const timer = setTimeout(() => setVerifyResendCooldown((prev) => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [verifyResendCooldown]);
+
+  // Live university domain lookup as user types
+  useEffect(() => {
+    if (!verifyInstEmail || !verifyInstEmail.includes('@')) {
+      setVerifyDetectedUni(null);
+      return;
+    }
+    const cleanEmail = verifyInstEmail.trim().toLowerCase();
+    const parts = cleanEmail.split('@');
+    if (parts.length === 2 && parts[1].includes('.')) {
+      const timer = setTimeout(() => {
+        apiFetch(`/safety/verifications/institute/lookup?email=${encodeURIComponent(cleanEmail)}`)
+          .then((res) => {
+            if (res.data?.recognized) {
+              setVerifyDetectedUni(res.data);
+            } else {
+              setVerifyDetectedUni(null);
+            }
+          })
+          .catch(() => setVerifyDetectedUni(null));
+      }, 300);
+      return () => clearTimeout(timer);
+    } else {
+      setVerifyDetectedUni(null);
+    }
+  }, [verifyInstEmail]);
 
   useEffect(() => {
     if (user) {
@@ -475,17 +513,12 @@ export default function SettingsPage({
     }
   };
 
-  const handleVerifySubmit = async (e) => {
+  const handleRequestOtp = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    const cleanName = verifyInstName.trim();
     const cleanEmail = verifyInstEmail.trim().toLowerCase();
 
-    if (!cleanName) {
-      setVerifyError('Please enter your university or college name.');
-      return;
-    }
     if (!cleanEmail || !cleanEmail.includes('@')) {
-      setVerifyError('Please enter a valid academic/institutional email address.');
+      setVerifyError('Please enter a valid institutional / university email address.');
       return;
     }
 
@@ -493,11 +526,51 @@ export default function SettingsPage({
     setVerifyError('');
 
     try {
-      const res = await apiFetch('/safety/verifications/institute', {
+      const res = await apiFetch('/safety/verifications/institute/request-otp', {
         method: 'POST',
         body: JSON.stringify({
-          instituteName: cleanName,
           instituteEmail: cleanEmail,
+          course: verifyInstCourse.trim() || undefined,
+          year: verifyInstYear ? Number(verifyInstYear) : undefined
+        })
+      });
+
+      if (res.data?.instituteName) {
+        setVerifyDetectedUni({ name: res.data.instituteName, country: res.data.country });
+      }
+      if (res.data?.devOtp) {
+        setVerifyDevCode(res.data.devOtp);
+      }
+      setVerifyStep(2);
+      setVerifyResendCooldown(45);
+      setVerifyOtp('');
+      triggerSuccess(`Verification code sent to ${cleanEmail}`);
+    } catch (err) {
+      setVerifyError(err.message || 'Failed to send verification code. Please check your email.');
+    } finally {
+      setIsSubmittingVerification(false);
+    }
+  };
+
+  const handleConfirmOtp = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const cleanEmail = verifyInstEmail.trim().toLowerCase();
+    const cleanOtp = verifyOtp.trim();
+
+    if (!cleanOtp || cleanOtp.length < 6) {
+      setVerifyError('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    setIsSubmittingVerification(true);
+    setVerifyError('');
+
+    try {
+      const res = await apiFetch('/safety/verifications/institute/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({
+          instituteEmail: cleanEmail,
+          otp: cleanOtp,
           course: verifyInstCourse.trim() || undefined,
           year: verifyInstYear ? Number(verifyInstYear) : undefined
         })
@@ -505,7 +578,9 @@ export default function SettingsPage({
 
       const updatedUser = res.data?.user;
       if (updatedUser) {
-        setInstituteName(updatedUser.institute?.name || cleanName);
+        if (updatedUser.institute?.name) {
+          setInstituteName(updatedUser.institute.name);
+        }
         if (updatedUser.institute?.year) {
           setInstituteYear(String(updatedUser.institute.year));
         }
@@ -514,14 +589,17 @@ export default function SettingsPage({
         }
       }
 
-      triggerSuccess(`Successfully verified with ${cleanName}!`);
+      triggerSuccess(`Successfully verified with ${updatedUser?.institute?.name || 'Institution'}!`);
       setShowVerificationModal(false);
-      setVerifyInstName('');
+      setVerifyStep(1);
       setVerifyInstEmail('');
       setVerifyInstYear('');
       setVerifyInstCourse('');
+      setVerifyOtp('');
+      setVerifyDevCode('');
+      setVerifyDetectedUni(null);
     } catch (err) {
-      setVerifyError(err.message || 'Verification failed. Please check your credentials.');
+      setVerifyError(err.message || 'Verification failed. Please check the code.');
     } finally {
       setIsSubmittingVerification(false);
     }
@@ -3334,7 +3412,11 @@ export default function SettingsPage({
             padding: 16
           }}
           onClick={() => {
-            if (!isSubmittingVerification) setShowVerificationModal(false);
+            if (!isSubmittingVerification) {
+              setShowVerificationModal(false);
+              setVerifyStep(1);
+              setVerifyError('');
+            }
           }}
         >
           <div
@@ -3365,8 +3447,8 @@ export default function SettingsPage({
                       width: 40,
                       height: 40,
                       borderRadius: 12,
-                      background: 'rgba(249, 115, 22, 0.1)',
-                      color: '#f97316',
+                      background: 'rgba(0, 0, 0, 0.06)',
+                      color: '#09090b',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
@@ -3379,17 +3461,23 @@ export default function SettingsPage({
                   </div>
                   <div>
                     <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
-                      Verify Institution
+                      {verifyStep === 1 ? 'Verify Academic Standing' : 'Enter Verification Code'}
                     </h3>
                     <p style={{ fontSize: 12.5, color: '#71717a', margin: '2px 0 0 0' }}>
-                      Verify academic credentials to unlock campus badges & networks.
+                      {verifyStep === 1
+                        ? '1-to-1 official university domain verification + OTP challenge.'
+                        : `Confirm ownership of ${verifyInstEmail}.`}
                     </p>
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => setShowVerificationModal(false)}
+                  onClick={() => {
+                    setShowVerificationModal(false);
+                    setVerifyStep(1);
+                    setVerifyError('');
+                  }}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -3408,115 +3496,237 @@ export default function SettingsPage({
                 </button>
               </div>
 
-              {/* Quick Select Popular Campuses - Dine In solid black style */}
-              <div>
-                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#71717a', marginBottom: 8 }}>
-                  Quick Select Campus:
-                </label>
-                <SegmentedSelector
-                  value={verifyInstName}
-                  onChange={(campus) => setVerifyInstName(campus)}
-                  options={['IIT Madras', 'IIT Bombay', 'IIT Delhi', 'BITS Pilani', 'IISc Bangalore'].map((campus) => ({
-                    value: campus,
-                    label: campus
-                  }))}
-                />
-              </div>
-
-              {/* Verification Form */}
-              <form onSubmit={handleVerifySubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 5 }}>
-                    Institution Name:
-                  </label>
-                  <CustomInput
-                    value={verifyInstName}
-                    onChange={(e) => setVerifyInstName(e.target.value)}
-                    placeholder="e.g. IIT Madras, BITS, Stanford..."
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 5 }}>
-                    Institutional / Student Email:
-                  </label>
-                  <CustomInput
-                    type="email"
-                    value={verifyInstEmail}
-                    onChange={(e) => setVerifyInstEmail(e.target.value)}
-                    placeholder="e.g. rollnumber@smail.iitm.ac.in or .edu"
-                    required
-                  />
-                  <span style={{ fontSize: 11, color: '#71717a', marginTop: 3, display: 'block' }}>
-                    Requires your official academic or college-issued email.
-                  </span>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {/* STEP 1: Institutional Email & Details Form */}
+              {verifyStep === 1 && (
+                <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div>
                     <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 5 }}>
-                      Batch / Graduation Year:
+                      Official Institutional / Student Email:
                     </label>
                     <CustomInput
-                      type="number"
-                      value={verifyInstYear}
-                      onChange={(e) => setVerifyInstYear(e.target.value)}
-                      placeholder="e.g. 2028"
+                      type="email"
+                      value={verifyInstEmail}
+                      onChange={(e) => setVerifyInstEmail(e.target.value)}
+                      placeholder="e.g. roll@smail.iitm.ac.in or student@stanford.edu"
+                      required
+                      autoFocus
                     />
+                    <span style={{ fontSize: 11.5, color: '#71717a', marginTop: 4, display: 'block', lineHeight: 1.4 }}>
+                      Verified against global university registries. 1 account per university email.
+                    </span>
+
+                    {/* Live Recognized University Box */}
+                    {verifyDetectedUni && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 9,
+                          padding: '9px 14px',
+                          borderRadius: 12,
+                          backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                          border: '1px solid rgba(0, 0, 0, 0.08)',
+                          marginTop: 8
+                        }}
+                      >
+                        <span style={{ fontSize: 16 }}>🎓</span>
+                        <div style={{ fontSize: 12.5, fontWeight: 700, color: '#09090b' }}>
+                          {verifyDetectedUni.name}
+                          {verifyDetectedUni.country && (
+                            <span style={{ fontWeight: 500, color: '#71717a', marginLeft: 6 }}>
+                              ({verifyDetectedUni.country})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 5 }}>
-                      Degree / Program (Opt):
-                    </label>
-                    <CustomInput
-                      value={verifyInstCourse}
-                      onChange={(e) => setVerifyInstCourse(e.target.value)}
-                      placeholder="e.g. B.Tech CS"
-                    />
-                  </div>
-                </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 5 }}>
+                        Graduation Year:
+                      </label>
+                      <CustomInput
+                        type="number"
+                        value={verifyInstYear}
+                        onChange={(e) => setVerifyInstYear(e.target.value)}
+                        placeholder="e.g. 2026"
+                      />
+                    </div>
 
-                {verifyError && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 5 }}>
+                        Degree / Program:
+                      </label>
+                      <CustomInput
+                        value={verifyInstCourse}
+                        onChange={(e) => setVerifyInstCourse(e.target.value)}
+                        placeholder="e.g. B.Tech CS"
+                      />
+                    </div>
+                  </div>
+
+                  {verifyError && (
+                    <div
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: 12,
+                        background: 'rgba(239, 68, 68, 0.08)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        fontSize: 12,
+                        color: '#dc2626',
+                        fontWeight: 600,
+                        lineHeight: 1.45
+                      }}
+                    >
+                      {verifyError}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 4 }}>
+                    <FluidButton
+                      type="button"
+                      onClick={() => setShowVerificationModal(false)}
+                      disabled={isSubmittingVerification}
+                      style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 600 }}
+                    >
+                      Cancel
+                    </FluidButton>
+
+                    <FluidButton
+                      type="submit"
+                      disabled={isSubmittingVerification || !verifyInstEmail.trim()}
+                      style={{
+                        padding: '8px 22px',
+                        fontSize: 12.5,
+                        fontWeight: 700
+                      }}
+                    >
+                      {isSubmittingVerification ? 'Sending Code...' : 'Send Verification Code'}
+                    </FluidButton>
+                  </div>
+                </form>
+              )}
+
+              {/* STEP 2: OTP Confirmation Form */}
+              {verifyStep === 2 && (
+                <form onSubmit={handleConfirmOtp} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div
                     style={{
-                      padding: '8px 12px',
-                      borderRadius: 10,
-                      background: 'rgba(239, 68, 68, 0.08)',
-                      border: '1px solid rgba(239, 68, 68, 0.2)',
-                      fontSize: 12,
-                      color: '#dc2626',
-                      fontWeight: 600
-                    }}
-                  >
-                    {verifyError}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 6 }}>
-                  <FluidButton
-                    type="button"
-                    onClick={() => setShowVerificationModal(false)}
-                    disabled={isSubmittingVerification}
-                    style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 600 }}
-                  >
-                    Cancel
-                  </FluidButton>
-
-                  <FluidButton
-                    type="submit"
-                    disabled={isSubmittingVerification}
-                    style={{
-                      padding: '8px 22px',
+                      padding: '12px 16px',
+                      borderRadius: 14,
+                      backgroundColor: 'rgba(0, 0, 0, 0.03)',
+                      border: '1px solid rgba(0, 0, 0, 0.07)',
                       fontSize: 12.5,
-                      fontWeight: 700
+                      color: '#3f3f46',
+                      lineHeight: 1.5
                     }}
                   >
-                    {isSubmittingVerification ? 'Verifying...' : 'Verify Instantly'}
-                  </FluidButton>
-                </div>
-              </form>
+                    Enter the 6-digit confirmation code sent to{' '}
+                    <strong style={{ color: '#09090b' }}>{verifyInstEmail}</strong>
+                    {verifyDetectedUni?.name ? ` (${verifyDetectedUni.name})` : ''}.
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#09090b', marginBottom: 6, textAlign: 'center' }}>
+                      6-Digit Academic Code:
+                    </label>
+                    <CustomInput
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      value={verifyOtp}
+                      onChange={(e) => setVerifyOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="••••••"
+                      autoFocus
+                      required
+                      style={{
+                        fontSize: 24,
+                        letterSpacing: 10,
+                        textAlign: 'center',
+                        fontWeight: 800,
+                        fontFamily: 'monospace'
+                      }}
+                    />
+                    {verifyDevCode && (
+                      <div style={{ fontSize: 11.5, color: '#71717a', textAlign: 'center', marginTop: 6 }}>
+                        Local Dev Code: <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#09090b' }}>{verifyDevCode}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                    {verifyResendCooldown > 0 ? (
+                      <span style={{ color: '#71717a' }}>
+                        Resend code in <strong style={{ color: '#09090b' }}>{verifyResendCooldown}s</strong>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleRequestOtp}
+                        disabled={isSubmittingVerification}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#09090b',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          padding: 0,
+                          fontSize: 12,
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        Resend Verification Code
+                      </button>
+                    )}
+                  </div>
+
+                  {verifyError && (
+                    <div
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: 12,
+                        background: 'rgba(239, 68, 68, 0.08)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        fontSize: 12,
+                        color: '#dc2626',
+                        fontWeight: 600,
+                        lineHeight: 1.45
+                      }}
+                    >
+                      {verifyError}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                    <FluidButton
+                      type="button"
+                      onClick={() => {
+                        setVerifyStep(1);
+                        setVerifyError('');
+                      }}
+                      disabled={isSubmittingVerification}
+                      style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 600 }}
+                    >
+                      Back
+                    </FluidButton>
+
+                    <FluidButton
+                      type="submit"
+                      disabled={isSubmittingVerification || verifyOtp.length < 6}
+                      style={{
+                        padding: '8px 22px',
+                        fontSize: 12.5,
+                        fontWeight: 700
+                      }}
+                    >
+                      {isSubmittingVerification ? 'Verifying...' : 'Verify & Link Account'}
+                    </FluidButton>
+                  </div>
+                </form>
+              )}
             </GlassContainer>
           </div>
         </div>

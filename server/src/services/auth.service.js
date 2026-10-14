@@ -60,7 +60,21 @@ const register = async ({ username, name, email, mobile, password, age, institut
     mobile,
     passwordHash,
     age: parsedAge,
-    institute: institute || {}
+    institute: {
+      name: null,
+      email: null,
+      emailDomain: null,
+      course: null,
+      year: null,
+      verified: false
+    },
+    verifiedInstitutes: [],
+    verification: {
+      mobile: false,
+      email: false,
+      institute: false,
+      identity: false
+    }
   });
 
   const token = jwt.sign(

@@ -62,11 +62,20 @@ const userSchema = new mongoose.Schema(
     },
     institute: {
       name: { type: String, default: null },
+      email: { type: String, default: null, trim: true, lowercase: true },
       emailDomain: { type: String, default: null },
       course: { type: String, default: null },
       year: { type: Number, default: null },
       verified: { type: Boolean, default: false },
       verifiedAt: { type: Date, default: null }
+    },
+    instituteEmail: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+      index: true
     },
     secondaryInstitute: {
       name: { type: String, default: null },

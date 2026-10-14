@@ -155,7 +155,15 @@ export default function HomeDashboard({
       ? '∞'
       : Math.max(0, (dish.capacity?.max || 4) - (dish.participants?.length || 0));
 
-    const badgeLabel = dish.badgeText || `${dish.creator?.institute?.name || instituteName} • Verified`;
+    const isCreatorVerified = Boolean(
+      dish.creator?.institute?.verified ||
+      dish.creator?.verification?.institute ||
+      (isCreator && (user?.institute?.verified || user?.verification?.institute))
+    );
+    const creatorInstName = dish.creator?.institute?.name || (isCreator ? (user?.institute?.name || instituteName) : null);
+    const badgeLabel = dish.badgeText || (isCreatorVerified
+      ? `${creatorInstName || instituteName || 'Campus'} • Verified`
+      : `${creatorInstName || 'Community Peer'}`);
 
     // Affiliation source badge text
     const creatorInst = dish.creator?.institute?.name || dish.institute?.name || '';
@@ -303,9 +311,11 @@ export default function HomeDashboard({
 
           {/* Badge: Minimized color in text */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.05)', marginBottom: 10 }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="#0095f6">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-            </svg>
+            {isCreatorVerified && (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#0095f6">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              </svg>
+            )}
             <span style={{ fontSize: 11, fontWeight: 600, color: '#3f3f46' }}>
               {badgeLabel}
             </span>
