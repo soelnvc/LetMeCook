@@ -390,19 +390,20 @@ export default function NotificationsView({
             {/* Heart Icon Badge */}
             <div
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 14,
-                backgroundColor: "rgba(239, 68, 68, 0.1)",
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                backgroundColor: "rgba(239, 68, 68, 0.08)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 color: "#ef4444",
+                flexShrink: 0
               }}
             >
               <svg
-                width="22"
-                height="22"
+                width="19"
+                height="19"
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
@@ -413,18 +414,18 @@ export default function NotificationsView({
             <div>
               <h1
                 style={{
-                  fontSize: 24,
-                  fontWeight: 800,
-                  letterSpacing: "-0.5px",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  letterSpacing: "-0.3px",
                   color: "#09090b",
                   margin: 0,
-                  lineHeight: 1.15,
+                  lineHeight: 1.2,
                 }}
               >
                 Notifications
               </h1>
               <p
-                style={{ margin: "3px 0 0 0", fontSize: 13, color: "#71717a" }}
+                style={{ margin: "2px 0 0 0", fontSize: 12.5, color: "#71717a" }}
               >
                 Campus peer requests, new connections & activity
               </p>
@@ -436,9 +437,9 @@ export default function NotificationsView({
             disabled={isMarkingAllRead}
             onClick={handleMarkAllRead}
             style={{
-              padding: "8px 16px",
-              fontSize: 12.5,
-              fontWeight: 600,
+              padding: "6px 14px",
+              fontSize: 12,
+              fontWeight: 500,
               color: "#3f3f46",
               display: "inline-flex",
               alignItems: "center",
@@ -735,8 +736,8 @@ export default function NotificationsView({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    padding: "14px 16px",
-                    borderRadius: 18,
+                    padding: "10px 14px",
+                    borderRadius: 14,
                     backgroundColor: item.read
                       ? "transparent"
                       : "rgba(255, 255, 255, 0.55)",
@@ -750,7 +751,7 @@ export default function NotificationsView({
                     e.currentTarget.style.backgroundColor =
                       "rgba(255, 255, 255, 0.75)";
                     e.currentTarget.style.boxShadow =
-                      "0 3px 12px rgba(0, 0, 0, 0.04)";
+                      "0 2px 10px rgba(0, 0, 0, 0.03)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = item.read
@@ -765,10 +766,10 @@ export default function NotificationsView({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 14,
+                      gap: 12,
                       minWidth: 0,
                       flex: 1,
-                      marginRight: 16,
+                      marginRight: 14,
                     }}
                   >
                     {/* Clickable Avatar with type badge */}
@@ -783,18 +784,18 @@ export default function NotificationsView({
                     >
                       <div
                         style={{
-                          width: 44,
-                          height: 44,
+                          width: 38,
+                          height: 38,
                           borderRadius: "50%",
                           overflow: "hidden",
-                          backgroundColor: "#f97316",
+                          backgroundColor: "#18181b",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           color: "#ffffff",
-                          fontWeight: 700,
-                          fontSize: 16,
-                          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+                          fontWeight: 600,
+                          fontSize: 13.5,
+                          boxShadow: "0 1px 4px rgba(0, 0, 0, 0.06)",
                         }}
                       >
                         {actorAvatar ? (
@@ -818,12 +819,12 @@ export default function NotificationsView({
                           position: "absolute",
                           bottom: -2,
                           right: -2,
-                          width: 20,
-                          height: 20,
+                          width: 17,
+                          height: 17,
                           borderRadius: "50%",
                           backgroundColor:
                             item.type === "connection_accepted"
-                              ? "#22c55e"
+                              ? "#16a34a"
                               : item.type === "connection_added"
                                 ? "#0284c7"
                                 : item.type === "dish_invite"
@@ -835,19 +836,19 @@ export default function NotificationsView({
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          border: "2px solid #ffffff",
-                          fontSize: 10,
-                          boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+                          border: "1.5px solid #ffffff",
+                          fontSize: 9,
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                         }}
                       >
                         {item.type === "connection_accepted" ? (
                           <svg
-                            width="10"
-                            height="10"
+                            width="9"
+                            height="9"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            strokeWidth="3.5"
+                            strokeWidth="3"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                           >
@@ -855,12 +856,12 @@ export default function NotificationsView({
                           </svg>
                         ) : item.type === "connection_added" ? (
                           <svg
-                            width="10"
-                            height="10"
+                            width="9"
+                            height="9"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            strokeWidth="3"
+                            strokeWidth="2.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                           >
@@ -870,12 +871,12 @@ export default function NotificationsView({
                         ) : item.type === "dish_invite" ||
                           item.type === "dish_join_request" ? (
                           <svg
-                            width="10"
-                            height="10"
+                            width="9"
+                            height="9"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            strokeWidth="3"
+                            strokeWidth="2.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                           >
@@ -884,8 +885,8 @@ export default function NotificationsView({
                           </svg>
                         ) : (
                           <svg
-                            width="10"
-                            height="10"
+                            width="9"
+                            height="9"
                             viewBox="0 0 24 24"
                             fill="currentColor"
                           >
@@ -908,7 +909,7 @@ export default function NotificationsView({
                     >
                       <div
                         style={{
-                          fontSize: 14.5,
+                          fontSize: 13.5,
                           lineHeight: 1.4,
                           color: "#09090b",
                           wordBreak: "normal",
@@ -918,7 +919,7 @@ export default function NotificationsView({
                         <span
                           onClick={() => onViewProfile && onViewProfile(actor)}
                           style={{
-                            fontWeight: 700,
+                            fontWeight: 600,
                             color: "#09090b",
                             cursor: "pointer",
                             textDecoration: "none",
@@ -933,7 +934,7 @@ export default function NotificationsView({
                         >
                           {actorName}
                         </span>
-                        <span style={{ color: "#27272a", fontWeight: 500 }}>
+                        <span style={{ color: "#3f3f46", fontWeight: 450 }}>
                           {item.actionText}
                         </span>
                       </div>
@@ -941,7 +942,7 @@ export default function NotificationsView({
                       {/* Subtitle / Institute Tag */}
                       <div
                         style={{
-                          fontSize: 12,
+                          fontSize: 11.5,
                           color: "#71717a",
                           display: "flex",
                           alignItems: "center",
@@ -974,7 +975,7 @@ export default function NotificationsView({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: 8,
                       flexShrink: 0,
                     }}
                   >
@@ -984,7 +985,7 @@ export default function NotificationsView({
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 8,
+                          gap: 6,
                         }}
                       >
                         {/* Accept Button with normal grey glass FluidButton */}
@@ -992,10 +993,10 @@ export default function NotificationsView({
                           disabled={isLoading}
                           onClick={(e) => handleAcceptRequest(item, e)}
                           style={{
-                            padding: "7px 18px",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            borderRadius: 12,
+                            padding: "5px 14px",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            borderRadius: 10,
                           }}
                         >
                           {isLoading ? "..." : "Accept"}
@@ -1006,10 +1007,10 @@ export default function NotificationsView({
                           disabled={isLoading}
                           onClick={(e) => handleRejectRequest(item, e)}
                           style={{
-                            padding: "7px 14px",
-                            fontSize: 13,
-                            fontWeight: 600,
-                            borderRadius: 12,
+                            padding: "5px 11px",
+                            fontSize: 12,
+                            fontWeight: 500,
+                            borderRadius: 10,
                           }}
                         >
                           Reject
@@ -1024,29 +1025,29 @@ export default function NotificationsView({
                           style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 8,
+                            gap: 6,
                           }}
                         >
                           <span
                             style={{
-                              fontSize: 12.5,
-                              fontWeight: 700,
+                              fontSize: 11.5,
+                              fontWeight: 600,
                               color: "#16a34a",
-                              padding: "4px 10px",
-                              borderRadius: 10,
-                              backgroundColor: "rgba(34, 197, 94, 0.1)",
+                              padding: "3px 8px",
+                              borderRadius: 8,
+                              backgroundColor: "rgba(34, 197, 94, 0.08)",
                               display: "flex",
                               alignItems: "center",
                               gap: 4,
                             }}
                           >
                             <svg
-                              width="12"
-                              height="12"
+                              width="11"
+                              height="11"
                               viewBox="0 0 24 24"
                               fill="none"
                               stroke="currentColor"
-                              strokeWidth="3"
+                              strokeWidth="2.5"
                               strokeLinecap="round"
                               strokeLinejoin="round"
                             >
@@ -1059,9 +1060,9 @@ export default function NotificationsView({
                             <FluidButton
                               onClick={() => onNavigateToMessages(actor)}
                               style={{
-                                padding: "5px 12px",
-                                fontSize: 12,
-                                fontWeight: 600,
+                                padding: "4px 11px",
+                                fontSize: 11.5,
+                                fontWeight: 500,
                                 color: "#3f3f46",
                               }}
                             >
@@ -1075,12 +1076,12 @@ export default function NotificationsView({
                       item.status === "rejected" && (
                         <span
                           style={{
-                            fontSize: 12,
-                            fontWeight: 600,
+                            fontSize: 11.5,
+                            fontWeight: 500,
                             color: "#71717a",
-                            padding: "4px 8px",
-                            borderRadius: 8,
-                            backgroundColor: "rgba(0, 0, 0, 0.05)",
+                            padding: "3px 7px",
+                            borderRadius: 6,
+                            backgroundColor: "rgba(0, 0, 0, 0.04)",
                           }}
                         >
                           Declined
@@ -1094,9 +1095,9 @@ export default function NotificationsView({
                         <FluidButton
                           onClick={() => onNavigateToMessages(actor)}
                           style={{
-                            padding: "5px 14px",
-                            fontSize: 12.5,
-                            fontWeight: 600,
+                            padding: "4px 12px",
+                            fontSize: 11.5,
+                            fontWeight: 500,
                             color: "#27272a",
                             display: "inline-flex",
                             alignItems: "center",
@@ -1104,12 +1105,12 @@ export default function NotificationsView({
                           }}
                         >
                           <svg
-                            width="12"
-                            height="12"
+                            width="11"
+                            height="11"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            strokeWidth="2.2"
+                            strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                           >

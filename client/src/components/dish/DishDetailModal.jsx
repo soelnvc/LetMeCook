@@ -23,20 +23,20 @@ const isOnlyEmojis = (text) => {
  * Determine dynamic emoji font size (copied from MessageArea)
  */
 const getEmojiFontSize = (text) => {
-  if (!text) return 48;
+  if (!text) return 30;
   try {
     const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
     const segments = Array.from(segmenter.segment(text.trim())).filter((s) => s.segment.trim());
     const count = segments.length;
-    if (count <= 1) return 48;
-    if (count === 2) return 38;
-    if (count === 3) return 32;
-    return 26;
+    if (count <= 1) return 30;
+    if (count === 2) return 24;
+    if (count === 3) return 20;
+    return 18;
   } catch {
     const len = [...text.trim()].length;
-    if (len <= 2) return 48;
-    if (len <= 4) return 38;
-    return 28;
+    if (len <= 2) return 30;
+    if (len <= 4) return 24;
+    return 18;
   }
 };
 
@@ -769,27 +769,27 @@ export default function DishDetailModal({
                     src={creatorAvatar}
                     alt={creatorName}
                     style={{
-                      width: 48,
-                      height: 48,
+                      width: 40,
+                      height: 40,
                       borderRadius: '50%',
                       objectFit: 'cover',
-                      border: '1.5px solid rgba(0, 0, 0, 0.1)',
+                      border: '1px solid rgba(0, 0, 0, 0.08)',
                       flexShrink: 0
                     }}
                   />
                 ) : (
                   <div
                     style={{
-                      width: 48,
-                      height: 48,
+                      width: 40,
+                      height: 40,
                       borderRadius: '50%',
-                      backgroundColor: '#8257e5',
+                      backgroundColor: '#18181b',
                       color: '#ffffff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 17,
-                      fontWeight: 800,
+                      fontSize: 15,
+                      fontWeight: 700,
                       flexShrink: 0
                     }}
                   >
@@ -797,19 +797,19 @@ export default function DishDetailModal({
                   </div>
                 )}
 
-                <div>
+                <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 15.5, fontWeight: 700, color: '#09090b', letterSpacing: '-0.02em' }}>
+                    <span style={{ fontSize: 14.5, fontWeight: 600, color: '#09090b', letterSpacing: '-0.01em' }}>
                       {creatorName}
                     </span>
                     <span
                       style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        padding: '2px 7px',
+                        fontSize: 9.5,
+                        fontWeight: 600,
+                        padding: '1.5px 6px',
                         borderRadius: 9999,
-                        background: 'rgba(0, 0, 0, 0.08)',
-                        color: '#09090b',
+                        background: '#18181b',
+                        color: '#ffffff',
                         textTransform: 'uppercase',
                         letterSpacing: '0.4px'
                       }}
@@ -818,17 +818,32 @@ export default function DishDetailModal({
                     </span>
                   </div>
 
-                  <div style={{ fontSize: 12, color: '#71717a', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span>@{creatorUsername}</span>
+                  <div style={{ fontSize: 11.5, color: '#71717a', marginTop: 1, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'nowrap', overflow: 'hidden' }}>
+                    <span style={{ flexShrink: 0 }}>@{creatorUsername}</span>
                     {creatorInstitute && (
                       <>
-                        <span>•</span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600, color: '#3f3f46' }}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <span style={{ color: '#a1a1aa' }}>•</span>
+                        <span
+                          title={creatorInstitute}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 3.5,
+                            fontWeight: 450,
+                            color: '#52525b',
+                            maxWidth: 180,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                             <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
                             <path d="M6 12v5c3 3 9 3 12 0v-5" />
                           </svg>
-                          {creatorInstitute}
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {creatorInstitute}
+                          </span>
                         </span>
                       </>
                     )}
@@ -838,32 +853,32 @@ export default function DishDetailModal({
             </div>
 
             {/* 2. MIDDLE: ALL DETAILS OF THE DISH WITH DESCRIPTION */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {/* Category & Status Pill Bar (GlassContainers) */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                 <GlassContainer
                   radius={9999}
                   innerStyle={{
-                    padding: '5px 12px',
+                    padding: '4px 10px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 7,
-                    fontSize: 12,
-                    fontWeight: 700,
+                    gap: 6,
+                    fontSize: 11.5,
+                    fontWeight: 600,
                     textTransform: 'capitalize',
                     color: '#09090b'
                   }}
                 >
-                  {getGenreIcon(dish.category, 14)}
+                  {getGenreIcon(dish.category, 13)}
                   <span>{dish.category}</span>
                 </GlassContainer>
 
                 <GlassContainer
                   radius={9999}
                   innerStyle={{
-                    padding: '5px 12px',
-                    fontSize: 11.5,
-                    fontWeight: 700,
+                    padding: '4px 10px',
+                    fontSize: 11,
+                    fontWeight: 600,
                     color: dish.status === 'cooked' ? '#71717a' : '#09090b'
                   }}
                 >
@@ -877,16 +892,17 @@ export default function DishDetailModal({
 
               {/* Dish Description Box (GlassContainer) */}
               <div>
-                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 5 }}>
                   Description:
                 </label>
                 <GlassContainer
                   radius={16}
                   innerStyle={{
-                    padding: '13px 15px',
-                    fontSize: 14,
-                    lineHeight: 1.55,
+                    padding: '11px 14px',
+                    fontSize: 13.5,
+                    lineHeight: 1.5,
                     color: '#09090b',
+                    fontWeight: 450,
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-word'
                   }}
@@ -896,59 +912,59 @@ export default function DishDetailModal({
               </div>
 
               {/* Grid of Key Ticket Specs (GlassContainers) */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 4 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginTop: 2 }}>
                 {/* Capacity */}
                 <GlassContainer
-                  radius={16}
+                  radius={14}
                   innerStyle={{
-                    padding: '11px 13px',
+                    padding: '9px 12px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center'
                   }}
                 >
-                  <div style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Capacity</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <div style={{ fontSize: 10.5, color: '#71717a', fontWeight: 500, letterSpacing: '0.2px' }}>Capacity</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: '#09090b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                       <circle cx="9" cy="7" r="4" />
                     </svg>
-                    {participantsList.length}/{dish.capacity?.max || 4} spots ({spotsLeft} left)
+                    <span>{participantsList.length}/{dish.capacity?.max || 4} spots</span>
                   </div>
                 </GlassContainer>
 
                 {/* Join Mode */}
                 <GlassContainer
-                  radius={16}
+                  radius={14}
                   innerStyle={{
-                    padding: '11px 13px',
+                    padding: '9px 12px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center'
                   }}
                 >
-                  <div style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Access Mode</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <div style={{ fontSize: 10.5, color: '#71717a', fontWeight: 500, letterSpacing: '0.2px' }}>Access Mode</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: '#09090b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    {dish.joinMode === 'auto' ? 'Auto-Join' : 'Approval Req.'}
+                    <span>{dish.joinMode === 'auto' ? 'Auto-Join' : 'Approval Req.'}</span>
                   </div>
                 </GlassContainer>
 
                 {/* Meetup / Area */}
                 <GlassContainer
-                  radius={16}
+                  radius={14}
                   innerStyle={{
-                    padding: '11px 13px',
+                    padding: '9px 12px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center'
                   }}
                 >
-                  <div style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Location</div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#09090b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <div style={{ fontSize: 10.5, color: '#71717a', fontWeight: 500, letterSpacing: '0.2px' }}>Location</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: '#09090b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                       <circle cx="12" cy="10" r="3" />
                     </svg>
@@ -960,16 +976,16 @@ export default function DishDetailModal({
 
                 {/* Visibility */}
                 <GlassContainer
-                  radius={16}
+                  radius={14}
                   innerStyle={{
-                    padding: '11px 13px',
+                    padding: '9px 12px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center'
                   }}
                 >
-                  <div style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Network</div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#09090b', marginTop: 2, textTransform: 'capitalize' }}>
+                  <div style={{ fontSize: 10.5, color: '#71717a', fontWeight: 500, letterSpacing: '0.2px' }}>Network</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: '#09090b', marginTop: 2, textTransform: 'capitalize' }}>
                     {dish.visibility === 'institute' ? 'Institute Only' : 'Global Campus'}
                   </div>
                 </GlassContainer>
@@ -1045,7 +1061,7 @@ export default function DishDetailModal({
                         if (res?.dish) setLocalDish(res.dish);
                       }
                     }}
-                    style={{ padding: '8px 18px', fontSize: 12.5, fontWeight: 700 }}
+                    style={{ padding: '7px 16px', fontSize: 12, fontWeight: 600 }}
                   >
                     {dish.joinMode === 'auto' ? 'Join Dish' : 'Request to Join'}
                   </FluidButton>
@@ -1057,7 +1073,7 @@ export default function DishDetailModal({
                 <>
                   <FluidButton
                     onClick={() => setShowInviteDialog(true)}
-                    style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600 }}
+                    style={{ padding: '6px 13px', fontSize: 12, fontWeight: 600 }}
                   >
                     Invite
                   </FluidButton>
@@ -1072,7 +1088,7 @@ export default function DishDetailModal({
                       });
                       if (ok && onLeaveDish) onLeaveDish(dish._id);
                     }}
-                    style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600 }}
+                    style={{ padding: '6px 13px', fontSize: 12, fontWeight: 600 }}
                   >
                     Leave
                   </FluidButton>
@@ -1084,7 +1100,7 @@ export default function DishDetailModal({
                 <>
                   <FluidButton
                     onClick={() => setShowInviteDialog(true)}
-                    style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600 }}
+                    style={{ padding: '6px 13px', fontSize: 12, fontWeight: 600 }}
                   >
                     Invite
                   </FluidButton>
@@ -1092,7 +1108,7 @@ export default function DishDetailModal({
                   {dish.status === 'lets_cook' && (
                     <FluidButton
                       onClick={() => onStartCooking && onStartCooking(dish._id)}
-                      style={{ padding: '7px 14px', fontSize: 12, fontWeight: 700 }}
+                      style={{ padding: '6px 15px', fontSize: 12, fontWeight: 600 }}
                     >
                       Cook
                     </FluidButton>
@@ -1101,7 +1117,7 @@ export default function DishDetailModal({
                   {dish.status === 'cooking' && (
                     <FluidButton
                       onClick={() => onMarkCooked && onMarkCooked(dish._id)}
-                      style={{ padding: '7px 14px', fontSize: 12, fontWeight: 700 }}
+                      style={{ padding: '6px 15px', fontSize: 12, fontWeight: 600 }}
                     >
                       Done
                     </FluidButton>
@@ -1117,13 +1133,13 @@ export default function DishDetailModal({
                   onClick={() => setShowOptionsMenu(!showOptionsMenu)}
                   title="More options"
                   style={{
-                    width: 34,
-                    height: 34,
-                    minWidth: 34,
-                    minHeight: 34
+                    width: 32,
+                    height: 32,
+                    minWidth: 32,
+                    minHeight: 32
                   }}
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="1.5" />
                     <circle cx="19" cy="12" r="1.5" />
                     <circle cx="5" cy="12" r="1.5" />
@@ -1326,42 +1342,42 @@ export default function DishDetailModal({
             <div
               style={{
                 padding: '16px 24px',
-                borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+                borderBottom: '1px solid rgba(0, 0, 0, 0.07)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: 16,
-                height: 72,
+                gap: 12,
+                height: 64,
                 boxSizing: 'border-box',
                 flexShrink: 0,
                 backgroundColor: 'transparent'
               }}
             >
             {/* Left: Name of the Dish with Glass Icon */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
               <GlassContainer
-                radius={12}
+                radius={10}
                 style={{ flexShrink: 0 }}
                 innerStyle={{
-                  width: 38,
-                  height: 38,
+                  width: 34,
+                  height: 34,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#09090b'
                 }}
               >
-                {getGenreIcon(dish.category, 20)}
+                {getGenreIcon(dish.category, 17)}
               </GlassContainer>
 
               <div style={{ minWidth: 0 }}>
                 <h3
                   style={{
                     margin: 0,
-                    fontSize: 16.5,
-                    fontWeight: 700,
+                    fontSize: 15,
+                    fontWeight: 600,
                     color: '#09090b',
-                    letterSpacing: '-0.02em',
+                    letterSpacing: '-0.01em',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'
@@ -1370,14 +1386,14 @@ export default function DishDetailModal({
                 >
                   {dish.description ? (dish.description.length > 40 ? dish.description.slice(0, 40) + '...' : dish.description) : 'Dish Ticket'}
                 </h3>
-                <div style={{ fontSize: 12, color: '#71717a', marginTop: 1, fontWeight: 500 }}>
+                <div style={{ fontSize: 11.5, color: '#71717a', marginTop: 1, fontWeight: 450 }}>
                   {participantsList.length} peer{participantsList.length === 1 ? '' : 's'} joined • {isExpired ? 'Ticket Expired' : 'Active Dish Room'}
                 </div>
               </div>
             </div>
 
             {/* Right: PFPs of Members (Max 7, + Sign) and Close Button */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {/* Member PFPs Avatar Group in GlassContainer */}
               <GlassContainer
                 radius={9999}
@@ -1385,7 +1401,7 @@ export default function DishDetailModal({
                 title="Click to view all members, invited, and requested peers"
                 style={{ cursor: 'pointer', position: 'relative' }}
                 innerStyle={{
-                  padding: '4px 8px',
+                  padding: '3px 6px',
                   display: 'flex',
                   alignItems: 'center',
                   cursor: 'pointer',
@@ -1397,16 +1413,16 @@ export default function DishDetailModal({
                   <span
                     style={{
                       position: 'absolute',
-                      top: -4,
-                      right: -4,
-                      minWidth: 18,
-                      height: 18,
-                      padding: '0 5px',
+                      top: -3,
+                      right: -3,
+                      minWidth: 16,
+                      height: 16,
+                      padding: '0 4px',
                       borderRadius: 9999,
                       background: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
                       color: '#ffffff',
-                      fontSize: 10,
-                      fontWeight: 800,
+                      fontSize: 9.5,
+                      fontWeight: 700,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1417,7 +1433,7 @@ export default function DishDetailModal({
                     {pendingRequestsList.length}
                   </span>
                 )}
-                <div style={{ display: 'flex', alignItems: 'center', marginRight: participantsList.length > 7 ? 6 : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginRight: participantsList.length > 7 ? 4 : 0 }}>
                   {participantsList.slice(0, 7).map((p, idx) => {
                     const u = p.user || {};
                     const avatar = u.avatar;
@@ -1426,7 +1442,7 @@ export default function DishDetailModal({
                       <div
                         key={u._id || idx}
                         style={{
-                          marginLeft: idx === 0 ? 0 : -8,
+                          marginLeft: idx === 0 ? 0 : -6,
                           zIndex: 10 - idx,
                           position: 'relative'
                         }}
@@ -1437,11 +1453,11 @@ export default function DishDetailModal({
                             alt={uname}
                             title={`@${u.username || 'user'}`}
                             style={{
-                              width: 28,
-                              height: 28,
+                              width: 24,
+                              height: 24,
                               borderRadius: '50%',
                               objectFit: 'cover',
-                              border: '2px solid #ffffff',
+                              border: '1.5px solid #ffffff',
                               display: 'block'
                             }}
                           />
@@ -1449,17 +1465,17 @@ export default function DishDetailModal({
                           <div
                             title={`@${u.username || 'user'}`}
                             style={{
-                              width: 28,
-                              height: 28,
+                              width: 24,
+                              height: 24,
                               borderRadius: '50%',
                               backgroundColor: '#a1a1aa',
                               color: '#ffffff',
-                              border: '2px solid #ffffff',
+                              border: '1.5px solid #ffffff',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              fontSize: 10,
-                              fontWeight: 700
+                              fontSize: 9.5,
+                              fontWeight: 600
                             }}
                           >
                             {(uname[0] || 'U').toUpperCase()}
@@ -1474,10 +1490,10 @@ export default function DishDetailModal({
                 {participantsList.length > 7 && (
                   <span
                     style={{
-                      fontSize: 11,
-                      fontWeight: 700,
+                      fontSize: 10,
+                      fontWeight: 600,
                       color: '#09090b',
-                      padding: '0 4px'
+                      padding: '0 3px'
                     }}
                   >
                     +{participantsList.length - 7}
@@ -1492,13 +1508,13 @@ export default function DishDetailModal({
                 onClick={onClose}
                 title="Close"
                 style={{
-                  width: 34,
-                  height: 34,
-                  minWidth: 34,
-                  minHeight: 34
+                  width: 30,
+                  height: 30,
+                  minWidth: 30,
+                  minHeight: 30
                 }}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -1608,41 +1624,42 @@ export default function DishDetailModal({
               style={{
                 flex: 1,
                 overflowY: 'auto',
-                padding: '24px 32px',
+                padding: '16px 20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 16
+                gap: 10
               }}
             >
               {/* Dish Room Creation System Pill */}
-              <div style={{ textAlign: 'center', margin: '4px 0 10px 0' }}>
-                <GlassContainer
-                  radius={9999}
-                  style={{ display: 'inline-block' }}
-                  innerStyle={{
-                    padding: '5px 16px',
+              <div style={{ textAlign: 'center', margin: '2px 0 6px 0' }}>
+                <div
+                  style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 6,
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    color: '#71717a'
+                    gap: 5,
+                    padding: '3px 10px',
+                    borderRadius: 9999,
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    color: '#71717a',
+                    fontSize: 11,
+                    fontWeight: 500,
+                    userSelect: 'none'
                   }}
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                   <span>Dish chat room created • Host: @{creatorUsername}</span>
-                </GlassContainer>
+                </div>
               </div>
 
               {/* Empty / Loading State */}
               {isLoadingChat && messages.length === 0 ? (
-                <div style={{ textAlign: 'center', margin: 'auto', color: '#888888', fontSize: 13.5 }}>
+                <div style={{ textAlign: 'center', margin: 'auto', color: '#888888', fontSize: 13 }}>
                   Loading dish group messages...
                 </div>
               ) : messages.length === 0 ? (
-                <div style={{ textAlign: 'center', margin: 'auto', color: '#888888', fontSize: 14 }}>
+                <div style={{ textAlign: 'center', margin: 'auto', color: '#888888', fontSize: 13 }}>
                   No messages yet. Say hello to your dish crew!
                 </div>
               ) : (
@@ -1650,19 +1667,24 @@ export default function DishDetailModal({
                   // System announcement
                   if (msg.isSystem) {
                     return (
-                      <div key={msg._id || idx} style={{ textAlign: 'center', margin: '4px 0' }}>
-                        <GlassContainer
-                          radius={9999}
-                          style={{ display: 'inline-block' }}
-                          innerStyle={{
-                            padding: '4px 14px',
+                      <div key={msg._id || idx} style={{ textAlign: 'center', margin: '2px 0' }}>
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            padding: '3px 10px',
+                            borderRadius: 9999,
+                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                            color: '#71717a',
                             fontSize: 11,
-                            fontWeight: 500,
-                            color: '#71717a'
+                            fontWeight: 450,
+                            lineHeight: 1.4,
+                            userSelect: 'none'
                           }}
                         >
                           {msg.content}
-                        </GlassContainer>
+                        </div>
                       </div>
                     );
                   }
@@ -1682,11 +1704,11 @@ export default function DishDetailModal({
                           key={msg._id || idx}
                           style={{
                             alignSelf: 'flex-end',
-                            padding: '4px 6px',
+                            padding: '2px 4px',
                             fontSize: emojiSize,
                             lineHeight: 1.15,
                             userSelect: 'none',
-                            marginBottom: 4,
+                            marginBottom: 2,
                             transition: 'transform 0.15s ease'
                           }}
                           onMouseEnter={(e) => {
@@ -1704,13 +1726,13 @@ export default function DishDetailModal({
                     return (
                       <GlassContainer
                         key={msg._id || idx}
-                        radius={24}
-                        style={{ alignSelf: 'flex-end', maxWidth: '72%' }}
+                        radius={16}
+                        style={{ alignSelf: 'flex-end', maxWidth: '75%' }}
                         innerStyle={{
-                          padding: '13px 20px',
-                          color: '#000000',
-                          fontSize: 14.5,
-                          lineHeight: 1.45
+                          padding: '8px 14px',
+                          color: '#09090b',
+                          fontSize: 13.5,
+                          lineHeight: 1.4
                         }}
                       >
                         {msg.content}
@@ -1726,8 +1748,8 @@ export default function DishDetailModal({
                             alignSelf: 'flex-start',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 12,
-                            marginBottom: 4
+                            gap: 8,
+                            marginBottom: 2
                           }}
                         >
                           <div
@@ -1740,8 +1762,8 @@ export default function DishDetailModal({
                                 src={senderAvatar}
                                 alt={senderName}
                                 style={{
-                                  width: 34,
-                                  height: 34,
+                                  width: 28,
+                                  height: 28,
                                   borderRadius: '50%',
                                   objectFit: 'cover',
                                   display: 'block',
@@ -1751,15 +1773,15 @@ export default function DishDetailModal({
                             ) : (
                               <div
                                 style={{
-                                  width: 34,
-                                  height: 34,
+                                  width: 28,
+                                  height: 28,
                                   borderRadius: '50%',
                                   backgroundColor: '#8257e5',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                   color: '#fff',
-                                  fontSize: 13,
+                                  fontSize: 11,
                                   fontWeight: 'bold'
                                 }}
                               >
@@ -1769,7 +1791,7 @@ export default function DishDetailModal({
                           </div>
                           <div
                             style={{
-                              padding: '4px 6px',
+                              padding: '2px 4px',
                               fontSize: emojiSize,
                               lineHeight: 1.15,
                               userSelect: 'none',
@@ -1795,13 +1817,13 @@ export default function DishDetailModal({
                           alignSelf: 'flex-start',
                           display: 'flex',
                           alignItems: 'flex-start',
-                          gap: 12,
-                          maxWidth: '75%'
+                          gap: 8,
+                          maxWidth: '78%'
                         }}
                       >
                         <div
                           onClick={() => onViewProfile && onViewProfile(sender)}
-                          style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0, marginTop: 4 }}
+                          style={{ cursor: onViewProfile ? 'pointer' : 'default', flexShrink: 0, marginTop: 2 }}
                           title={`@${sender.username || 'user'}`}
                         >
                           {senderAvatar ? (
@@ -1809,8 +1831,8 @@ export default function DishDetailModal({
                               src={senderAvatar}
                               alt={senderName}
                               style={{
-                                width: 34,
-                                height: 34,
+                                width: 28,
+                                height: 28,
                                 borderRadius: '50%',
                                 objectFit: 'cover',
                                 display: 'block',
@@ -1820,15 +1842,16 @@ export default function DishDetailModal({
                           ) : (
                             <div
                               style={{
-                                width: 34,
-                                height: 34,
+                                width: 28,
+                                height: 28,
                                 borderRadius: '50%',
                                 backgroundColor: '#8257e5',
                                 display: 'flex',
                                 alignItems: 'center',
+                                justifyItems: 'center',
                                 justifyContent: 'center',
                                 color: '#fff',
-                                fontSize: 13,
+                                fontSize: 11,
                                 fontWeight: 'bold'
                               }}
                             >
@@ -1837,18 +1860,18 @@ export default function DishDetailModal({
                           )}
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <span style={{ fontSize: 11.5, fontWeight: 700, color: '#52525b', paddingLeft: 6 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: '#71717a', paddingLeft: 4 }}>
                             {senderName}
                           </span>
                           <GlassContainer
-                            radius={24}
+                            radius={16}
                             style={{ flex: 1 }}
                             innerStyle={{
-                              padding: '13px 20px',
-                              color: '#000000',
-                              fontSize: 14.5,
-                              lineHeight: 1.45
+                              padding: '8px 14px',
+                              color: '#09090b',
+                              fontSize: 13.5,
+                              lineHeight: 1.4
                             }}
                           >
                             {msg.content}
@@ -1909,21 +1932,21 @@ export default function DishDetailModal({
 
             {/* Chat Input Bar or Archived View-Only Indicator */}
             {isExpired ? (
-              <div style={{ padding: '12px 24px 16px 24px', backgroundColor: 'transparent' }}>
+              <div style={{ padding: '8px 18px 12px 18px', backgroundColor: 'transparent' }}>
                 <GlassContainer
                   radius={9999}
                   innerStyle={{
-                    padding: '10px 18px',
+                    padding: '8px 14px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 8,
+                    gap: 6,
                     color: '#71717a',
-                    fontSize: 13,
-                    fontWeight: 600
+                    fontSize: 12,
+                    fontWeight: 500
                   }}
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
@@ -1931,7 +1954,7 @@ export default function DishDetailModal({
                 </GlassContainer>
               </div>
             ) : (
-              <div style={{ padding: '16px 24px', backgroundColor: 'transparent', position: 'relative' }}>
+              <div style={{ padding: '10px 18px', backgroundColor: 'transparent', position: 'relative' }}>
                 <EmojiPicker
                   isOpen={showEmojiPicker}
                   onClose={() => setShowEmojiPicker(false)}
@@ -1941,10 +1964,10 @@ export default function DishDetailModal({
                   <GlassContainer
                     radius={9999}
                     innerStyle={{
-                      padding: '6px 14px 6px 16px',
+                      padding: '4px 8px 4px 12px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 12
+                      gap: 8
                     }}
                   >
                     {/* Emoji Picker Button */}
@@ -1960,7 +1983,7 @@ export default function DishDetailModal({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        opacity: !isParticipant || isMuted ? 0.4 : showEmojiPicker ? 1 : 0.75,
+                        opacity: !isParticipant || isMuted ? 0.35 : showEmojiPicker ? 1 : 0.7,
                         transition: 'transform 0.15s ease, opacity 0.15s ease'
                       }}
                       onMouseEnter={(e) => {
@@ -1972,18 +1995,18 @@ export default function DishDetailModal({
                       onMouseLeave={(e) => {
                         if (isParticipant && !isMuted) {
                           e.currentTarget.style.transform = 'scale(1)';
-                          if (!showEmojiPicker) e.currentTarget.style.opacity = '0.75';
+                          if (!showEmojiPicker) e.currentTarget.style.opacity = '0.7';
                         }
                       }}
                       title="Choose emoji"
                     >
                       <svg
-                        width="24"
-                        height="24"
+                        width="20"
+                        height="20"
                         viewBox="0 0 24 24"
                         fill="none"
-                        stroke={showEmojiPicker ? '#09090b' : '#3f3f46'}
-                        strokeWidth="2"
+                        stroke={showEmojiPicker ? '#09090b' : '#52525b'}
+                        strokeWidth="1.8"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
@@ -2015,7 +2038,7 @@ export default function DishDetailModal({
                         border: 'none',
                         background: 'transparent',
                         outline: 'none',
-                        fontSize: 14.5,
+                        fontSize: 13.5,
                         flex: 1,
                         color: '#09090b',
                         fontFamily: 'inherit'
@@ -2028,20 +2051,20 @@ export default function DishDetailModal({
                       variant="icon"
                       disabled={!isParticipant || isMuted || isSending || !messageInput.trim()}
                       style={{
-                        width: 36,
-                        height: 36,
-                        minWidth: 36,
-                        minHeight: 36,
+                        width: 30,
+                        height: 30,
+                        minWidth: 30,
+                        minHeight: 30,
                         flexShrink: 0
                       }}
                     >
                       <svg
-                        width="18"
-                        height="18"
+                        width="14"
+                        height="14"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth="2.2"
+                        strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
@@ -2207,25 +2230,25 @@ export default function DishDetailModal({
             innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}
           >
             {/* Modal Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0, 0, 0, 0.07)', paddingBottom: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <h3 style={{ margin: 0, fontSize: 16.5, fontWeight: 700, color: '#09090b' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0, 0, 0, 0.07)', paddingBottom: 12, gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#09090b', letterSpacing: '-0.01em' }}>
                   Dish Table Directory
                 </h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)', color: '#27272a' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 500, padding: '2px 7px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.04)', color: '#3f3f46' }}>
                     {participantsList.length} Joined
                   </span>
-                  <span style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.06)', color: '#27272a' }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 500, padding: '2px 7px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.04)', color: '#3f3f46' }}>
                     {invitedList.length} Invited
                   </span>
                   <span
                     style={{
-                      fontSize: 11.5,
-                      fontWeight: 700,
-                      padding: '2px 8px',
+                      fontSize: 10.5,
+                      fontWeight: 500,
+                      padding: '2px 7px',
                       borderRadius: 9999,
-                      background: pendingRequestsList.length > 0 ? 'rgba(244, 63, 94, 0.12)' : 'rgba(0, 0, 0, 0.06)',
+                      background: pendingRequestsList.length > 0 ? 'rgba(244, 63, 94, 0.1)' : 'rgba(0, 0, 0, 0.04)',
                       color: pendingRequestsList.length > 0 ? '#e11d48' : '#71717a'
                     }}
                   >
@@ -2236,9 +2259,9 @@ export default function DishDetailModal({
               <FluidButton
                 variant="icon"
                 onClick={() => setShowMembersModal(false)}
-                style={{ width: 30, height: 30, minWidth: 30, minHeight: 30 }}
+                style={{ width: 28, height: 28, minWidth: 28, minHeight: 28, flexShrink: 0 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -2249,20 +2272,20 @@ export default function DishDetailModal({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: 16,
+                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                gap: 14,
                 maxHeight: 460
               }}
             >
               {/* Column 1: Joined Members */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                     Joined Members ({participantsList.length})
                   </span>
                 </div>
 
-                <div className="custom-scrollbar" style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
+                <div className="custom-scrollbar" style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 4 }}>
                   {participantsList.map((p, idx) => {
                     const u = p.user || {};
                     const isHost = (u._id || u).toString() === (dish.creator?._id || dish.creator).toString();
@@ -2274,13 +2297,13 @@ export default function DishDetailModal({
                     return (
                       <GlassContainer
                         key={u._id || idx}
-                        radius={14}
+                        radius={12}
                         innerStyle={{
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '9px 12px',
-                          gap: 10
+                          padding: '7px 10px',
+                          gap: 8
                         }}
                       >
                         {/* Member Identity */}
@@ -2291,36 +2314,36 @@ export default function DishDetailModal({
                               onViewProfile(u);
                             }
                           }}
-                          style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, cursor: 'pointer', flex: 1 }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, cursor: 'pointer', flex: 1 }}
                         >
                           {u.avatar ? (
-                            <img src={u.avatar} alt={u.name} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                            <img src={u.avatar} alt={u.name} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                           ) : (
-                            <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#8257e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#8257e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 600, flexShrink: 0 }}>
                               {((u.name || u.username || 'U')[0]).toUpperCase()}
                             </div>
                           )}
                           <div style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#09090b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {u.name || u.username}
                             </div>
-                            <div style={{ fontSize: 11, color: '#71717a' }}>
+                            <div style={{ fontSize: 10.5, color: '#71717a' }}>
                               @{u.username || 'user'}
                             </div>
                           </div>
                         </div>
 
                         {/* Status Badges & Host Controls */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
                           {/* Role Pill */}
                           <span
                             style={{
-                              fontSize: 10.5,
-                              fontWeight: 700,
-                              padding: '2px 7px',
+                              fontSize: 9.5,
+                              fontWeight: 600,
+                              padding: '1.5px 6px',
                               borderRadius: 9999,
-                              background: isHost ? '#09090b' : 'rgba(0, 0, 0, 0.06)',
-                              color: isHost ? '#ffffff' : '#52525b'
+                              background: isHost ? '#18181b' : 'rgba(0, 0, 0, 0.04)',
+                              color: isHost ? '#ffffff' : '#71717a'
                             }}
                           >
                             {isHost ? 'Host' : 'Member'}
@@ -2330,9 +2353,9 @@ export default function DishDetailModal({
                           {isMemberMuted && (
                             <span
                               style={{
-                                fontSize: 10.5,
-                                fontWeight: 700,
-                                padding: '2px 7px',
+                                fontSize: 9.5,
+                                fontWeight: 600,
+                                padding: '1.5px 6px',
                                 borderRadius: 9999,
                                 background: 'rgba(239, 68, 68, 0.1)',
                                 color: '#dc2626'
@@ -2345,7 +2368,7 @@ export default function DishDetailModal({
 
                           {/* Host Controls: Kick & Mute for non-host participants (Disabled when Cooked) */}
                           {isCreator && !isHost && !isExpired && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 2 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginLeft: 2 }}>
                               <FluidButton
                                 disabled={isTargetLoading}
                                 onClick={(e) => {
@@ -2353,9 +2376,9 @@ export default function DishDetailModal({
                                   handleToggleMute(u._id || u, u.username);
                                 }}
                                 style={{
-                                  padding: '3px 8px',
-                                  fontSize: 11,
-                                  fontWeight: 600,
+                                  padding: '2px 7px',
+                                  fontSize: 10.5,
+                                  fontWeight: 500,
                                   color: isMemberMuted ? '#16a34a' : '#52525b'
                                 }}
                                 title={isMemberMuted ? 'Unmute participant' : 'Mute participant'}
@@ -2370,9 +2393,9 @@ export default function DishDetailModal({
                                   handleKickMember(u._id || u, u.username);
                                 }}
                                 style={{
-                                  padding: '3px 8px',
-                                  fontSize: 11,
-                                  fontWeight: 600,
+                                  padding: '2px 7px',
+                                  fontSize: 10.5,
+                                  fontWeight: 500,
                                   color: '#dc2626'
                                 }}
                                 title="Kick participant from dish"
@@ -2389,28 +2412,28 @@ export default function DishDetailModal({
               </div>
 
               {/* Column 2: Invited (Awaiting Acceptance) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                     Invited ({invitedList.length})
                   </span>
-                  <span style={{ fontSize: 11, color: '#a1a1aa' }}>Pending acceptance</span>
+                  <span style={{ fontSize: 10.5, color: '#a1a1aa' }}>Pending acceptance</span>
                 </div>
 
-                <div className="custom-scrollbar" style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
+                <div className="custom-scrollbar" style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 4 }}>
                   {invitedList.length === 0 ? (
                     <div
                       style={{
-                        padding: '32px 16px',
+                        padding: '22px 14px',
                         textAlign: 'center',
                         color: '#71717a',
-                        fontSize: 12.5,
-                        borderRadius: 14,
-                        border: '1px dashed rgba(0, 0, 0, 0.1)',
+                        fontSize: 11.5,
+                        borderRadius: 12,
+                        border: '1px dashed rgba(0, 0, 0, 0.08)',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: 10
+                        gap: 8
                       }}
                     >
                       <span>No pending invitations.</span>
@@ -2420,7 +2443,7 @@ export default function DishDetailModal({
                             setShowMembersModal(false);
                             setShowInviteDialog(true);
                           }}
-                          style={{ padding: '5px 14px', fontSize: 12, fontWeight: 600 }}
+                          style={{ padding: '4px 10px', fontSize: 11, fontWeight: 500 }}
                         >
                           Invite Peers
                         </FluidButton>
@@ -2432,13 +2455,13 @@ export default function DishDetailModal({
                       return (
                         <GlassContainer
                           key={u._id || idx}
-                          radius={14}
+                          radius={12}
                           innerStyle={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            padding: '9px 12px',
-                            gap: 10
+                            padding: '7px 10px',
+                            gap: 8
                           }}
                         >
                           {/* User info */}
@@ -2449,20 +2472,20 @@ export default function DishDetailModal({
                                 onViewProfile(u);
                               }
                             }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, cursor: 'pointer', flex: 1 }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, cursor: 'pointer', flex: 1 }}
                           >
                             {u.avatar ? (
-                              <img src={u.avatar} alt={u.name} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                              <img src={u.avatar} alt={u.name} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                             ) : (
-                              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#27272a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                              <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#27272a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 600, flexShrink: 0 }}>
                                 {((u.name || u.username || 'U')[0]).toUpperCase()}
                               </div>
                             )}
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <div style={{ fontSize: 12.5, fontWeight: 600, color: '#09090b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {u.name || u.username || 'Peer'}
                               </div>
-                              <div style={{ fontSize: 11, color: '#71717a' }}>
+                              <div style={{ fontSize: 10.5, color: '#71717a' }}>
                                 @{u.username || 'user'}
                               </div>
                             </div>
@@ -2471,12 +2494,12 @@ export default function DishDetailModal({
                           {/* Invited Badge */}
                           <span
                             style={{
-                              fontSize: 10.5,
-                              fontWeight: 700,
-                              padding: '3px 8px',
+                              fontSize: 9.5,
+                              fontWeight: 500,
+                              padding: '2px 6px',
                               borderRadius: 9999,
-                              background: 'rgba(0, 0, 0, 0.06)',
-                              color: '#52525b',
+                              background: 'rgba(0, 0, 0, 0.04)',
+                              color: '#71717a',
                               flexShrink: 0
                             }}
                           >
@@ -2490,28 +2513,28 @@ export default function DishDetailModal({
               </div>
 
               {/* Column 3: Requested (Pending Host Approval) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                     Requested ({pendingRequestsList.length})
                   </span>
-                  <span style={{ fontSize: 11, color: '#a1a1aa' }}>Pending host approval</span>
+                  <span style={{ fontSize: 10.5, color: '#a1a1aa' }}>Pending host approval</span>
                 </div>
 
-                <div className="custom-scrollbar" style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
+                <div className="custom-scrollbar" style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 4 }}>
                   {pendingRequestsList.length === 0 ? (
                     <div
                       style={{
-                        padding: '32px 16px',
+                        padding: '22px 14px',
                         textAlign: 'center',
                         color: '#71717a',
-                        fontSize: 12.5,
-                        borderRadius: 14,
-                        border: '1px dashed rgba(0, 0, 0, 0.1)',
+                        fontSize: 11.5,
+                        borderRadius: 12,
+                        border: '1px dashed rgba(0, 0, 0, 0.08)',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: 10
+                        gap: 8
                       }}
                     >
                       <span>No pending requests.</span>
@@ -2523,17 +2546,17 @@ export default function DishDetailModal({
                       return (
                         <GlassContainer
                           key={req._id || idx}
-                          radius={14}
+                          radius={12}
                           innerStyle={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            padding: '9px 12px',
-                            gap: 10
+                            padding: '7px 10px',
+                            gap: 8
                           }}
                         >
                           {/* User info */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
                             <div
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -2545,18 +2568,18 @@ export default function DishDetailModal({
                               title={onViewProfile ? `View @${u.username || 'user'}'s profile` : ''}
                             >
                               {u.avatar ? (
-                                <img src={u.avatar} alt={u.name || u.username} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} />
+                                <img src={u.avatar} alt={u.name || u.username} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
                               ) : (
-                                <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, #f43f5e, #e11d48)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
+                                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #f43f5e, #e11d48)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 600 }}>
                                   {((u.name || u.username || 'U')[0] || 'U').toUpperCase()}
                                 </div>
                               )}
                             </div>
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 700, color: '#09090b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <div style={{ fontSize: 12.5, fontWeight: 600, color: '#09090b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {u.name || u.username || 'Peer'}
                               </div>
-                              <div style={{ fontSize: 11, color: '#71717a' }}>
+                              <div style={{ fontSize: 10.5, color: '#71717a' }}>
                                 @{u.username || 'user'}
                               </div>
                             </div>
@@ -2564,7 +2587,7 @@ export default function DishDetailModal({
 
                           {/* Action Buttons for Host */}
                           {isCreator && !isExpired ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                               <FluidButton
                                 disabled={Boolean(isRequestActionLoading)}
                                 onClick={(e) => {
@@ -2572,9 +2595,9 @@ export default function DishDetailModal({
                                   handleApproveJoinRequest(req._id, u.username);
                                 }}
                                 style={{
-                                  padding: '4px 10px',
-                                  fontSize: 11.5,
-                                  fontWeight: 700,
+                                  padding: '3px 8px',
+                                  fontSize: 11,
+                                  fontWeight: 600,
                                   color: '#16a34a'
                                 }}
                                 title="Accept join request"
@@ -2589,9 +2612,9 @@ export default function DishDetailModal({
                                   handleRejectJoinRequest(req._id, u.username);
                                 }}
                                 style={{
-                                  padding: '4px 8px',
-                                  fontSize: 11.5,
-                                  fontWeight: 600,
+                                  padding: '3px 7px',
+                                  fontSize: 11,
+                                  fontWeight: 500,
                                   color: '#dc2626'
                                 }}
                                 title="Decline join request"
@@ -2602,11 +2625,11 @@ export default function DishDetailModal({
                           ) : (
                             <span
                               style={{
-                                fontSize: 10.5,
-                                fontWeight: 700,
-                                padding: '3px 8px',
+                                fontSize: 9.5,
+                                fontWeight: 600,
+                                padding: '2px 6px',
                                 borderRadius: 9999,
-                                background: 'rgba(244, 63, 94, 0.12)',
+                                background: 'rgba(244, 63, 94, 0.1)',
                                 color: '#e11d48',
                                 flexShrink: 0
                               }}
