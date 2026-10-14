@@ -176,10 +176,9 @@ export default function AwardsLibrary({ user, isSelf = true }) {
         </p>
       </div>
 
-      {/* 1. UNLOCKED ACHIEVEMENTS (Top Section - Full Color) */}
       {unlockedAwards.length > 0 && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+          <div className="profile-awards-grid">
             {unlockedAwards.map((award) => (
               <GlassContainer
                 key={award.id}
@@ -253,7 +252,7 @@ export default function AwardsLibrary({ user, isSelf = true }) {
           </h4>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+        <div className="profile-awards-grid">
           {lockedAwards.map((locked) => (
             <GlassContainer
               key={locked.id}

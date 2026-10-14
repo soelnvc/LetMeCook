@@ -87,8 +87,8 @@ const JOIN_MODES = [
 
 const SKILL_LEVELS = ['Any Level', 'Beginner', 'Intermediate', 'Advanced'];
 
-// Minimal Tooltip "i" Icon Component with Grey Styling & Smooth Hover Reveal
-function InfoTooltip({ text }) {
+// Minimal Tooltip "i" Icon Component with Grey Styling & Smooth Hover/Tap Reveal
+function InfoTooltip({ text, light = false }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -100,18 +100,22 @@ function InfoTooltip({ text }) {
         justifyContent: 'center',
         verticalAlign: 'middle',
         marginLeft: 7,
-        cursor: 'default'
+        cursor: 'pointer'
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={(e) => {
+        e.stopPropagation();
+        setHovered((prev) => !prev);
+      }}
     >
       <span
         style={{
           width: 15,
           height: 15,
           borderRadius: '50%',
-          border: '1px solid #9ca3af',
-          color: '#9ca3af',
+          border: light ? '1px solid rgba(255, 255, 255, 0.7)' : '1px solid #9ca3af',
+          color: light ? '#ffffff' : '#9ca3af',
           fontSize: 10,
           fontFamily: 'serif',
           fontStyle: 'italic',
@@ -611,6 +615,7 @@ export default function KitchenModal({
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
+          flex: 1,
           boxSizing: 'border-box',
           overflow: 'hidden'
         }}
@@ -733,32 +738,38 @@ export default function KitchenModal({
                   <InfoTooltip text="Select the type of Dish you'd like to cook." />
                 </h2>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24, alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 340, margin: '0 auto' }}>
                   <button
                     type="button"
                     className="btn-zoom-click"
                     onClick={() => handleSelectCustomization('regular')}
                     style={{
-                      background: 'none',
-                      border: 'none',
+                      background: dishType === 'regular' ? '#101214' : 'rgba(0, 0, 0, 0.04)',
+                      border: dishType === 'regular' ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                      borderRadius: 16,
                       cursor: 'pointer',
-                      padding: '4px 0',
+                      padding: '14px 20px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 8
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      transition: 'all 0.18s ease'
                     }}
                   >
                     <span
                       style={{
-                        fontSize: 18,
-                        fontWeight: 450,
-                        color: dishType === 'regular' ? '#101214' : '#52525b',
-                        opacity: dishType === 'regular' ? 1 : 0.75,
-                        transition: 'opacity 0.15s ease'
+                        fontSize: 16,
+                        fontWeight: dishType === 'regular' ? 600 : 500,
+                        color: dishType === 'regular' ? '#ffffff' : '#101214'
                       }}
                     >
                       Regular
                     </span>
+                    {dishType === 'regular' && (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
                   </button>
 
                   <button
@@ -766,29 +777,37 @@ export default function KitchenModal({
                     className="btn-zoom-click"
                     onClick={() => handleSelectCustomization('chefs_special')}
                     style={{
-                      background: 'none',
-                      border: 'none',
+                      background: dishType === 'chefs_special' ? '#101214' : 'rgba(0, 0, 0, 0.04)',
+                      border: dishType === 'chefs_special' ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                      borderRadius: 16,
                       cursor: 'pointer',
-                      padding: '4px 0',
+                      padding: '14px 20px',
                       display: 'flex',
-                      alignItems: 'baseline',
-                      gap: 10
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      transition: 'all 0.18s ease'
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 450,
-                        color: dishType === 'chefs_special' ? '#101214' : '#52525b',
-                        opacity: dishType === 'chefs_special' ? 1 : 0.75,
-                        transition: 'opacity 0.15s ease'
-                      }}
-                    >
-                      Chef's Special
-                    </span>
-                    <span style={{ fontSize: 13, color: '#71717a', fontStyle: 'italic', fontWeight: 400 }}>
-                      more customization
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+                      <span
+                        style={{
+                          fontSize: 16,
+                          fontWeight: dishType === 'chefs_special' ? 600 : 500,
+                          color: dishType === 'chefs_special' ? '#ffffff' : '#101214'
+                        }}
+                      >
+                        Chef&apos;s Special
+                      </span>
+                      <span style={{ fontSize: 12, color: dishType === 'chefs_special' ? 'rgba(255, 255, 255, 0.7)' : '#71717a' }}>
+                        more customization
+                      </span>
+                    </div>
+                    {dishType === 'chefs_special' && (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -852,31 +871,55 @@ export default function KitchenModal({
                   <InfoTooltip text="Control who can join your dish." />
                 </h2>
 
-                <div style={{ display: 'flex', gap: 26, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
+                    width: '100%',
+                    maxWidth: 320,
+                    margin: '0 auto'
+                  }}
+                >
                   {JOIN_MODES.map((m) => {
                     const isSelected = joinMode === m.id;
                     return (
-                      <div key={m.id} style={{ display: 'inline-flex', alignItems: 'center' }}>
-                        <button
-                          type="button"
-                          className="btn-zoom-click"
-                          onClick={() => handleSelectJoinMode(m.id)}
+                      <button
+                        key={m.id}
+                        type="button"
+                        className="btn-zoom-click"
+                        onClick={() => handleSelectJoinMode(m.id)}
+                        style={{
+                          background: isSelected ? '#101214' : 'rgba(0, 0, 0, 0.04)',
+                          border: isSelected ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                          borderRadius: 14,
+                          cursor: 'pointer',
+                          padding: '11px 16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          transition: 'all 0.18s ease'
+                        }}
+                      >
+                        <span
                           style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: 0,
-                            fontSize: 16,
-                            fontWeight: 450,
-                            color: '#101214',
-                            opacity: isSelected ? 1 : 0.65,
-                            transition: 'opacity 0.15s ease'
+                            fontSize: 15,
+                            fontWeight: isSelected ? 600 : 500,
+                            color: isSelected ? '#ffffff' : '#101214'
                           }}
                         >
                           {m.label}
-                        </button>
-                        <InfoTooltip text={m.tooltip} />
-                      </div>
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {isSelected && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                          <InfoTooltip text={m.tooltip} light={isSelected} />
+                        </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -1032,37 +1075,40 @@ export default function KitchenModal({
             {/* STEP 4.1: GENDER ELIGIBILITY */}
             {mainStep === 4 && subStep === 1 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Gender Eligibility
                   <InfoTooltip text="Filter by participant gender preference." />
                 </h2>
 
-                <div style={{ display: 'flex', gap: 26, justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
                   {[
                     { id: 'any', label: 'Any' },
                     { id: 'men', label: 'Men Only' },
                     { id: 'women', label: 'Women Only' }
-                  ].map((g) => (
-                    <button
-                      key={g.id}
-                      type="button"
-                      className="btn-zoom-click"
-                      onClick={() => handleSelectGender(g.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                        fontSize: 16,
-                        fontWeight: 450,
-                        color: '#101214',
-                        opacity: gender === g.id ? 1 : 0.65,
-                        transition: 'opacity 0.15s ease'
-                      }}
-                    >
-                      {g.label}
-                    </button>
-                  ))}
+                  ].map((g) => {
+                    const isSelected = gender === g.id;
+                    return (
+                      <button
+                        key={g.id}
+                        type="button"
+                        className="btn-zoom-click"
+                        onClick={() => handleSelectGender(g.id)}
+                        style={{
+                          background: isSelected ? '#101214' : 'rgba(0, 0, 0, 0.05)',
+                          border: isSelected ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                          borderRadius: 9999,
+                          cursor: 'pointer',
+                          padding: '9px 20px',
+                          fontSize: 14.5,
+                          fontWeight: isSelected ? 600 : 500,
+                          color: isSelected ? '#ffffff' : '#101214',
+                          transition: 'all 0.18s ease'
+                        }}
+                      >
+                        {g.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -1070,13 +1116,12 @@ export default function KitchenModal({
             {/* STEP 4.2: INSTITUTE RESTRICTION (YES / NO TEXT SELECTION) */}
             {mainStep === 4 && subStep === 2 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Institute Verified only?
                   <InfoTooltip text="Limit dish joining to members of your verified institute." />
                 </h2>
 
-                {/* Yes and No clean text selection */}
-                <div style={{ display: 'flex', gap: 32, justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 16, justifyContent: 'center', alignItems: 'center' }}>
                   <button
                     type="button"
                     className="btn-zoom-click"
@@ -1088,15 +1133,15 @@ export default function KitchenModal({
                       }, 200);
                     }}
                     style={{
-                      background: 'none',
-                      border: 'none',
+                      background: instituteOnly ? '#101214' : 'rgba(0, 0, 0, 0.05)',
+                      border: instituteOnly ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                      borderRadius: 9999,
                       cursor: 'pointer',
-                      padding: 0,
-                      fontSize: 18,
-                      fontWeight: 450,
-                      color: '#101214',
-                      opacity: instituteOnly ? 1 : 0.65,
-                      transition: 'opacity 0.15s ease'
+                      padding: '10px 28px',
+                      fontSize: 15,
+                      fontWeight: instituteOnly ? 600 : 500,
+                      color: instituteOnly ? '#ffffff' : '#101214',
+                      transition: 'all 0.18s ease'
                     }}
                   >
                     Yes
@@ -1113,15 +1158,15 @@ export default function KitchenModal({
                       }, 200);
                     }}
                     style={{
-                      background: 'none',
-                      border: 'none',
+                      background: !instituteOnly ? '#101214' : 'rgba(0, 0, 0, 0.05)',
+                      border: !instituteOnly ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                      borderRadius: 9999,
                       cursor: 'pointer',
-                      padding: 0,
-                      fontSize: 18,
-                      fontWeight: 450,
-                      color: '#101214',
-                      opacity: !instituteOnly ? 1 : 0.65,
-                      transition: 'opacity 0.15s ease'
+                      padding: '10px 28px',
+                      fontSize: 15,
+                      fontWeight: !instituteOnly ? 600 : 500,
+                      color: !instituteOnly ? '#ffffff' : '#101214',
+                      transition: 'all 0.18s ease'
                     }}
                   >
                     No
@@ -1133,33 +1178,36 @@ export default function KitchenModal({
             {/* STEP 4.3: SKILL SELECTION */}
             {mainStep === 4 && subStep === 3 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Skill Level
                   <InfoTooltip text="Set expected skill or experience level." />
                 </h2>
 
-                <div style={{ display: 'flex', gap: 20, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
-                  {SKILL_LEVELS.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      className="btn-zoom-click"
-                      onClick={() => handleSelectSkill(s)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                        fontSize: 16,
-                        fontWeight: 450,
-                        color: '#101214',
-                        opacity: skillLevel === s ? 1 : 0.65,
-                        transition: 'opacity 0.15s ease'
-                      }}
-                    >
-                      {s}
-                    </button>
-                  ))}
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', maxWidth: 360 }}>
+                  {SKILL_LEVELS.map((s) => {
+                    const isSelected = skillLevel === s;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        className="btn-zoom-click"
+                        onClick={() => handleSelectSkill(s)}
+                        style={{
+                          background: isSelected ? '#101214' : 'rgba(0, 0, 0, 0.05)',
+                          border: isSelected ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                          borderRadius: 9999,
+                          cursor: 'pointer',
+                          padding: '8px 16px',
+                          fontSize: 14,
+                          fontWeight: isSelected ? 600 : 500,
+                          color: isSelected ? '#ffffff' : '#101214',
+                          transition: 'all 0.18s ease'
+                        }}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -1167,39 +1215,42 @@ export default function KitchenModal({
             {/* STEP 4.4: AGE SELECTION */}
             {mainStep === 4 && subStep === 4 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 28px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Age Requirement
                   <InfoTooltip text="Directly pick 18+, under 18, or custom range." />
                 </h2>
 
                 {/* Direct quick choices */}
-                <div style={{ display: 'flex', gap: 22, justifyContent: 'center', alignItems: 'center', marginBottom: ageMode === 'custom' ? 24 : 0 }}>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginBottom: ageMode === 'custom' ? 24 : 0 }}>
                   {[
                     { id: 'any', label: 'Any Age' },
                     { id: '18_plus', label: '18+' },
                     { id: 'under_18', label: 'Under 18' },
                     { id: 'custom', label: 'Custom' }
-                  ].map((a) => (
-                    <button
-                      key={a.id}
-                      type="button"
-                      className="btn-zoom-click"
-                      onClick={() => handleSelectAgeMode(a.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                        fontSize: 16,
-                        fontWeight: 450,
-                        color: '#101214',
-                        opacity: ageMode === a.id ? 1 : 0.65,
-                        transition: 'opacity 0.15s ease'
-                      }}
-                    >
-                      {a.label}
-                    </button>
-                  ))}
+                  ].map((a) => {
+                    const isSelected = ageMode === a.id;
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        className="btn-zoom-click"
+                        onClick={() => handleSelectAgeMode(a.id)}
+                        style={{
+                          background: isSelected ? '#101214' : 'rgba(0, 0, 0, 0.05)',
+                          border: isSelected ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                          borderRadius: 9999,
+                          cursor: 'pointer',
+                          padding: '8px 16px',
+                          fontSize: 14,
+                          fontWeight: isSelected ? 600 : 500,
+                          color: isSelected ? '#ffffff' : '#101214',
+                          transition: 'all 0.18s ease'
+                        }}
+                      >
+                        {a.label}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* Custom range input with text sitting on the line */}

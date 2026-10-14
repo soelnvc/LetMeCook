@@ -2175,13 +2175,13 @@ function AppContent() {
                             <p style={{ fontSize: 14, margin: 0 }}>No previous dishes yet.</p>
                           </div>
                         ) : (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+                          <div className="profile-history-grid">
                             {previousDishes.map((dish) => (
                               <GlassContainer
                                 key={dish._id}
                                 radius={18}
+                                className="profile-history-card"
                                 style={{
-                                  aspectRatio: '1 / 1',
                                   position: 'relative',
                                   cursor: 'pointer',
                                   overflow: 'hidden',
@@ -2192,16 +2192,17 @@ function AppContent() {
                                   setSelectedDishDetail(dish);
                                 }}
                                 innerStyle={{
-                                  padding: 18,
+                                  padding: '16px 18px',
                                   height: '100%',
                                   display: 'flex',
                                   flexDirection: 'column',
                                   justifyContent: 'space-between',
-                                  boxSizing: 'border-box'
+                                  boxSizing: 'border-box',
+                                  minHeight: 110
                                 }}
                               >
                                 <div>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
                                     <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
                                       {dish.category || 'Activity'}
                                     </span>
@@ -2212,12 +2213,12 @@ function AppContent() {
                                       Cooked
                                     </span>
                                   </div>
-                                  <p style={{ fontSize: 13, color: '#111827', margin: 0, lineHeight: 1.4, lineClamp: 4, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                  <p style={{ fontSize: 13.5, color: '#111827', margin: '0 0 10px 0', lineHeight: 1.45, fontWeight: 500, wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                     {dish.description}
                                   </p>
                                 </div>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 11.5, color: '#666666' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#666666', flexWrap: 'wrap', gap: 6 }}>
                                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -2460,13 +2461,13 @@ function AppContent() {
                             <p style={{ fontSize: 14, margin: 0 }}>No past joined dishes yet.</p>
                           </div>
                         ) : (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+                          <div className="profile-history-grid">
                             {previousJoined.map((dish) => (
                               <GlassContainer
                                 key={dish._id}
                                 radius={18}
+                                className="profile-history-card"
                                 style={{
-                                  aspectRatio: '1 / 1',
                                   position: 'relative',
                                   cursor: 'pointer',
                                   overflow: 'hidden',
@@ -2477,16 +2478,17 @@ function AppContent() {
                                   setSelectedDishDetail(dish);
                                 }}
                                 innerStyle={{
-                                  padding: 18,
+                                  padding: '16px 18px',
                                   height: '100%',
                                   display: 'flex',
                                   flexDirection: 'column',
                                   justifyContent: 'space-between',
-                                  boxSizing: 'border-box'
+                                  boxSizing: 'border-box',
+                                  minHeight: 110
                                 }}
                               >
                                 <div>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
                                     <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
                                       {dish.category || 'Activity'}
                                     </span>
@@ -2497,12 +2499,12 @@ function AppContent() {
                                       Joined
                                     </span>
                                   </div>
-                                  <p style={{ fontSize: 13, color: '#111827', margin: 0, lineHeight: 1.4, lineClamp: 4, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                  <p style={{ fontSize: 13.5, color: '#111827', margin: '0 0 10px 0', lineHeight: 1.45, fontWeight: 500, wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                     {dish.description}
                                   </p>
                                 </div>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 11.5, color: '#666666' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#666666', flexWrap: 'wrap', gap: 6 }}>
                                   <span
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -2530,7 +2532,7 @@ function AppContent() {
                                       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                                       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                                     </svg>
-                                    {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4}
+                                    {dish.participants?.length || 1}/{dish.capacity?.max || dish.capacity || 4} spots
                                   </span>
                                 </div>
                               </GlassContainer>

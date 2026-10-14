@@ -383,14 +383,41 @@ html, body, button, input, select, textarea {
 
   .kitchen-modal-glass {
     width: 96vw !important;
-    max-width: 96vw !important;
+    max-width: 460px !important;
     height: auto !important;
-    min-height: 480px !important;
-    max-height: 94vh !important;
+    max-height: 88vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
   }
   .kitchen-modal-inner {
-    padding: 16px 14px !important;
+    padding: 20px 16px !important;
     overflow-y: auto !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Profile History & Joined Sessions responsive cards */
+  .profile-history-grid {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+  .profile-history-card {
+    aspect-ratio: auto !important;
+    min-height: auto !important;
+    width: 100% !important;
+  }
+  .profile-awards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
   }
 
   .settings-menu-col {
@@ -505,6 +532,20 @@ html, body, button, input, select, textarea {
   }
   .profile-ig-header-desktop {
     display: flex !important;
+  }
+
+  .profile-history-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 18px !important;
+  }
+  .profile-history-card {
+    aspect-ratio: 1 / 1 !important;
+  }
+  .profile-awards-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 18px !important;
   }
 }
 

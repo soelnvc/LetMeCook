@@ -80,11 +80,11 @@ export default function MobileNav({
           zIndex: 70,
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 16px',
+          padding: '0 14px',
           boxSizing: 'border-box'
         }}
       >
-        {/* Left: Back button OR Brand Wordmark */}
+        {/* Left: Back button (contextual) OR Create Dish Plus Icon */}
         {hasBackAction ? (
           <button
             id="mobile-header-back"
@@ -95,7 +95,7 @@ export default function MobileNav({
               gap: 6,
               background: 'none',
               border: 'none',
-              padding: 0,
+              padding: '6px 4px',
               cursor: 'pointer',
               color: '#09090b',
               fontWeight: 700,
@@ -108,142 +108,121 @@ export default function MobileNav({
             <span>{getBackTitle()}</span>
           </button>
         ) : (
-          <div
-            onClick={() => setActiveTab('home')}
+          <button
+            id="mobile-header-create-dish"
+            onClick={() => setShowKitchenModal(true)}
             style={{
+              background: 'none',
+              border: 'none',
+              padding: 6,
+              cursor: 'pointer',
+              color: '#09090b',
               display: 'flex',
               alignItems: 'center',
-              gap: 8,
-              cursor: 'pointer'
+              justifyContent: 'center',
+              borderRadius: 8
             }}
+            className="mobile-nav-item"
+            title="Create Dish"
           >
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#000000'
-              }}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 12h20" />
-                <path d="M4 12v6a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6" />
-                <path d="M8 8a4 4 0 0 1 8 0" />
-                <path d="M12 2v2" />
-              </svg>
-            </span>
-            <span
-              style={{
-                fontSize: 18,
-                fontWeight: 800,
-                letterSpacing: '-0.4px',
-                color: '#09090b',
-                fontFamily: "'Inter', sans-serif"
-              }}
-            >
-              LetMeCook
-            </span>
-          </div>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
         )}
 
-        {/* Right: Quick Actions (Heart Notifications & Messages) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {/* Notifications Button */}
-          <button
-            id="mobile-header-notifications"
-            onClick={() => setActiveTab('notifications')}
+        {/* Top Middle: App Name (Centered) */}
+        <div
+          onClick={() => setActiveTab('home')}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 7,
+            cursor: 'pointer',
+            userSelect: 'none'
+          }}
+        >
+          <span
             style={{
-              background: 'none',
-              border: 'none',
-              padding: 4,
-              cursor: 'pointer',
-              color: activeTab === 'notifications' ? '#ef4444' : '#09090b',
-              position: 'relative',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              color: '#000000'
             }}
-            className="mobile-nav-item"
-            title="Notifications"
           >
-            <svg
-              width="23"
-              height="23"
-              viewBox="0 0 24 24"
-              fill={activeTab === 'notifications' ? '#ef4444' : 'none'}
-              stroke={activeTab === 'notifications' ? '#ef4444' : 'currentColor'}
-              strokeWidth={activeTab === 'notifications' ? '2.2' : '1.9'}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 12h20" />
+              <path d="M4 12v6a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6" />
+              <path d="M8 8a4 4 0 0 1 8 0" />
+              <path d="M12 2v2" />
             </svg>
-            {unreadNotificationsCount > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 2,
-                  right: 2,
-                  width: 7,
-                  height: 7,
-                  borderRadius: '50%',
-                  backgroundColor: '#ef4444',
-                  boxShadow: '0 0 0 2px #e6dfe4'
-                }}
-              />
-            )}
-          </button>
-
-          {/* Messages Button (Instagram Direct Message Icon) */}
-          <button
-            id="mobile-header-messages"
-            onClick={() => setActiveTab('messages')}
+          </span>
+          <span
             style={{
-              background: 'none',
-              border: 'none',
-              padding: 4,
-              cursor: 'pointer',
-              color: activeTab === 'messages' ? '#09090b' : '#3f3f46',
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              fontSize: 18,
+              fontWeight: 800,
+              letterSpacing: '-0.4px',
+              color: '#09090b',
+              fontFamily: "'Inter', sans-serif"
             }}
-            className="mobile-nav-item"
-            title="Messages"
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill={activeTab === 'messages' ? 'currentColor' : 'none'}
-              stroke="currentColor"
-              strokeWidth={activeTab === 'messages' ? '2.2' : '1.9'}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-            </svg>
-            {unreadMessagesCount > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 1,
-                  right: 1,
-                  width: 7,
-                  height: 7,
-                  borderRadius: '50%',
-                  backgroundColor: '#ef4444',
-                  boxShadow: '0 0 0 2px #e6dfe4'
-                }}
-              />
-            )}
-          </button>
+            LetMeCook
+          </span>
         </div>
+
+        {/* Right: Notification Heart Icon */}
+        <button
+          id="mobile-header-notifications"
+          onClick={() => setActiveTab('notifications')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 6,
+            cursor: 'pointer',
+            color: activeTab === 'notifications' ? '#ef4444' : '#09090b',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          className="mobile-nav-item"
+          title="Notifications"
+        >
+          <svg
+            width="23"
+            height="23"
+            viewBox="0 0 24 24"
+            fill={activeTab === 'notifications' ? '#ef4444' : 'none'}
+            stroke={activeTab === 'notifications' ? '#ef4444' : 'currentColor'}
+            strokeWidth={activeTab === 'notifications' ? '2.2' : '1.9'}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          {unreadNotificationsCount > 0 && (
+            <span
+              style={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                backgroundColor: '#ef4444',
+                boxShadow: '0 0 0 2px #e6dfe4'
+              }}
+            />
+          )}
+        </button>
       </header>
 
       {/* ========================================================= */}
-      {/* 2. BOTTOM MOBILE NAVIGATION BAR                          */}
+      {/* 2. BOTTOM MOBILE NAVIGATION BAR (Home, Dine in, Messages, Search, Profile) */}
       {/* ========================================================= */}
       <nav
         className="mobile-flex"
@@ -316,7 +295,7 @@ export default function MobileNav({
             justifyContent: 'center',
             flex: 1
           }}
-          title="Dine-in"
+          title="Dine in"
         >
           <svg
             width="23"
@@ -336,42 +315,51 @@ export default function MobileNav({
           </svg>
         </button>
 
-        {/* 3. Cook (+) Action Tab (Elevated Center Instagram Create) */}
+        {/* 3. Messages Tab */}
         <button
-          id="mobile-tab-cook"
-          onClick={() => setShowKitchenModal(true)}
+          id="mobile-tab-messages"
+          onClick={() => setActiveTab('messages')}
           className="mobile-nav-item"
           style={{
             background: 'none',
             border: 'none',
-            padding: 4,
+            padding: 8,
             cursor: 'pointer',
-            color: '#09090b',
+            color: activeTab === 'messages' ? '#09090b' : '#52525b',
+            position: 'relative',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flex: 1
           }}
-          title="Cook"
+          title="Messages"
         >
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              backgroundColor: 'rgba(0, 0, 0, 0.08)',
-              border: '1.5px solid rgba(0, 0, 0, 0.12)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
-            }}
+          <svg
+            width="23"
+            height="23"
+            viewBox="0 0 24 24"
+            fill={activeTab === 'messages' ? 'currentColor' : 'none'}
+            stroke="currentColor"
+            strokeWidth={activeTab === 'messages' ? '2.2' : '1.8'}
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#09090b" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </div>
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+          {unreadMessagesCount > 0 && (
+            <span
+              style={{
+                position: 'absolute',
+                top: 7,
+                right: 'calc(50% - 13px)',
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                backgroundColor: '#ef4444',
+                boxShadow: '0 0 0 2px #e6dfe4'
+              }}
+            />
+          )}
         </button>
 
         {/* 4. Search Tab */}
@@ -407,7 +395,7 @@ export default function MobileNav({
           </svg>
         </button>
 
-        {/* 5. Profile Tab (Instagram Avatar Thumbnail) */}
+        {/* 5. Profile Tab */}
         <button
           id="mobile-tab-profile"
           onClick={() => setActiveTab('profile')}
