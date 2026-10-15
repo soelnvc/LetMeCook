@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import DishCard from '@/components/dish/DishCard';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function DineInFeed({
   user,
@@ -22,6 +23,7 @@ export default function DineInFeed({
   initialTab = 'join_to_cook',
   initialCategory = ''
 }) {
+  const { isDark } = useTheme();
   const [activeSubTab, setActiveSubTab] = useState(initialTab); // 'join_to_cook' | 'cooking' | 'my_dishes'
   const [feedScope, setFeedScope] = useState('all'); // 'all' | 'institution' | 'connections'
   const [searchQuery, setSearchQuery] = useState('');
@@ -298,7 +300,7 @@ export default function DineInFeed({
               letterSpacing: '-0.03em',
               lineHeight: 1.15,
               margin: '0 0 6px 0',
-              color: '#09090b'
+              color: isDark ? '#ffffff' : '#09090b'
             }}
           >
             Dine In
@@ -306,7 +308,7 @@ export default function DineInFeed({
           <p
             style={{
               fontSize: 13,
-              color: '#52525b',
+              color: isDark ? '#e4e4e7' : '#52525b',
               margin: 0,
               lineHeight: 1.4,
               fontWeight: 400
@@ -433,27 +435,25 @@ export default function DineInFeed({
                     gap: 6,
                     padding: '7px 14px',
                     borderRadius: 9999,
-                    border: 'none',
+                    border: isSelected ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #09090b') : '1px solid transparent',
                     fontSize: 12.5,
                     fontWeight: isSelected ? 600 : 500,
                     cursor: 'pointer',
-                    background: isSelected ? '#09090b' : 'transparent',
-                    color: isSelected ? '#ffffff' : '#52525b',
+                    background: isSelected ? (isDark ? 'rgba(255, 255, 255, 0.18)' : '#09090b') : 'transparent',
+                    color: isSelected ? '#ffffff' : (isDark ? '#d4d4d8' : '#52525b'),
                     boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none',
-                    transition: 'all 0.18s ease',
+                    transition: 'background 0.18s ease, border-color 0.18s ease',
                     whiteSpace: 'nowrap',
                     flexShrink: 0
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
-                      e.currentTarget.style.color = '#18181b';
+                      e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
                       e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = '#52525b';
                     }
                   }}
                 >
@@ -465,8 +465,8 @@ export default function DineInFeed({
                       borderRadius: 9999,
                       fontSize: 10.5,
                       fontWeight: 700,
-                      background: isSelected ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)',
-                      color: isSelected ? '#ffffff' : '#71717a'
+                      background: isSelected ? (isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.22)') : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.07)'),
+                      color: isDark ? '#ffffff' : (isSelected ? '#ffffff' : '#71717a')
                     }}
                   >
                     {feed.count}
@@ -547,27 +547,25 @@ export default function DineInFeed({
                   gap: 7,
                   padding: '9px 15px',
                   borderRadius: 9999,
-                  border: 'none',
+                  border: isActive ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #09090b') : '1px solid transparent',
                   fontSize: 12.5,
                   fontWeight: isActive ? 600 : 500,
                   cursor: 'pointer',
-                  background: isActive ? '#09090b' : 'transparent',
-                  color: isActive ? '#ffffff' : '#52525b',
+                  background: isActive ? (isDark ? 'rgba(255, 255, 255, 0.18)' : '#09090b') : 'transparent',
+                  color: isActive ? '#ffffff' : (isDark ? '#d4d4d8' : '#52525b'),
                   boxShadow: isActive ? '0 2px 10px rgba(0, 0, 0, 0.16)' : 'none',
-                  transition: 'all 0.18s ease',
+                  transition: 'background 0.18s ease, border-color 0.18s ease',
                   whiteSpace: 'nowrap',
                   flexShrink: 0
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
-                    e.currentTarget.style.color = '#18181b';
+                    e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#52525b';
                   }
                 }}
               >
@@ -659,7 +657,7 @@ export default function DineInFeed({
               fontSize: 13,
               background: 'transparent',
               border: 'none',
-              color: '#09090b',
+              color: isDark ? '#ffffff' : '#09090b',
               outline: 'none',
               fontFamily: 'inherit'
             }}
@@ -672,7 +670,7 @@ export default function DineInFeed({
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#71717a',
+                color: isDark ? '#d4d4d8' : '#71717a',
                 cursor: 'pointer',
                 padding: 4,
                 display: 'flex',
@@ -694,15 +692,16 @@ export default function DineInFeed({
           <FluidButton
             onClick={() => setAutoJoinOnly((prev) => !prev)}
             style={{
-              padding: autoJoinOnly ? '10px 20px' : '7px 15px',
-              fontSize: autoJoinOnly ? 13.5 : 12,
-              fontWeight: autoJoinOnly ? 800 : 500,
-              color: autoJoinOnly ? '#09090b' : '#52525b',
+              padding: '7px 16px',
+              fontSize: 12.5,
+              fontWeight: autoJoinOnly ? 600 : 500,
+              color: autoJoinOnly ? '#ffffff' : (isDark ? '#d4d4d8' : '#52525b'),
+              backgroundColor: autoJoinOnly ? (isDark ? 'rgba(255, 255, 255, 0.22)' : '#09090b') : 'transparent',
               transition: 'all 0.18s ease'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: autoJoinOnly ? 13.5 : 12, fontWeight: autoJoinOnly ? 800 : 500 }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill={autoJoinOnly ? '#09090b' : 'currentColor'} stroke="none">
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: autoJoinOnly ? 600 : 500 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill={autoJoinOnly ? '#ffffff' : 'currentColor'} stroke="none">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
               </svg>
               Auto-Join
@@ -713,14 +712,15 @@ export default function DineInFeed({
           <FluidButton
             onClick={() => setOpenSpotsOnly((prev) => !prev)}
             style={{
-              padding: openSpotsOnly ? '10px 20px' : '7px 15px',
-              fontSize: openSpotsOnly ? 13.5 : 12,
-              fontWeight: openSpotsOnly ? 800 : 500,
-              color: openSpotsOnly ? '#09090b' : '#52525b',
+              padding: '7px 16px',
+              fontSize: 12.5,
+              fontWeight: openSpotsOnly ? 600 : 500,
+              color: openSpotsOnly ? '#ffffff' : (isDark ? '#d4d4d8' : '#52525b'),
+              backgroundColor: openSpotsOnly ? (isDark ? 'rgba(255, 255, 255, 0.22)' : '#09090b') : 'transparent',
               transition: 'all 0.18s ease'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: openSpotsOnly ? 13.5 : 12, fontWeight: openSpotsOnly ? 800 : 500 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: openSpotsOnly ? 600 : 500 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={openSpotsOnly ? '2.5' : '2'} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
@@ -755,16 +755,17 @@ export default function DineInFeed({
               key={cat.id || 'all'}
               onClick={() => setSelectedCategory(cat.id)}
               style={{
-                padding: isSelected ? '10px 20px' : '6px 14px',
-                fontSize: isSelected ? 13.5 : 12,
-                fontWeight: isSelected ? 800 : 500,
-                color: isSelected ? '#09090b' : '#52525b',
+                padding: '7px 16px',
+                fontSize: 12.5,
+                fontWeight: isSelected ? 600 : 500,
+                color: isSelected ? '#ffffff' : (isDark ? '#d4d4d8' : '#52525b'),
+                backgroundColor: isSelected ? (isDark ? 'rgba(255, 255, 255, 0.22)' : '#09090b') : 'transparent',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
                 transition: 'all 0.18s ease'
               }}
             >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: isSelected ? 13.5 : 12, fontWeight: isSelected ? 800 : 500 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: isSelected ? 600 : 500 }}>
                 {cat.icon}
                 <span>{cat.label}</span>
               </span>
@@ -923,7 +924,7 @@ export default function DineInFeed({
                 fontSize: 17,
                 fontWeight: 700,
                 margin: '0 0 6px 0',
-                color: '#09090b'
+                color: isDark ? '#ffffff' : '#09090b'
               }}
             >
               No activities found
@@ -931,7 +932,7 @@ export default function DineInFeed({
             <p
               style={{
                 fontSize: 13,
-                color: '#71717a',
+                color: isDark ? '#e4e4e7' : '#71717a',
                 margin: 0,
                 maxWidth: 420,
                 lineHeight: 1.45

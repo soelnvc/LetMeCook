@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import { useToast } from '@/context/ToastContext';
+import { useTheme } from '@/context/ThemeContext';
 
 // Minimal monochrome SVG icons for Step 2
 const CATEGORY_ICONS = {
@@ -179,6 +180,8 @@ export default function KitchenModal({
   initialRecipe = null,
   isSubmitting = false
 }) {
+  const { isDark } = useTheme();
+
   // Form State
   const [dishType, setDishType] = useState('regular'); // 'regular' | 'chefs_special'
   const [category, setCategory] = useState('');
@@ -611,7 +614,7 @@ export default function KitchenModal({
         }}
         innerStyle={{
           padding: '24px 32px',
-          color: '#101214',
+          color: isDark ? '#ffffff' : '#101214',
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
@@ -643,7 +646,7 @@ export default function KitchenModal({
                   cursor: 'pointer',
                   padding: '2px 4px',
                   fontSize: 16,
-                  color: '#4b5563',
+                  color: isDark ? '#ffffff' : '#4b5563',
                   display: 'flex',
                   alignItems: 'center'
                 }}
@@ -654,11 +657,11 @@ export default function KitchenModal({
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.4px', textTransform: 'uppercase', color: '#6b7280' }}>
+                <span style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.4px', textTransform: 'uppercase', color: isDark ? '#d4d4d8' : '#6b7280' }}>
                   Step {mainStep} of {totalSteps}
                 </span>
-                <span style={{ fontSize: 12, color: '#9ca3af' }}>•</span>
-                <span style={{ fontSize: 12.5, fontWeight: 500, color: '#101214' }}>
+                <span style={{ fontSize: 12, color: isDark ? '#71717a' : '#9ca3af' }}>•</span>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: isDark ? '#ffffff' : '#101214' }}>
                   {getSubStepLabel()}
                 </span>
                 <div style={{ display: 'flex', gap: 4, marginLeft: 6 }}>
@@ -669,7 +672,7 @@ export default function KitchenModal({
                         width: i + 1 === mainStep ? 18 : 6,
                         height: 5,
                         borderRadius: 3,
-                        backgroundColor: i + 1 <= mainStep ? '#101214' : 'rgba(0, 0, 0, 0.15)',
+                        backgroundColor: i + 1 <= mainStep ? (isDark ? '#ffffff' : '#101214') : (isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.15)'),
                         transition: 'all 0.25s ease'
                       }}
                     />
@@ -684,7 +687,7 @@ export default function KitchenModal({
                     width: 140,
                     height: 2.5,
                     borderRadius: 2,
-                    backgroundColor: 'rgba(0, 0, 0, 0.12)',
+                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)',
                     overflow: 'hidden',
                     marginTop: 2
                   }}
@@ -693,7 +696,7 @@ export default function KitchenModal({
                     style={{
                       height: '100%',
                       width: `${getSubStepProgress() * 100}%`,
-                      backgroundColor: '#101214',
+                      backgroundColor: isDark ? '#ffffff' : '#101214',
                       borderRadius: 2,
                       transition: 'width 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
                     }}
@@ -733,7 +736,7 @@ export default function KitchenModal({
             {/* STEP 1: CHOOSE CUSTOMIZATION */}
             {mainStep === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Choose Customization
                   <InfoTooltip text="Select the type of Dish you'd like to cook." />
                 </h2>
@@ -744,8 +747,12 @@ export default function KitchenModal({
                     className="btn-zoom-click"
                     onClick={() => handleSelectCustomization('regular')}
                     style={{
-                      background: dishType === 'regular' ? '#101214' : 'rgba(0, 0, 0, 0.04)',
-                      border: dishType === 'regular' ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                      background: dishType === 'regular'
+                        ? (isDark ? 'rgba(255, 255, 255, 0.16)' : '#101214')
+                        : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)'),
+                      border: dishType === 'regular'
+                        ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #101214')
+                        : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'),
                       borderRadius: 16,
                       cursor: 'pointer',
                       padding: '14px 20px',
@@ -760,7 +767,7 @@ export default function KitchenModal({
                       style={{
                         fontSize: 16,
                         fontWeight: dishType === 'regular' ? 600 : 500,
-                        color: dishType === 'regular' ? '#ffffff' : '#101214'
+                        color: dishType === 'regular' ? '#ffffff' : (isDark ? '#e4e4e7' : '#101214')
                       }}
                     >
                       Regular
@@ -777,8 +784,12 @@ export default function KitchenModal({
                     className="btn-zoom-click"
                     onClick={() => handleSelectCustomization('chefs_special')}
                     style={{
-                      background: dishType === 'chefs_special' ? '#101214' : 'rgba(0, 0, 0, 0.04)',
-                      border: dishType === 'chefs_special' ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                      background: dishType === 'chefs_special'
+                        ? (isDark ? 'rgba(255, 255, 255, 0.16)' : '#101214')
+                        : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)'),
+                      border: dishType === 'chefs_special'
+                        ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #101214')
+                        : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'),
                       borderRadius: 16,
                       cursor: 'pointer',
                       padding: '14px 20px',
@@ -794,12 +805,12 @@ export default function KitchenModal({
                         style={{
                           fontSize: 16,
                           fontWeight: dishType === 'chefs_special' ? 600 : 500,
-                          color: dishType === 'chefs_special' ? '#ffffff' : '#101214'
+                          color: dishType === 'chefs_special' ? '#ffffff' : (isDark ? '#e4e4e7' : '#101214')
                         }}
                       >
                         Chef&apos;s Special
                       </span>
-                      <span style={{ fontSize: 12, color: dishType === 'chefs_special' ? 'rgba(255, 255, 255, 0.7)' : '#71717a' }}>
+                      <span style={{ fontSize: 12, color: dishType === 'chefs_special' ? 'rgba(255, 255, 255, 0.7)' : (isDark ? '#a1a1aa' : '#71717a') }}>
                         more customization
                       </span>
                     </div>
@@ -816,7 +827,7 @@ export default function KitchenModal({
             {/* STEP 2: CATEGORY */}
             {mainStep === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   What are we cooking?
                   <InfoTooltip text="Pick the category that best fits your activity." />
                 </h2>
@@ -839,19 +850,19 @@ export default function KitchenModal({
                           alignItems: 'center',
                           gap: 6,
                           padding: '8px 4px',
-                          color: '#101214',
-                          opacity: isSelected ? 1 : 0.65,
+                          color: isDark ? '#ffffff' : '#101214',
+                          opacity: isSelected ? 1 : (isDark ? 0.7 : 0.65),
                           transition: 'opacity 0.15s ease'
                         }}
                       >
-                        <span style={{ color: '#101214' }}>
+                        <span style={{ color: isDark ? '#ffffff' : '#101214' }}>
                           {CATEGORY_ICONS[cat.id]}
                         </span>
                         <span
                           style={{
                             fontSize: 13.5,
-                            fontWeight: 450,
-                            color: '#101214'
+                            fontWeight: isSelected ? 600 : 450,
+                            color: isDark ? '#ffffff' : '#101214'
                           }}
                         >
                           {cat.label}
@@ -866,7 +877,7 @@ export default function KitchenModal({
             {/* STEP 3.1: JOIN MODE */}
             {mainStep === 3 && subStep === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Join Mode
                   <InfoTooltip text="Control who can join your dish." />
                 </h2>
@@ -890,8 +901,12 @@ export default function KitchenModal({
                         className="btn-zoom-click"
                         onClick={() => handleSelectJoinMode(m.id)}
                         style={{
-                          background: isSelected ? '#101214' : 'rgba(0, 0, 0, 0.04)',
-                          border: isSelected ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                          background: isSelected
+                            ? (isDark ? 'rgba(255, 255, 255, 0.16)' : '#101214')
+                            : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)'),
+                          border: isSelected
+                            ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #101214')
+                            : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'),
                           borderRadius: 14,
                           cursor: 'pointer',
                           padding: '11px 16px',
@@ -906,7 +921,7 @@ export default function KitchenModal({
                           style={{
                             fontSize: 15,
                             fontWeight: isSelected ? 600 : 500,
-                            color: isSelected ? '#ffffff' : '#101214'
+                            color: isSelected ? '#ffffff' : (isDark ? '#e4e4e7' : '#101214')
                           }}
                         >
                           {m.label}
@@ -929,7 +944,7 @@ export default function KitchenModal({
             {/* STEP 3.2: CAPACITY */}
             {mainStep === 3 && subStep === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Capacity
                   <InfoTooltip text="Choose the number of seats or allow unlimited." />
                 </h2>
@@ -938,27 +953,28 @@ export default function KitchenModal({
                 <div
                   style={{
                     display: 'inline-flex',
-                    background: 'rgba(0, 0, 0, 0.06)',
+                    background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
                     borderRadius: 9999,
                     padding: 3,
                     marginBottom: 28,
-                    border: '1px solid rgba(0, 0, 0, 0.06)'
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.06)'
                   }}
                 >
                   <button
                     type="button"
-                    className="btn-zoom-click"
+                    className={`btn-zoom-click ${!unlimitedCapacity ? 'segmented-active-white text-on-white btn-white-active' : ''}`}
+                    data-theme-inverted={!unlimitedCapacity ? 'true' : undefined}
                     onClick={() => setUnlimitedCapacity(false)}
                     style={{
                       background: !unlimitedCapacity ? '#ffffff' : 'transparent',
-                      color: '#101214',
+                      color: !unlimitedCapacity ? '#09090b' : (isDark ? '#e4e4e7' : '#71717a'),
                       border: 'none',
                       borderRadius: 9999,
                       padding: '6px 18px',
                       fontSize: 13,
-                      fontWeight: 500,
+                      fontWeight: !unlimitedCapacity ? 700 : 500,
                       cursor: 'pointer',
-                      boxShadow: !unlimitedCapacity ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                      boxShadow: !unlimitedCapacity ? '0 2px 8px rgba(0,0,0,0.12)' : 'none',
                       transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
                     }}
                   >
@@ -966,18 +982,19 @@ export default function KitchenModal({
                   </button>
                   <button
                     type="button"
-                    className="btn-zoom-click"
+                    className={`btn-zoom-click ${unlimitedCapacity ? 'segmented-active-white text-on-white btn-white-active' : ''}`}
+                    data-theme-inverted={unlimitedCapacity ? 'true' : undefined}
                     onClick={() => setUnlimitedCapacity(true)}
                     style={{
                       background: unlimitedCapacity ? '#ffffff' : 'transparent',
-                      color: '#101214',
+                      color: unlimitedCapacity ? '#09090b' : (isDark ? '#e4e4e7' : '#71717a'),
                       border: 'none',
                       borderRadius: 9999,
                       padding: '6px 18px',
                       fontSize: 13,
-                      fontWeight: 500,
+                      fontWeight: unlimitedCapacity ? 700 : 500,
                       cursor: 'pointer',
-                      boxShadow: unlimitedCapacity ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                      boxShadow: unlimitedCapacity ? '0 2px 8px rgba(0,0,0,0.12)' : 'none',
                       transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
                     }}
                   >
@@ -998,14 +1015,14 @@ export default function KitchenModal({
                         cursor: 'pointer',
                         fontSize: 24,
                         fontWeight: 600,
-                        color: '#101214',
+                        color: isDark ? '#ffffff' : '#101214',
                         padding: '4px 12px',
                         lineHeight: 1
                       }}
                     >
                       −
                     </button>
-                    <span style={{ fontSize: 26, fontWeight: 550, minWidth: 44, textAlign: 'center', color: '#101214' }}>
+                    <span style={{ fontSize: 26, fontWeight: 600, minWidth: 44, textAlign: 'center', color: isDark ? '#ffffff' : '#101214' }}>
                       {capacity}
                     </span>
                     <button
@@ -1018,7 +1035,7 @@ export default function KitchenModal({
                         cursor: 'pointer',
                         fontSize: 24,
                         fontWeight: 600,
-                        color: '#101214',
+                        color: isDark ? '#ffffff' : '#101214',
                         padding: '4px 12px',
                         lineHeight: 1
                       }}
@@ -1027,7 +1044,7 @@ export default function KitchenModal({
                     </button>
                   </div>
                 ) : (
-                  <div style={{ fontSize: 16, fontWeight: 450, color: '#101214', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ fontSize: 16, fontWeight: 500, color: isDark ? '#e4e4e7' : '#101214', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 20 }}>∞</span> Open to Any Number
                   </div>
                 )}
@@ -1037,7 +1054,7 @@ export default function KitchenModal({
             {/* STEP 3.3: LOCATION */}
             {mainStep === 3 && subStep === 3 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Location
                   <InfoTooltip text="Specify where participants should meet." />
                 </h2>
@@ -1058,12 +1075,12 @@ export default function KitchenModal({
                     style={{
                       width: '100%',
                       border: 'none',
-                      borderBottom: '1.5px solid #101214',
+                      borderBottom: isDark ? '1.5px solid rgba(255, 255, 255, 0.35)' : '1.5px solid #101214',
                       backgroundColor: 'transparent',
                       padding: '0 0 2px 0',
                       fontSize: 18,
                       fontWeight: 500,
-                      color: '#101214',
+                      color: isDark ? '#ffffff' : '#101214',
                       textAlign: 'center',
                       outline: 'none'
                     }}
@@ -1075,7 +1092,7 @@ export default function KitchenModal({
             {/* STEP 4.1: GENDER ELIGIBILITY */}
             {mainStep === 4 && subStep === 1 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Gender Eligibility
                   <InfoTooltip text="Filter by participant gender preference." />
                 </h2>
@@ -1094,14 +1111,18 @@ export default function KitchenModal({
                         className="btn-zoom-click"
                         onClick={() => handleSelectGender(g.id)}
                         style={{
-                          background: isSelected ? '#101214' : 'rgba(0, 0, 0, 0.05)',
-                          border: isSelected ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                          background: isSelected
+                            ? (isDark ? 'rgba(255, 255, 255, 0.16)' : '#101214')
+                            : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
+                          border: isSelected
+                            ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #101214')
+                            : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'),
                           borderRadius: 9999,
                           cursor: 'pointer',
                           padding: '9px 20px',
                           fontSize: 14.5,
                           fontWeight: isSelected ? 600 : 500,
-                          color: isSelected ? '#ffffff' : '#101214',
+                          color: isSelected ? '#ffffff' : (isDark ? '#e4e4e7' : '#101214'),
                           transition: 'all 0.18s ease'
                         }}
                       >
@@ -1116,7 +1137,7 @@ export default function KitchenModal({
             {/* STEP 4.2: INSTITUTE RESTRICTION (YES / NO TEXT SELECTION) */}
             {mainStep === 4 && subStep === 2 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Institute Verified only?
                   <InfoTooltip text="Limit dish joining to members of your verified institute." />
                 </h2>
@@ -1133,14 +1154,18 @@ export default function KitchenModal({
                       }, 200);
                     }}
                     style={{
-                      background: instituteOnly ? '#101214' : 'rgba(0, 0, 0, 0.05)',
-                      border: instituteOnly ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                      background: instituteOnly
+                        ? (isDark ? 'rgba(255, 255, 255, 0.16)' : '#101214')
+                        : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
+                      border: instituteOnly
+                        ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #101214')
+                        : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'),
                       borderRadius: 9999,
                       cursor: 'pointer',
                       padding: '10px 28px',
                       fontSize: 15,
                       fontWeight: instituteOnly ? 600 : 500,
-                      color: instituteOnly ? '#ffffff' : '#101214',
+                      color: instituteOnly ? '#ffffff' : (isDark ? '#e4e4e7' : '#101214'),
                       transition: 'all 0.18s ease'
                     }}
                   >
@@ -1158,14 +1183,18 @@ export default function KitchenModal({
                       }, 200);
                     }}
                     style={{
-                      background: !instituteOnly ? '#101214' : 'rgba(0, 0, 0, 0.05)',
-                      border: !instituteOnly ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                      background: !instituteOnly
+                        ? (isDark ? 'rgba(255, 255, 255, 0.16)' : '#101214')
+                        : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
+                      border: !instituteOnly
+                        ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #101214')
+                        : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'),
                       borderRadius: 9999,
                       cursor: 'pointer',
                       padding: '10px 28px',
                       fontSize: 15,
                       fontWeight: !instituteOnly ? 600 : 500,
-                      color: !instituteOnly ? '#ffffff' : '#101214',
+                      color: !instituteOnly ? '#ffffff' : (isDark ? '#e4e4e7' : '#101214'),
                       transition: 'all 0.18s ease'
                     }}
                   >
@@ -1178,7 +1207,7 @@ export default function KitchenModal({
             {/* STEP 4.3: SKILL SELECTION */}
             {mainStep === 4 && subStep === 3 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Skill Level
                   <InfoTooltip text="Set expected skill or experience level." />
                 </h2>
@@ -1193,14 +1222,18 @@ export default function KitchenModal({
                         className="btn-zoom-click"
                         onClick={() => handleSelectSkill(s)}
                         style={{
-                          background: isSelected ? '#101214' : 'rgba(0, 0, 0, 0.05)',
-                          border: isSelected ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                          background: isSelected
+                            ? (isDark ? 'rgba(255, 255, 255, 0.16)' : '#101214')
+                            : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
+                          border: isSelected
+                            ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #101214')
+                            : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'),
                           borderRadius: 9999,
                           cursor: 'pointer',
                           padding: '8px 16px',
                           fontSize: 14,
                           fontWeight: isSelected ? 600 : 500,
-                          color: isSelected ? '#ffffff' : '#101214',
+                          color: isSelected ? '#ffffff' : (isDark ? '#e4e4e7' : '#101214'),
                           transition: 'all 0.18s ease'
                         }}
                       >
@@ -1215,7 +1248,7 @@ export default function KitchenModal({
             {/* STEP 4.4: AGE SELECTION */}
             {mainStep === 4 && subStep === 4 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Age Requirement
                   <InfoTooltip text="Directly pick 18+, under 18, or custom range." />
                 </h2>
@@ -1236,14 +1269,18 @@ export default function KitchenModal({
                         className="btn-zoom-click"
                         onClick={() => handleSelectAgeMode(a.id)}
                         style={{
-                          background: isSelected ? '#101214' : 'rgba(0, 0, 0, 0.05)',
-                          border: isSelected ? '1px solid #101214' : '1px solid rgba(0, 0, 0, 0.08)',
+                          background: isSelected
+                            ? (isDark ? 'rgba(255, 255, 255, 0.16)' : '#101214')
+                            : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
+                          border: isSelected
+                            ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #101214')
+                            : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'),
                           borderRadius: 9999,
                           cursor: 'pointer',
                           padding: '8px 16px',
                           fontSize: 14,
                           fontWeight: isSelected ? 600 : 500,
-                          color: isSelected ? '#ffffff' : '#101214',
+                          color: isSelected ? '#ffffff' : (isDark ? '#e4e4e7' : '#101214'),
                           transition: 'all 0.18s ease'
                         }}
                       >
@@ -1266,17 +1303,17 @@ export default function KitchenModal({
                       style={{
                         width: 50,
                         border: 'none',
-                        borderBottom: '1.5px solid #101214',
+                        borderBottom: isDark ? '1.5px solid rgba(255, 255, 255, 0.35)' : '1.5px solid #101214',
                         backgroundColor: 'transparent',
                         padding: '0 0 2px 0',
                         fontSize: 16,
                         fontWeight: 500,
                         textAlign: 'center',
-                        color: '#101214',
+                        color: isDark ? '#ffffff' : '#101214',
                         outline: 'none'
                       }}
                     />
-                    <span style={{ color: '#101214', fontWeight: 500 }}>—</span>
+                    <span style={{ color: isDark ? '#ffffff' : '#101214', fontWeight: 500 }}>—</span>
                     <input
                       type="number"
                       placeholder="Max"
@@ -1287,13 +1324,13 @@ export default function KitchenModal({
                       style={{
                         width: 50,
                         border: 'none',
-                        borderBottom: '1.5px solid #101214',
+                        borderBottom: isDark ? '1.5px solid rgba(255, 255, 255, 0.35)' : '1.5px solid #101214',
                         backgroundColor: 'transparent',
                         padding: '0 0 2px 0',
                         fontSize: 16,
                         fontWeight: 500,
                         textAlign: 'center',
-                        color: '#101214',
+                        color: isDark ? '#ffffff' : '#101214',
                         outline: 'none'
                       }}
                     />
@@ -1305,7 +1342,7 @@ export default function KitchenModal({
             {/* STEP 5: DESCRIBE YOUR DISH (Same as Location with single line and horizontal scroll) */}
             {mainStep === 5 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Describe your Dish
                   <InfoTooltip text="Tell others what you're planning and what to expect." />
                 </h2>
@@ -1323,12 +1360,12 @@ export default function KitchenModal({
                     style={{
                       width: '100%',
                       border: 'none',
-                      borderBottom: '1.5px solid #101214',
+                      borderBottom: isDark ? '1.5px solid rgba(255, 255, 255, 0.35)' : '1.5px solid #101214',
                       backgroundColor: 'transparent',
                       padding: '0 0 2px 0',
                       fontSize: 18,
                       fontWeight: 500,
-                      color: '#101214',
+                      color: isDark ? '#ffffff' : '#101214',
                       textAlign: 'center',
                       outline: 'none',
                       overflowX: 'auto',
@@ -1336,7 +1373,7 @@ export default function KitchenModal({
                     }}
                   />
                   <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
-                    <div style={{ fontSize: 11.5, color: '#71717a' }}>
+                    <div style={{ fontSize: 11.5, color: isDark ? '#a1a1aa' : '#71717a' }}>
                       {description.length} / 500
                     </div>
                   </div>
@@ -1355,7 +1392,7 @@ export default function KitchenModal({
             alignItems: 'center',
             marginTop: 14,
             paddingTop: 14,
-            borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+            borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
             flexShrink: 0
           }}
         >
@@ -1363,7 +1400,7 @@ export default function KitchenModal({
           <FluidButton
             type="button"
             onClick={onClose}
-            style={{ padding: '6px 16px', fontSize: 13, fontWeight: 600, color: '#4b5563' }}
+            style={{ padding: '6px 16px', fontSize: 13, fontWeight: 600, color: isDark ? '#e4e4e7' : '#4b5563' }}
           >
             Cancel
           </FluidButton>
@@ -1419,9 +1456,9 @@ export default function KitchenModal({
                     padding: '7px 18px',
                     fontSize: 13,
                     fontWeight: 600,
-                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                    color: '#09090b',
-                    border: '1px solid rgba(0, 0, 0, 0.12)',
+                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                    color: isDark ? '#ffffff' : '#09090b',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.16)' : '1px solid rgba(0, 0, 0, 0.12)',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 6,

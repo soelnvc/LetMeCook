@@ -1780,7 +1780,7 @@ function AppContent() {
                   <span>Back to {profileHistory.length > 0 ? `@${profileHistory[profileHistory.length - 1].username}` : getTabLabel(profilePreviousTab)}</span>
                 </FluidButton>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: '#000000' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: isDark ? '#ffffff' : '#000000' }}>
                   <span>@{activeProfile?.username || 'user'}</span>
                   {Boolean(
                     activeProfile?.institute?.verified ||
@@ -1799,7 +1799,7 @@ function AppContent() {
                 </div>
 
                 <div style={{ width: 120, display: 'flex', justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>
+                  <span style={{ fontSize: 12, color: isDark ? '#a1a1aa' : '#71717a', fontWeight: 500 }}>
                     Profile View
                   </span>
                 </div>
@@ -1875,7 +1875,7 @@ function AppContent() {
             {/* 2. TAB BAR (DISHES, JOINED, AWARDS) */}
             <div
               style={{
-                borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+                borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)',
                 display: 'flex',
                 justifyContent: 'center',
                 gap: 56,
@@ -1926,7 +1926,7 @@ function AppContent() {
                       gap: 8,
                       height: 52,
                       marginTop: -1,
-                      borderTop: isActive ? '1.5px solid #000000' : '1.5px solid transparent',
+                      borderTop: isActive ? (isDark ? '1.5px solid #ffffff' : '1.5px solid #000000') : '1.5px solid transparent',
                       borderBottom: 'none',
                       borderLeft: 'none',
                       borderRight: 'none',
@@ -1935,7 +1935,7 @@ function AppContent() {
                       fontSize: 12.5,
                       fontWeight: isActive ? 700 : 600,
                       letterSpacing: '1px',
-                      color: isActive ? '#000000' : '#888888',
+                      color: isActive ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#a1a1aa' : '#888888'),
                       transition: 'color 0.15s ease, border-color 0.15s ease'
                     }}
                   >
@@ -2169,16 +2169,16 @@ function AppContent() {
                       {/* PREVIOUS DISHES (Completed Activity Tickets down the line) */}
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                          <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
+                          <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: isDark ? '#f4f4f5' : '#6b7280', margin: 0 }}>
                             Previous Dishes ({previousDishes.length})
                           </h4>
-                          <span style={{ fontSize: 12, color: '#9ca3af' }}>
+                          <span style={{ fontSize: 12, color: isDark ? '#a1a1aa' : '#9ca3af' }}>
                             History
                           </span>
                         </div>
 
                         {previousDishes.length === 0 ? (
-                          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666666' }}>
+                          <div style={{ textAlign: 'center', padding: '40px 20px', color: isDark ? '#a1a1aa' : '#666666' }}>
                             <p style={{ fontSize: 14, margin: 0 }}>No previous dishes yet.</p>
                           </div>
                         ) : (
@@ -2210,22 +2210,22 @@ function AppContent() {
                               >
                                 <div>
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
-                                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
+                                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: isDark ? '#d4d4d8' : '#555555' }}>
                                       {dish.category || 'Activity'}
                                     </span>
-                                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)', color: '#4b5563', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0,0,0,0.06)', color: isDark ? '#ffffff' : '#4b5563', border: isDark ? '1px solid rgba(255, 255, 255, 0.18)' : 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <polyline points="20 6 9 17 4 12" />
                                       </svg>
                                       Cooked
                                     </span>
                                   </div>
-                                  <p style={{ fontSize: 13.5, color: '#111827', margin: '0 0 10px 0', lineHeight: 1.45, fontWeight: 500, wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                  <p style={{ fontSize: 13.5, color: isDark ? '#ffffff' : '#111827', margin: '0 0 10px 0', lineHeight: 1.45, fontWeight: 500, wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                     {dish.description}
                                   </p>
                                 </div>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#666666', flexWrap: 'wrap', gap: 6 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.10)' : '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: isDark ? '#d4d4d8' : '#666666', flexWrap: 'wrap', gap: 6 }}>
                                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -2455,16 +2455,16 @@ function AppContent() {
                       {/* PREVIOUS JOINED DISHES */}
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                          <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#6b7280', margin: 0 }}>
+                          <h4 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: isDark ? '#f4f4f5' : '#6b7280', margin: 0 }}>
                             Past Joined Sessions ({previousJoined.length})
                           </h4>
-                          <span style={{ fontSize: 12, color: '#9ca3af' }}>
+                          <span style={{ fontSize: 12, color: isDark ? '#a1a1aa' : '#9ca3af' }}>
                             History
                           </span>
                         </div>
 
                         {previousJoined.length === 0 ? (
-                          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666666' }}>
+                          <div style={{ textAlign: 'center', padding: '40px 20px', color: isDark ? '#a1a1aa' : '#666666' }}>
                             <p style={{ fontSize: 14, margin: 0 }}>No past joined dishes yet.</p>
                           </div>
                         ) : (
@@ -2496,22 +2496,22 @@ function AppContent() {
                               >
                                 <div>
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
-                                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555' }}>
+                                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: isDark ? '#d4d4d8' : '#555555' }}>
                                       {dish.category || 'Activity'}
                                     </span>
-                                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: 'rgba(0,0,0,0.06)', color: '#4b5563', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0,0,0,0.06)', color: isDark ? '#ffffff' : '#4b5563', border: isDark ? '1px solid rgba(255, 255, 255, 0.18)' : 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <polyline points="20 6 9 17 4 12" />
                                       </svg>
                                       Joined
                                     </span>
                                   </div>
-                                  <p style={{ fontSize: 13.5, color: '#111827', margin: '0 0 10px 0', lineHeight: 1.45, fontWeight: 500, wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                  <p style={{ fontSize: 13.5, color: isDark ? '#ffffff' : '#111827', margin: '0 0 10px 0', lineHeight: 1.45, fontWeight: 500, wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                     {dish.description}
                                   </p>
                                 </div>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#666666', flexWrap: 'wrap', gap: 6 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.10)' : '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: isDark ? '#d4d4d8' : '#666666', flexWrap: 'wrap', gap: 6 }}>
                                   <span
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -2524,7 +2524,7 @@ function AppContent() {
                                     style={{
                                       cursor: 'pointer',
                                       fontWeight: 600,
-                                      color: '#000000',
+                                      color: isDark ? '#ffffff' : '#000000',
                                       transition: 'opacity 0.15s ease'
                                     }}
                                     onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}

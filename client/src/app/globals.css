@@ -130,13 +130,14 @@ html, body, button, input, select, textarea {
 
 /* Subtle Zoom-out effect on click */
 .btn-zoom-click {
-  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.18s ease;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.15s ease;
 }
 .btn-zoom-click:active {
-  transform: scale(0.92) !important;
+  transform: scale(0.97) !important;
 }
 
 /* Fluid Glass Button */
+/* StringTune Authentic Button System */
 .btn-fluid {
   --border-radius: 9999px;
   --spotlight-angle: -45deg;
@@ -154,12 +155,12 @@ html, body, button, input, select, textarea {
   border: none;
   cursor: pointer;
   padding: 0.62rem 1.6rem;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 14.5px;
   font-weight: 500;
+  line-height: 1.2;
   color: #101214;
   text-decoration: none;
-  box-shadow: 0 0.8rem 0.8rem rgba(84, 77, 86, 0.05);
   transform-origin: center center;
   scale: 1 1;
   transform: scale(1);
@@ -171,7 +172,7 @@ html, body, button, input, select, textarea {
   box-sizing: border-box;
 }
 
-/* Dynamic light border */
+/* Dynamic Spotlight Border Tracking */
 .btn-fluid::after {
   content: "";
   position: absolute;
@@ -181,10 +182,10 @@ html, body, button, input, select, textarea {
   box-sizing: border-box;
   background-image: linear-gradient(
     calc(1deg * var(--spotlight-angle, -45)),
-    rgba(255, 255, 255, calc(0.75 - var(--spotlight-distance, 0) / 4000)) 0%,
-    rgba(255, 255, 255, 0.2) 40%,
-    rgba(255, 255, 255, 0.2) 60%,
-    rgba(255, 255, 255, calc(0.75 - var(--spotlight-distance, 0) / 4000)) 100%
+    rgba(255, 255, 255, calc(0.85 - var(--spotlight-distance, 0) / 4000)) 0%,
+    rgba(255, 255, 255, 0.25) 40%,
+    rgba(255, 255, 255, 0.25) 60%,
+    rgba(255, 255, 255, calc(0.85 - var(--spotlight-distance, 0) / 4000)) 100%
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -195,9 +196,10 @@ html, body, button, input, select, textarea {
   scale: 1 1;
   transform: scale(1);
   transition: background-color 0.6s var(--f-cubic), box-shadow 1.8s var(--f-cubic), scale 0.45s var(--f-bounce), transform 0.3s var(--f-bounce), backdrop-filter 0.6s var(--f-cubic), -webkit-backdrop-filter 0.6s var(--f-cubic);
+  will-change: auto;
 }
 
-/* Glare & Vignette */
+/* Authentic StringTune Glare Body & 12-layer Specular Refraction */
 .btn-fluid .btn-glare {
   position: absolute;
   inset: 0;
@@ -209,19 +211,31 @@ html, body, button, input, select, textarea {
   display: flex;
   overflow: hidden;
   contain: paint;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
   -webkit-backdrop-filter: blur(0.4rem) saturate(120%);
   backdrop-filter: blur(0.4rem) saturate(120%);
-  background-color: rgba(167, 167, 180, 0.12);
-  box-shadow: inset 0 0 0.4rem 0.2rem rgba(16, 18, 20, 0.08);
+  background-color: rgba(247, 234, 237, 0.125);
+  box-shadow:
+    inset -1px 0 0 0 rgba(16, 18, 20, 0.2),
+    inset 1px 0 0 0 rgba(16, 18, 20, 0.2),
+    inset -0.2rem 0 0.2rem 0 rgba(255, 255, 255, 0.1),
+    inset 0.2rem 0 0.2rem 0 rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
+    inset 0 -0.5px 0 0 rgba(255, 255, 255, 0.6),
+    inset 0 1px 0.2rem 0 rgba(16, 18, 20, 0.05),
+    inset 0 -1px 0.2rem 0 rgba(255, 255, 255, 0.4),
+    inset 0 0 0.4rem 0 rgba(16, 18, 20, 0.1),
+    0 1.2rem 1.2rem rgba(84, 77, 86, 0.025),
+    0 0.8rem 0.8rem rgba(84, 77, 86, 0.025),
+    0 0.2rem 0.4rem rgba(84, 77, 86, 0.025);
   pointer-events: none;
   transform: translateZ(0);
   scale: 1 1;
   transform: scale(1);
   transition: background-color 0.6s var(--f-cubic), box-shadow 1.8s var(--f-cubic), scale 0.45s var(--f-bounce), transform 0.3s var(--f-bounce), backdrop-filter 0.6s var(--f-cubic), -webkit-backdrop-filter 0.6s var(--f-cubic);
+  will-change: auto;
 }
 
-/* Glare shine highlight */
+/* Specular Flashing Circle / Flare Center */
 .btn-fluid .btn-glare::before {
   content: "";
   position: absolute;
@@ -229,20 +243,17 @@ html, body, button, input, select, textarea {
   left: 50%;
   width: max(100%, 140px);
   aspect-ratio: 1/1;
-  background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 70%), url('/images/flare-highlight.png');
+  background-image: url('/images/flashing-circle-w.png');
   background-position: 50%;
   background-repeat: no-repeat;
   background-size: contain;
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, -50%) translate3d(calc(100% * var(--x, 0)), calc(100% * var(--y, 0)), 0);
+  flex-shrink: 0;
 }
 
-/* Hover State */
-.btn-fluid:hover:not(:disabled) .btn-glare::before {
-  animation: opacityGlare 1.5s var(--f-cubic) forwards;
-}
-
+/* Hover State: Authentic StringTune Elastic Deformation Physics */
 .btn-fluid:hover:not(:disabled) .btn-glare,
 .btn-fluid:hover:not(:disabled)::after {
   scale: 1 calc(1 + var(--skY, 0.12) / 1.5);
@@ -250,7 +261,11 @@ html, body, button, input, select, textarea {
   transition: background-color 0.6s var(--f-cubic), box-shadow 1.8s var(--f-cubic), scale 0.3s var(--f-bounce), transform 0.45s var(--f-bounce), backdrop-filter 0.6s var(--f-cubic), -webkit-backdrop-filter 0.6s var(--f-cubic);
 }
 
-/* Active State */
+.btn-fluid:hover:not(:disabled) .btn-glare::before {
+  animation: opacityGlare 1.5s var(--f-cubic) forwards;
+}
+
+/* Active State: Dynamic Press Compression */
 .btn-fluid:active:not(:disabled) {
   scale: 1 calc(1 + var(--skY, 0.12) / 2);
   transform: scaleX(calc(1 + var(--skX, 0.05) / 2));
@@ -259,7 +274,7 @@ html, body, button, input, select, textarea {
 
 .btn-fluid:active:not(:disabled) .btn-glare {
   background-color: rgba(167, 167, 180, 0.22);
-  transition: background-color 0s, box-shadow 0s, scale 0s, transform 0s;
+  transition: background-color 0s, box-shadow 0s, scale 0s, transform 0s, backdrop-filter 0s, -webkit-backdrop-filter 0s;
 }
 
 .btn-fluid:active:not(:disabled) .btn-glare::before {
@@ -281,7 +296,7 @@ html, body, button, input, select, textarea {
   color: #101214;
 }
 
-/* Circular Icon Variant */
+/* Circular Icon Variant (e.g. 'i' button in StringTune header) */
 .btn-fluid-icon {
   width: 38px;
   height: 38px;
@@ -626,29 +641,74 @@ html.dark body,
   color: #ffffff !important;
 }
 
-/* Fluid Button Dark Mode styling matching reference screenshot */
+/* StringTune Authentic Dark Mode Button System */
 html.dark .btn-fluid,
 [data-theme="dark"] .btn-fluid {
-  color: #ffffff !important;
+  color: #ffffff;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  scale: 1 1;
+  transform: scale(1);
+}
+
+html.dark .btn-fluid::after,
+[data-theme="dark"] .btn-fluid::after {
+  display: block;
+  background-image: linear-gradient(
+    calc(1deg * var(--spotlight-angle, -45)),
+    rgba(255, 255, 255, calc(0.65 - var(--spotlight-distance, 0) / 4000)) 0%,
+    rgba(255, 255, 255, 0.15) 40%,
+    rgba(255, 255, 255, 0.15) 60%,
+    rgba(255, 255, 255, calc(0.65 - var(--spotlight-distance, 0) / 4000)) 100%
+  );
+  scale: 1 1;
+  transform: scale(1);
 }
 
 html.dark .btn-fluid .btn-glare,
 [data-theme="dark"] .btn-fluid .btn-glare {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12), inset 0 -1px 2px rgba(0, 0, 0, 0.45) !important;
-  backdrop-filter: blur(10px) !important;
+  background-color: rgba(247, 234, 237, 0.125); /* #f7eaed20 */
+  box-shadow:
+    inset -1px 0 0 0 rgba(16, 18, 20, 0.2),
+    inset 1px 0 0 0 rgba(16, 18, 20, 0.2),
+    inset -0.2rem 0 0.2rem 0 rgba(255, 255, 255, 0.05),
+    inset 0.2rem 0 0.2rem 0 rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset 0 -0.5px 0 0 rgba(255, 255, 255, 0.2),
+    inset 0 1px 0.2rem 0 rgba(16, 18, 20, 0.05),
+    inset 0 -1px 2px 0 rgba(255, 255, 255, 0.2),
+    inset 0 0 0.4rem 0 rgba(16, 18, 20, 0.1),
+    0 1.2rem 1.2rem rgba(84, 77, 86, 0.025),
+    0 0.8rem 0.8rem rgba(84, 77, 86, 0.025),
+    0 0.2rem 0.4rem rgba(84, 77, 86, 0.025);
+  backdrop-filter: blur(0.4rem) saturate(120%);
+  -webkit-backdrop-filter: blur(0.4rem) saturate(120%);
+  border: none;
+  scale: 1 1;
+  transform: scale(1);
 }
 
 html.dark .btn-fluid:hover:not(:disabled) .btn-glare,
-[data-theme="dark"] .btn-fluid:hover:not(:disabled) .btn-glare {
-  background-color: rgba(255, 255, 255, 0.14) !important;
-  border-color: rgba(255, 255, 255, 0.32) !important;
+[data-theme="dark"] .btn-fluid:hover:not(:disabled) .btn-glare,
+html.dark .btn-fluid:hover:not(:disabled)::after,
+[data-theme="dark"] .btn-fluid:hover:not(:disabled)::after {
+  scale: 1 calc(1 + var(--skY, 0.12) / 1.5);
+  transform: scaleX(calc(1 + var(--skX, 0.05) / 1.5));
+  transition: background-color 0.6s var(--f-cubic), box-shadow 1.8s var(--f-cubic), scale 0.3s var(--f-bounce), transform 0.45s var(--f-bounce), backdrop-filter 0.6s var(--f-cubic), -webkit-backdrop-filter 0.6s var(--f-cubic);
+}
+
+html.dark .btn-fluid:active:not(:disabled),
+[data-theme="dark"] .btn-fluid:active:not(:disabled) {
+  scale: 1 calc(1 + var(--skY, 0.12) / 2);
+  transform: scaleX(calc(1 + var(--skX, 0.05) / 2));
+  transition: scale 0s, transform 0s, opacity 0s;
 }
 
 html.dark .btn-fluid:active:not(:disabled) .btn-glare,
 [data-theme="dark"] .btn-fluid:active:not(:disabled) .btn-glare {
-  background-color: rgba(255, 255, 255, 0.20) !important;
+  background-color: rgba(167, 167, 180, 0.145); /* #a7a7b425 */
+  transition: background-color 0s, box-shadow 0s, scale 0s, transform 0s, backdrop-filter 0s, -webkit-backdrop-filter 0s;
 }
 
 html.dark .btn-fluid .btn-label,
@@ -656,12 +716,23 @@ html.dark .btn-fluid .btn-label,
   color: #ffffff !important;
 }
 
-/* Circular icon buttons (like 'i' in reference image) */
+/* Circular icon buttons in dark mode */
 html.dark .btn-fluid-icon,
 [data-theme="dark"] .btn-fluid-icon {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
-  color: #ffffff !important;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background-color: transparent;
+  border: none;
+}
+html.dark .btn-fluid-icon::after,
+[data-theme="dark"] .btn-fluid-icon::after,
+html.dark .btn-fluid-icon .btn-glare,
+[data-theme="dark"] .btn-fluid-icon .btn-glare {
+  border-radius: 50% !important;
 }
 
 /* Glass Containers in Dark Mode */
@@ -671,23 +742,31 @@ html.dark .glass-container-inner,
   color: #ffffff !important;
 }
 
-/* Category Filter Pills & Tab Pills (exact screenshot pill style) */
+/* Category Filter Pills & Tab Pills (stable dimensions with single border) */
 html.dark .pill-filter,
 html.dark .dinein-tab-pill,
+html.dark .dinein-pill-btn,
 [data-theme="dark"] .pill-filter,
-[data-theme="dark"] .dinein-tab-pill {
+[data-theme="dark"] .dinein-tab-pill,
+[data-theme="dark"] .dinein-pill-btn {
   background: rgba(255, 255, 255, 0.08) !important;
   border: 1px solid rgba(255, 255, 255, 0.18) !important;
   color: #ffffff !important;
   border-radius: 9999px !important;
+  transform: none !important;
+  scale: 1 !important;
 }
 
 html.dark .pill-filter:hover,
 html.dark .dinein-tab-pill:hover,
+html.dark .dinein-pill-btn:hover,
 [data-theme="dark"] .pill-filter:hover,
-[data-theme="dark"] .dinein-tab-pill:hover {
+[data-theme="dark"] .dinein-tab-pill:hover,
+[data-theme="dark"] .dinein-pill-btn:hover {
   background: rgba(255, 255, 255, 0.14) !important;
   border-color: rgba(255, 255, 255, 0.32) !important;
+  transform: none !important;
+  scale: 1 !important;
 }
 
 /* Dark Mode Navigation Bars */
@@ -723,7 +802,8 @@ html.dark input::placeholder,
 html.dark textarea::placeholder,
 [data-theme="dark"] input::placeholder,
 [data-theme="dark"] textarea::placeholder {
-  color: #71717a !important;
+  color: #a1a1aa !important;
+  opacity: 0.9 !important;
 }
 
 /* ========================================================= */
@@ -760,16 +840,26 @@ html.dark svg[stroke="#000000"],
 html.dark svg[stroke="#000"],
 html.dark svg[stroke="#09090b"],
 html.dark svg[stroke="#101214"],
+html.dark svg[stroke="#111827"],
 html.dark svg[stroke="#18181b"],
+html.dark svg[stroke="#1f2937"],
 html.dark svg[stroke="#27272a"],
+html.dark svg[stroke="#374151"],
 html.dark svg[stroke="#3f3f46"],
+html.dark svg[stroke="#4b5563"],
 html.dark svg[stroke="#52525b"],
+html.dark svg[stroke="#555555"],
+html.dark svg[stroke="#6b7280"],
 html.dark svg[stroke="#71717a"],
 html.dark svg[stroke*="rgb(0, 0, 0)"],
 html.dark svg[stroke*="rgb(9, 9, 11)"],
+html.dark svg[stroke*="rgb(17, 24, 39)"],
 html.dark svg[stroke*="rgb(24, 24, 27)"],
+html.dark svg[stroke*="rgb(55, 65, 81)"],
 html.dark svg[stroke*="rgb(63, 63, 70)"],
+html.dark svg[stroke*="rgb(75, 85, 99)"],
 html.dark svg[stroke*="rgb(82, 82, 91)"],
+html.dark svg[stroke*="rgb(107, 114, 128)"],
 html.dark svg[stroke*="rgb(113, 113, 122)"],
 [data-theme="dark"] svg[stroke="#000000"],
 [data-theme="dark"] svg[stroke="#000"],
@@ -786,9 +876,12 @@ html.dark svg[fill="#000000"],
 html.dark svg[fill="#000"],
 html.dark svg[fill="#09090b"],
 html.dark svg[fill="#101214"],
+html.dark svg[fill="#111827"],
 html.dark svg[fill="#18181b"],
 html.dark svg[fill="#27272a"],
+html.dark svg[fill="#374151"],
 html.dark svg[fill="#3f3f46"],
+html.dark svg[fill="#4b5563"],
 html.dark svg[fill="#52525b"],
 html.dark svg[fill="#71717a"],
 html.dark svg[fill*="rgb(0, 0, 0)"],
@@ -816,10 +909,17 @@ html.dark [style*="color: #101214"],
 html.dark [style*="color:#101214"],
 html.dark [style*="color: rgb(16, 18, 20)"],
 html.dark [style*="color:rgb(16, 18, 20)"],
+html.dark [style*="color: #111827"],
+html.dark [style*="color:#111827"],
+html.dark [style*="color: rgb(17, 24, 39)"],
+html.dark [style*="color:rgb(17, 24, 39)"],
 html.dark [style*="color: #18181b"],
 html.dark [style*="color:#18181b"],
 html.dark [style*="color: rgb(24, 24, 27)"],
 html.dark [style*="color:rgb(24, 24, 27)"],
+html.dark [style*="color: #1f2937"],
+html.dark [style*="color:#1f2937"],
+html.dark [style*="color: rgb(31, 41, 55)"],
 html.dark [style*="color: #27272a"],
 html.dark [style*="color:#27272a"],
 html.dark [style*="color: rgb(39, 39, 42)"],
@@ -832,6 +932,7 @@ html.dark [style*="color:rgb(39, 39, 42)"],
 [data-theme="dark"] [style*="color:#09090b"],
 [data-theme="dark"] [style*="color: rgb(9, 9, 11)"],
 [data-theme="dark"] [style*="color:rgb(9, 9, 11)"],
+[data-theme="dark"] [style*="color: #111827"],
 [data-theme="dark"] [style*="color: #18181b"],
 [data-theme="dark"] [style*="color:#18181b"],
 [data-theme="dark"] [style*="color: rgb(24, 24, 27)"],
@@ -840,10 +941,18 @@ html.dark [style*="color:rgb(39, 39, 42)"],
 }
 
 /* Secondary dark gray / charcoal inline text colors -> Lighter Silver */
+html.dark [style*="color: #374151"],
+html.dark [style*="color:#374151"],
+html.dark [style*="color: rgb(55, 65, 81)"],
+html.dark [style*="color:rgb(55, 65, 81)"],
 html.dark [style*="color: #3f3f46"],
 html.dark [style*="color:#3f3f46"],
 html.dark [style*="color: rgb(63, 63, 70)"],
 html.dark [style*="color:rgb(63, 63, 70)"],
+html.dark [style*="color: #4b5563"],
+html.dark [style*="color:#4b5563"],
+html.dark [style*="color: rgb(75, 85, 99)"],
+html.dark [style*="color:rgb(75, 85, 99)"],
 html.dark [style*="color: #52525b"],
 html.dark [style*="color:#52525b"],
 html.dark [style*="color: rgb(82, 82, 91)"],
@@ -852,20 +961,29 @@ html.dark [style*="color: #544d56"],
 html.dark [style*="color:#544d56"],
 html.dark [style*="color: rgb(84, 77, 86)"],
 html.dark [style*="color:rgb(84, 77, 86)"],
+html.dark [style*="color: #555555"],
+html.dark [style*="color: #555"],
+html.dark [style*="color: rgb(85, 85, 85)"],
 html.dark [style*="color: #666"],
 html.dark [style*="color:#666"],
 html.dark [style*="color: #666666"],
 html.dark [style*="color: rgb(102, 102, 102)"],
+[data-theme="dark"] [style*="color: #374151"],
 [data-theme="dark"] [style*="color: #3f3f46"],
 [data-theme="dark"] [style*="color: rgb(63, 63, 70)"],
+[data-theme="dark"] [style*="color: #4b5563"],
 [data-theme="dark"] [style*="color: #52525b"],
 [data-theme="dark"] [style*="color: rgb(82, 82, 91)"],
 [data-theme="dark"] [style*="color: #544d56"],
+[data-theme="dark"] [style*="color: #555555"],
 [data-theme="dark"] [style*="color: #666"] {
   color: #f4f4f5 !important;
 }
 
 /* Muted / Dim inline text colors -> Lighter shade #e4e4e7 */
+html.dark [style*="color: #6b7280"],
+html.dark [style*="color:#6b7280"],
+html.dark [style*="color: rgb(107, 114, 128)"],
 html.dark [style*="color: #71717a"],
 html.dark [style*="color:#71717a"],
 html.dark [style*="color: rgb(113, 113, 122)"],
@@ -873,15 +991,56 @@ html.dark [style*="color:rgb(113, 113, 122)"],
 html.dark [style*="color: #777"],
 html.dark [style*="color: #888"],
 html.dark [style*="color: #999"],
+html.dark [style*="color: #9ca3af"],
+html.dark [style*="color:#9ca3af"],
+html.dark [style*="color: rgb(156, 163, 175)"],
 html.dark [style*="color: #a1a1aa"],
 html.dark [style*="color:#a1a1aa"],
 html.dark [style*="color: rgb(161, 161, 170)"],
 html.dark [style*="color:rgb(161, 161, 170)"],
+[data-theme="dark"] [style*="color: #6b7280"],
 [data-theme="dark"] [style*="color: #71717a"],
 [data-theme="dark"] [style*="color: rgb(113, 113, 122)"],
+[data-theme="dark"] [style*="color: #9ca3af"],
 [data-theme="dark"] [style*="color: #a1a1aa"],
 [data-theme="dark"] [style*="color: rgb(161, 161, 170)"] {
   color: #e4e4e7 !important;
+}
+
+/* CRITICAL FIX: White selector container or button MUST have dark text */
+html.dark .text-on-white,
+html.dark .btn-white-active,
+html.dark [data-theme-inverted="true"],
+html.dark [data-theme-inverted="true"] *,
+html.dark .segmented-active-white,
+html.dark .segmented-active-white *,
+html.dark [style*="background: #ffffff"],
+html.dark [style*="background:#ffffff"],
+html.dark [style*="backgroundColor: #ffffff"],
+html.dark [style*="backgroundColor:#ffffff"],
+html.dark [style*="background-color: #ffffff"],
+html.dark [style*="background-color:#ffffff"],
+html.dark [style*="background: rgb(255, 255, 255)"],
+html.dark [style*="background-color: rgb(255, 255, 255)"],
+[data-theme="dark"] .text-on-white,
+[data-theme="dark"] .btn-white-active,
+[data-theme="dark"] [data-theme-inverted="true"],
+[data-theme="dark"] [data-theme-inverted="true"] *,
+[data-theme="dark"] .segmented-active-white,
+[data-theme="dark"] .segmented-active-white *,
+[data-theme="dark"] [style*="background: #ffffff"],
+[data-theme="dark"] [style*="background-color: #ffffff"],
+[data-theme="dark"] [style*="background-color: rgb(255, 255, 255)"] {
+  color: #09090b !important;
+  -webkit-text-fill-color: #09090b !important;
+}
+
+html.dark [style*="background: #ffffff"] *,
+html.dark [style*="background-color: #ffffff"] *,
+html.dark [style*="background: rgb(255, 255, 255)"] *,
+html.dark [style*="background-color: rgb(255, 255, 255)"] * {
+  color: #09090b !important;
+  -webkit-text-fill-color: #09090b !important;
 }
 
 /* Translucent pill badges and tags in dark mode -> Lighter Glass Pills */

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import FluidButton from '@/components/ui/FluidButton';
 import GlassContainer from '@/components/ui/GlassContainer';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function ProfileHeader({
   user,
@@ -30,6 +31,7 @@ export default function ProfileHeader({
   onBlockUser,
   onReportUser
 }) {
+  const { isDark } = useTheme();
   const [bioExpanded, setBioExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -442,7 +444,7 @@ export default function ProfileHeader({
                 fontSize: 21,
                 fontWeight: 600,
                 margin: 0,
-                color: '#000000',
+                color: isDark ? '#ffffff' : '#000000',
                 letterSpacing: '-0.3px'
               }}
             >
@@ -475,7 +477,7 @@ export default function ProfileHeader({
                   padding: '7px 20px',
                   fontSize: 13.5,
                   fontWeight: 600,
-                  color: '#000000'
+                  color: isDark ? '#ffffff' : '#000000'
                 }}
               >
                 Edit Profile
@@ -490,7 +492,7 @@ export default function ProfileHeader({
                   height: 34,
                   minWidth: 34,
                   minHeight: 34,
-                  color: '#000000'
+                  color: isDark ? '#ffffff' : '#000000'
                 }}
               >
                 <svg
@@ -517,7 +519,7 @@ export default function ProfileHeader({
                   padding: '7px 22px',
                   fontSize: 13.5,
                   fontWeight: 600,
-                  color: isConnected ? '#16a34a' : isRequested ? '#2563eb' : '#000000'
+                  color: isConnected ? (isDark ? '#4ade80' : '#16a34a') : isRequested ? '#38bdf8' : (isDark ? '#ffffff' : '#000000')
                 }}
               >
                 {isConnected ? 'Connected' : isRequested ? 'Requested' : 'Connect'}
@@ -530,7 +532,7 @@ export default function ProfileHeader({
                   padding: '7px 22px',
                   fontSize: 13.5,
                   fontWeight: 600,
-                  color: '#000000'
+                  color: isDark ? '#ffffff' : '#000000'
                 }}
               >
                 Message
@@ -547,7 +549,7 @@ export default function ProfileHeader({
                     height: 34,
                     minWidth: 34,
                     minHeight: 34,
-                    color: '#000000'
+                    color: isDark ? '#ffffff' : '#000000'
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -683,7 +685,7 @@ export default function ProfileHeader({
         </div>
 
         {/* Row 2: Stats Row */}
-        <div style={{ display: 'flex', gap: 36, fontSize: 15.5, color: '#000000' }}>
+        <div style={{ display: 'flex', gap: 36, fontSize: 15.5, color: isDark ? '#ffffff' : '#000000' }}>
           <span
             style={{ cursor: 'pointer' }}
             onClick={() => onTabChange && onTabChange('dishes')}
@@ -712,11 +714,11 @@ export default function ProfileHeader({
         {/* Row 3: Name, Pronouns, Verified Institute, Bio */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14, lineHeight: 1.45 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span style={{ fontWeight: 700, fontSize: 15, color: '#000000' }}>
+            <span style={{ fontWeight: 700, fontSize: 15, color: isDark ? '#ffffff' : '#000000' }}>
               {user?.name || user?.username || ''}
             </span>
             {(pronouns || user?.pronouns) && (
-              <span style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>
+              <span style={{ fontSize: 13, color: isDark ? '#d4d4d8' : '#6b7280', fontWeight: 500 }}>
                 {user?.pronouns || pronouns}
               </span>
             )}
@@ -727,7 +729,7 @@ export default function ProfileHeader({
             <div
               style={{
                 fontSize: 13.5,
-                color: '#374151',
+                color: isDark ? '#e4e4e7' : '#374151',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
@@ -757,7 +759,7 @@ export default function ProfileHeader({
                 </span>
               )}
               {displayYear && (
-                <span style={{ color: '#6b7280', fontWeight: 500 }}>
+                <span style={{ color: isDark ? '#d4d4d8' : '#6b7280', fontWeight: 500 }}>
                   • Batch of {displayYear}
                 </span>
               )}
@@ -766,7 +768,7 @@ export default function ProfileHeader({
 
           {/* Bio with Blue Hashtags Inside */}
           {rawBio ? (
-            <div style={{ color: '#111827', marginTop: 4, maxWidth: 540 }}>
+            <div style={{ color: isDark ? '#f4f4f5' : '#111827', marginTop: 4, maxWidth: 540 }}>
               <span>
                 {bioParts.map((part, i) => {
                   if (part.startsWith('#')) {
@@ -796,7 +798,7 @@ export default function ProfileHeader({
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    color: '#6b7280',
+                    color: isDark ? '#d4d4d8' : '#6b7280',
                     fontWeight: 600,
                     fontSize: 13,
                     marginLeft: 6,
@@ -809,7 +811,7 @@ export default function ProfileHeader({
             </div>
           ) : (
             isSelf && (
-              <div style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: 13, marginTop: 4 }}>
+              <div style={{ color: isDark ? '#a1a1aa' : '#9ca3af', fontStyle: 'italic', fontSize: 13, marginTop: 4 }}>
                 No bio added yet.
               </div>
             )
@@ -826,7 +828,7 @@ export default function ProfileHeader({
                     padding: '5px 14px',
                     fontSize: 12.5,
                     fontWeight: 600,
-                    color: '#111827'
+                    color: isDark ? '#ffffff' : '#111827'
                   }}
                 >
                   {tag.startsWith('#') ? tag.slice(1) : tag}
@@ -1326,10 +1328,10 @@ export default function ProfileHeader({
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#000000', margin: 0, letterSpacing: '-0.3px' }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: isDark ? '#ffffff' : '#000000', margin: 0, letterSpacing: '-0.3px' }}>
                   Set Profile Photo
                 </h3>
-                <p style={{ fontSize: 12.5, color: '#64748b', margin: '3px 0 0 0', fontWeight: 500 }}>
+                <p style={{ fontSize: 12.5, color: isDark ? '#d4d4d8' : '#64748b', margin: '3px 0 0 0', fontWeight: 500 }}>
                   Drag to reposition • Scroll or slider to zoom
                 </p>
               </div>
@@ -1345,17 +1347,17 @@ export default function ProfileHeader({
                   width: 32,
                   height: 32,
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                  border: '1px solid rgba(0, 0, 0, 0.08)',
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  color: '#64748b',
+                  color: isDark ? '#ffffff' : '#64748b',
                   transition: 'all 0.15s ease'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.1)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)')}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -1492,9 +1494,9 @@ export default function ProfileHeader({
                   width: 32,
                   height: 32,
                   borderRadius: 8,
-                  border: '1px solid rgba(0, 0, 0, 0.1)',
-                  backgroundColor: '#ffffff',
-                  color: '#475569',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#ffffff',
+                  color: isDark ? '#ffffff' : '#475569',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1516,7 +1518,7 @@ export default function ProfileHeader({
                 style={{
                   flex: 1,
                   cursor: 'pointer',
-                  accentColor: '#101214'
+                  accentColor: isDark ? '#ffffff' : '#101214'
                 }}
               />
 
@@ -1528,9 +1530,9 @@ export default function ProfileHeader({
                   width: 32,
                   height: 32,
                   borderRadius: 8,
-                  border: '1px solid rgba(0, 0, 0, 0.1)',
-                  backgroundColor: '#ffffff',
-                  color: '#475569',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#ffffff',
+                  color: isDark ? '#ffffff' : '#475569',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1542,7 +1544,7 @@ export default function ProfileHeader({
                 +
               </button>
 
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: '#64748b', minWidth: 42, textAlign: 'right' }}>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: isDark ? '#d4d4d8' : '#64748b', minWidth: 42, textAlign: 'right' }}>
                 {Math.round(zoom * 100)}%
               </span>
             </div>
@@ -1555,7 +1557,7 @@ export default function ProfileHeader({
                   padding: '6px 14px',
                   fontSize: 12.5,
                   fontWeight: 600,
-                  color: '#101214',
+                  color: isDark ? '#ffffff' : '#101214',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6
@@ -1573,7 +1575,7 @@ export default function ProfileHeader({
                   padding: '6px 14px',
                   fontSize: 12.5,
                   fontWeight: 600,
-                  color: '#101214',
+                  color: isDark ? '#ffffff' : '#101214',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6
@@ -1591,7 +1593,7 @@ export default function ProfileHeader({
                   padding: '6px 14px',
                   fontSize: 12.5,
                   fontWeight: 600,
-                  color: '#64748b'
+                  color: isDark ? '#d4d4d8' : '#64748b'
                 }}
               >
                 Reset
@@ -1613,7 +1615,7 @@ export default function ProfileHeader({
                   padding: '11px',
                   fontSize: 14,
                   fontWeight: 600,
-                  color: '#64748b'
+                  color: isDark ? '#d4d4d8' : '#64748b'
                 }}
               >
                 Cancel
@@ -1627,7 +1629,7 @@ export default function ProfileHeader({
                   padding: '11px',
                   fontSize: 14,
                   fontWeight: 600,
-                  color: '#000000',
+                  color: isDark ? '#ffffff' : '#000000',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

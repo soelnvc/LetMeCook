@@ -31,7 +31,7 @@ export default function FluidButton({
   const updateMetrics = useCallback(() => {
     if (!btnRef.current) return;
     const rect = btnRef.current.getBoundingClientRect();
-    const bubbleSize = 3.6;
+    const bubbleSize = 3.2; // 0.2rem in 16px root font
     const newSkX = (rect.width + bubbleSize * 2) / (rect.width || 1) - 1;
     const newSkY = (rect.height + bubbleSize * 2) / (rect.height || 1) - 1;
     setSkX(Number.isFinite(newSkX) ? Math.max(0.02, Math.min(newSkX, 0.25)) : 0.05);
@@ -114,6 +114,10 @@ export default function FluidButton({
     isHoveredRef.current = false;
     targetAngleRef.current = -45;
     targetDistRef.current = 500;
+    if (btnRef.current) {
+      btnRef.current.style.setProperty('--x', '0');
+      btnRef.current.style.setProperty('--y', '0');
+    }
     startAnimIfNeeded();
   };
 
@@ -137,7 +141,7 @@ export default function FluidButton({
       {...restProps}
     >
       <span className="btn-glare" />
-      <span className="btn-label" style={{ fontWeight: 'inherit', fontSize: 'inherit', color: 'inherit' }}>
+      <span className="btn-label">
         {children}
       </span>
     </Component>

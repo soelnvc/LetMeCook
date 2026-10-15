@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import { apiFetch } from '@/lib/api';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function GlobalSearchModal({
   isOpen,
@@ -12,6 +13,7 @@ export default function GlobalSearchModal({
   currentUser,
   demoProfiles = {}
 }) {
+  const { isDark } = useTheme();
   const [isMounted, setIsMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [query, setQuery] = useState('');
@@ -258,7 +260,7 @@ export default function GlobalSearchModal({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: isQueryActive ? '#09090b' : '#71717a',
+              color: isQueryActive ? (isDark ? '#ffffff' : '#09090b') : (isDark ? '#a1a1aa' : '#71717a'),
               flexShrink: 0,
               transition: 'color 0.18s ease'
             }}
@@ -293,7 +295,7 @@ export default function GlobalSearchModal({
               outline: 'none',
               fontSize: 15,
               fontWeight: 500,
-              color: '#09090b',
+              color: isDark ? '#ffffff' : '#09090b',
               fontFamily: "'Inter', sans-serif"
             }}
           />
@@ -308,7 +310,7 @@ export default function GlobalSearchModal({
               }}
               title="Clear search"
               style={{
-                background: 'rgba(0, 0, 0, 0.07)',
+                background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.07)',
                 border: 'none',
                 borderRadius: '50%',
                 width: 24,
@@ -317,13 +319,13 @@ export default function GlobalSearchModal({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                color: '#52525b',
+                color: isDark ? '#d4d4d8' : '#52525b',
                 padding: 0,
                 flexShrink: 0,
                 transition: 'background 0.15s ease'
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.14)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.07)')}
+              onMouseEnter={(e) => (e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.14)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.07)')}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -340,12 +342,12 @@ export default function GlobalSearchModal({
             style={{
               padding: '3px 8px',
               borderRadius: 8,
-              background: 'rgba(0, 0, 0, 0.06)',
-              border: '1px solid rgba(0, 0, 0, 0.08)',
+              background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)',
               fontSize: 11,
               fontWeight: 700,
               letterSpacing: '0.4px',
-              color: '#71717a',
+              color: isDark ? '#e4e4e7' : '#71717a',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -353,12 +355,12 @@ export default function GlobalSearchModal({
               transition: 'all 0.15s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)';
-              e.currentTarget.style.color = '#09090b';
+              e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.1)';
+              e.currentTarget.style.color = isDark ? '#ffffff' : '#09090b';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(0, 0, 0, 0.06)';
-              e.currentTarget.style.color = '#71717a';
+              e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+              e.currentTarget.style.color = isDark ? '#e4e4e7' : '#71717a';
             }}
           >
             ESC
@@ -387,7 +389,7 @@ export default function GlobalSearchModal({
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '0 8px 10px 8px',
-              borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+              borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.06)',
               marginBottom: 8
             }}
           >
@@ -397,7 +399,7 @@ export default function GlobalSearchModal({
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.6px',
-                color: '#71717a'
+                color: isDark ? '#e4e4e7' : '#71717a'
               }}
             >
               {isQueryActive ? 'Search Results' : 'Recent Searches'}
@@ -413,14 +415,14 @@ export default function GlobalSearchModal({
                   border: 'none',
                   fontSize: 12,
                   fontWeight: 600,
-                  color: '#71717a',
+                  color: isDark ? '#e4e4e7' : '#71717a',
                   cursor: 'pointer',
                   padding: '2px 6px',
                   borderRadius: 6,
                   transition: 'color 0.15s ease'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#dc2626')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#71717a')}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = isDark ? '#e4e4e7' : '#71717a')}
               >
                 Clear all
               </button>
@@ -432,7 +434,7 @@ export default function GlobalSearchModal({
                 style={{
                   fontSize: 12,
                   fontWeight: 500,
-                  color: '#71717a',
+                  color: isDark ? '#a1a1aa' : '#71717a',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6
@@ -476,11 +478,11 @@ export default function GlobalSearchModal({
                       width: 44,
                       height: 44,
                       borderRadius: '50%',
-                      background: 'rgba(0, 0, 0, 0.04)',
+                      background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#a1a1aa'
+                      color: isDark ? '#a1a1aa' : '#71717a'
                     }}
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -489,10 +491,10 @@ export default function GlobalSearchModal({
                     </svg>
                   </div>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#09090b' }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#ffffff' : '#09090b' }}>
                       No recent searches
                     </div>
-                    <div style={{ fontSize: 12.5, color: '#71717a', marginTop: 3 }}>
+                    <div style={{ fontSize: 12.5, color: isDark ? '#d4d4d8' : '#71717a', marginTop: 3 }}>
                       Search for students and campus peers by name or username
                     </div>
                   </div>
@@ -513,7 +515,7 @@ export default function GlobalSearchModal({
                         transition: 'background 0.15s ease',
                         userSelect: 'none'
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.04)')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
@@ -552,7 +554,7 @@ export default function GlobalSearchModal({
                             style={{
                               fontSize: 13.5,
                               fontWeight: 700,
-                              color: '#09090b',
+                              color: isDark ? '#ffffff' : '#09090b',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis'
@@ -563,7 +565,7 @@ export default function GlobalSearchModal({
                           <span
                             style={{
                               fontSize: 12,
-                              color: '#71717a',
+                              color: isDark ? '#d4d4d8' : '#71717a',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis'
@@ -583,7 +585,7 @@ export default function GlobalSearchModal({
                         style={{
                           background: 'transparent',
                           border: 'none',
-                          color: '#a1a1aa',
+                          color: isDark ? '#71717a' : '#a1a1aa',
                           width: 26,
                           height: 26,
                           borderRadius: '50%',
@@ -596,11 +598,11 @@ export default function GlobalSearchModal({
                           transition: 'all 0.15s ease'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#09090b';
-                          e.currentTarget.style.background = 'rgba(0, 0, 0, 0.08)';
+                          e.currentTarget.style.color = isDark ? '#ffffff' : '#09090b';
+                          e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.color = '#a1a1aa';
+                          e.currentTarget.style.color = isDark ? '#71717a' : '#a1a1aa';
                           e.currentTarget.style.background = 'transparent';
                         }}
                       >
@@ -637,7 +639,7 @@ export default function GlobalSearchModal({
                         transition: 'background 0.15s ease',
                         userSelect: 'none'
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.04)')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
@@ -676,7 +678,7 @@ export default function GlobalSearchModal({
                             style={{
                               fontSize: 13.5,
                               fontWeight: 700,
-                              color: '#09090b',
+                              color: isDark ? '#ffffff' : '#09090b',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis'
@@ -687,7 +689,7 @@ export default function GlobalSearchModal({
                           <span
                             style={{
                               fontSize: 12,
-                              color: '#71717a',
+                              color: isDark ? '#d4d4d8' : '#71717a',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis'
@@ -706,7 +708,7 @@ export default function GlobalSearchModal({
                       {/* Profile Arrow indicator */}
                       <span
                         style={{
-                          color: '#a1a1aa',
+                          color: isDark ? '#71717a' : '#a1a1aa',
                           display: 'flex',
                           alignItems: 'center',
                           paddingRight: 4
@@ -746,11 +748,11 @@ export default function GlobalSearchModal({
                         width: 44,
                         height: 44,
                         borderRadius: '50%',
-                        background: 'rgba(0, 0, 0, 0.04)',
+                        background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#a1a1aa'
+                        color: isDark ? '#a1a1aa' : '#71717a'
                       }}
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -759,10 +761,10 @@ export default function GlobalSearchModal({
                       </svg>
                     </div>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#09090b' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#ffffff' : '#09090b' }}>
                         No people found
                       </div>
-                      <div style={{ fontSize: 12.5, color: '#71717a', marginTop: 3 }}>
+                      <div style={{ fontSize: 12.5, color: isDark ? '#d4d4d8' : '#71717a', marginTop: 3 }}>
                         No users matching &quot;{query}&quot;
                       </div>
                     </div>
