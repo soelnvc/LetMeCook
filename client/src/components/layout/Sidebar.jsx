@@ -155,7 +155,6 @@ export default function Sidebar({
       }}
     >
       <aside
-        className="desktop-only"
         style={{
           width: navHovered ? 210 : 64,
           transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)',

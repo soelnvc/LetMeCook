@@ -18,6 +18,10 @@
 # GITIGNORE RULES
 # ==============================================================================
 
+# Project documentation & local specifications (Private)
+Guide/
+Guide
+
 # Dependencies
 node_modules/
 */node_modules/
