@@ -726,43 +726,203 @@ html.dark textarea::placeholder,
   color: #71717a !important;
 }
 
-/* Universal Dark Mode Contrast Rules */
+/* ========================================================= */
+/* UNIVERSAL LIGHTER SHADES FOR DARK MODE                    */
+/* Ensures all text, labels, icons, pills & badges are light */
+/* ========================================================= */
+
+html.dark,
+[data-theme="dark"] {
+  color: #f4f4f5 !important;
+}
+
+html.dark body,
+[data-theme="dark"] body {
+  background-color: #121316 !important;
+  color: #f4f4f5 !important;
+}
+
+/* Headings: Crisp bright white */
 html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark h5, html.dark h6,
 [data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3,
 [data-theme="dark"] h4, [data-theme="dark"] h5, [data-theme="dark"] h6 {
   color: #ffffff !important;
 }
 
-/* Override hardcoded dark text colors in dark mode */
+/* All SVGs/Icons: Universal lighter shades */
+html.dark svg,
+[data-theme="dark"] svg {
+  color: inherit;
+}
+
+/* If SVG stroke is dark or gray, force it to a lighter shade */
+html.dark svg[stroke="#000000"],
+html.dark svg[stroke="#000"],
+html.dark svg[stroke="#09090b"],
+html.dark svg[stroke="#101214"],
+html.dark svg[stroke="#18181b"],
+html.dark svg[stroke="#27272a"],
+html.dark svg[stroke="#3f3f46"],
+html.dark svg[stroke="#52525b"],
+html.dark svg[stroke="#71717a"],
+html.dark svg[stroke*="rgb(0, 0, 0)"],
+html.dark svg[stroke*="rgb(9, 9, 11)"],
+html.dark svg[stroke*="rgb(24, 24, 27)"],
+html.dark svg[stroke*="rgb(63, 63, 70)"],
+html.dark svg[stroke*="rgb(82, 82, 91)"],
+html.dark svg[stroke*="rgb(113, 113, 122)"],
+[data-theme="dark"] svg[stroke="#000000"],
+[data-theme="dark"] svg[stroke="#000"],
+[data-theme="dark"] svg[stroke="#09090b"],
+[data-theme="dark"] svg[stroke="#18181b"],
+[data-theme="dark"] svg[stroke="#3f3f46"],
+[data-theme="dark"] svg[stroke="#52525b"],
+[data-theme="dark"] svg[stroke="#71717a"] {
+  stroke: #f4f4f5 !important;
+}
+
+/* If SVG fill is dark, force it to a lighter shade */
+html.dark svg[fill="#000000"],
+html.dark svg[fill="#000"],
+html.dark svg[fill="#09090b"],
+html.dark svg[fill="#101214"],
+html.dark svg[fill="#18181b"],
+html.dark svg[fill="#27272a"],
+html.dark svg[fill="#3f3f46"],
+html.dark svg[fill="#52525b"],
+html.dark svg[fill="#71717a"],
+html.dark svg[fill*="rgb(0, 0, 0)"],
+html.dark svg[fill*="rgb(9, 9, 11)"],
+html.dark svg[fill*="rgb(24, 24, 27)"],
+[data-theme="dark"] svg[fill="#000000"],
+[data-theme="dark"] svg[fill="#000"],
+[data-theme="dark"] svg[fill="#09090b"],
+[data-theme="dark"] svg[fill="#18181b"] {
+  fill: #f4f4f5 !important;
+}
+
+/* Override dark / black inline text colors (HEX and RGB formats) to Crisp White */
 html.dark [style*="color: #000000"],
 html.dark [style*="color:#000000"],
-html.dark [style*="color: #101214"],
-html.dark [style*="color:#101214"],
+html.dark [style*="color: #000"],
+html.dark [style*="color:#000"],
+html.dark [style*="color: rgb(0, 0, 0)"],
+html.dark [style*="color:rgb(0, 0, 0)"],
 html.dark [style*="color: #09090b"],
 html.dark [style*="color:#09090b"],
+html.dark [style*="color: rgb(9, 9, 11)"],
+html.dark [style*="color:rgb(9, 9, 11)"],
+html.dark [style*="color: #101214"],
+html.dark [style*="color:#101214"],
+html.dark [style*="color: rgb(16, 18, 20)"],
+html.dark [style*="color:rgb(16, 18, 20)"],
+html.dark [style*="color: #18181b"],
+html.dark [style*="color:#18181b"],
+html.dark [style*="color: rgb(24, 24, 27)"],
+html.dark [style*="color:rgb(24, 24, 27)"],
+html.dark [style*="color: #27272a"],
+html.dark [style*="color:#27272a"],
+html.dark [style*="color: rgb(39, 39, 42)"],
+html.dark [style*="color:rgb(39, 39, 42)"],
 [data-theme="dark"] [style*="color: #000000"],
 [data-theme="dark"] [style*="color:#000000"],
-[data-theme="dark"] [style*="color: #101214"],
-[data-theme="dark"] [style*="color:#101214"],
+[data-theme="dark"] [style*="color: rgb(0, 0, 0)"],
+[data-theme="dark"] [style*="color:rgb(0, 0, 0)"],
 [data-theme="dark"] [style*="color: #09090b"],
-[data-theme="dark"] [style*="color:#09090b"] {
+[data-theme="dark"] [style*="color:#09090b"],
+[data-theme="dark"] [style*="color: rgb(9, 9, 11)"],
+[data-theme="dark"] [style*="color:rgb(9, 9, 11)"],
+[data-theme="dark"] [style*="color: #18181b"],
+[data-theme="dark"] [style*="color:#18181b"],
+[data-theme="dark"] [style*="color: rgb(24, 24, 27)"],
+[data-theme="dark"] [style*="color:rgb(24, 24, 27)"] {
   color: #ffffff !important;
 }
 
-/* Secondary muted texts in dark mode */
-html.dark [style*="color: #544d56"],
-html.dark [style*="color:#544d56"],
+/* Secondary dark gray / charcoal inline text colors -> Lighter Silver */
+html.dark [style*="color: #3f3f46"],
+html.dark [style*="color:#3f3f46"],
+html.dark [style*="color: rgb(63, 63, 70)"],
+html.dark [style*="color:rgb(63, 63, 70)"],
 html.dark [style*="color: #52525b"],
 html.dark [style*="color:#52525b"],
+html.dark [style*="color: rgb(82, 82, 91)"],
+html.dark [style*="color:rgb(82, 82, 91)"],
+html.dark [style*="color: #544d56"],
+html.dark [style*="color:#544d56"],
+html.dark [style*="color: rgb(84, 77, 86)"],
+html.dark [style*="color:rgb(84, 77, 86)"],
 html.dark [style*="color: #666"],
 html.dark [style*="color:#666"],
-[data-theme="dark"] [style*="color: #544d56"],
-[data-theme="dark"] [style*="color:#544d56"],
+html.dark [style*="color: #666666"],
+html.dark [style*="color: rgb(102, 102, 102)"],
+[data-theme="dark"] [style*="color: #3f3f46"],
+[data-theme="dark"] [style*="color: rgb(63, 63, 70)"],
 [data-theme="dark"] [style*="color: #52525b"],
-[data-theme="dark"] [style*="color:#52525b"],
-[data-theme="dark"] [style*="color: #666"],
-[data-theme="dark"] [style*="color:#666"] {
-  color: #a1a1aa !important;
+[data-theme="dark"] [style*="color: rgb(82, 82, 91)"],
+[data-theme="dark"] [style*="color: #544d56"],
+[data-theme="dark"] [style*="color: #666"] {
+  color: #f4f4f5 !important;
+}
+
+/* Muted / Dim inline text colors -> Lighter shade #e4e4e7 */
+html.dark [style*="color: #71717a"],
+html.dark [style*="color:#71717a"],
+html.dark [style*="color: rgb(113, 113, 122)"],
+html.dark [style*="color:rgb(113, 113, 122)"],
+html.dark [style*="color: #777"],
+html.dark [style*="color: #888"],
+html.dark [style*="color: #999"],
+html.dark [style*="color: #a1a1aa"],
+html.dark [style*="color:#a1a1aa"],
+html.dark [style*="color: rgb(161, 161, 170)"],
+html.dark [style*="color:rgb(161, 161, 170)"],
+[data-theme="dark"] [style*="color: #71717a"],
+[data-theme="dark"] [style*="color: rgb(113, 113, 122)"],
+[data-theme="dark"] [style*="color: #a1a1aa"],
+[data-theme="dark"] [style*="color: rgb(161, 161, 170)"] {
+  color: #e4e4e7 !important;
+}
+
+/* Translucent pill badges and tags in dark mode -> Lighter Glass Pills */
+html.dark span[style*="rgba(0, 0, 0, 0.05)"],
+html.dark span[style*="rgba(0, 0, 0, 0.06)"],
+html.dark div[style*="rgba(0, 0, 0, 0.05)"],
+html.dark div[style*="rgba(0, 0, 0, 0.06)"],
+html.dark [style*="background-color: rgba(0, 0, 0, 0.05)"],
+html.dark [style*="background-color: rgba(0, 0, 0, 0.06)"],
+html.dark [style*="background-color:rgba(0,0,0,0.05)"],
+html.dark [style*="background-color:rgba(0,0,0,0.06)"],
+html.dark [style*="background: rgba(0, 0, 0, 0.05)"],
+html.dark [style*="background: rgba(0, 0, 0, 0.06)"],
+[data-theme="dark"] span[style*="rgba(0, 0, 0, 0.05)"],
+[data-theme="dark"] span[style*="rgba(0, 0, 0, 0.06)"],
+[data-theme="dark"] div[style*="rgba(0, 0, 0, 0.05)"],
+[data-theme="dark"] div[style*="rgba(0, 0, 0, 0.06)"] {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f4f4f5 !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+/* Dividers and thin borders in dark mode -> Lighter Subtle Outlines */
+html.dark [style*="border-top: 1px solid rgba(0, 0, 0"],
+html.dark [style*="border-top:1px solid rgba(0,0,0"],
+html.dark [style*="borderTop: '1px solid rgba(0, 0, 0"],
+html.dark [style*="border-bottom: 1px solid rgba(0, 0, 0"],
+html.dark [style*="border-bottom:1px solid rgba(0,0,0"],
+html.dark [style*="border-right: 1px solid rgba(0, 0, 0"],
+html.dark [style*="border-right:1px solid rgba(0,0,0"],
+html.dark [style*="border-left: 1px solid rgba(0, 0, 0"],
+html.dark [style*="border-left:1px solid rgba(0,0,0"],
+[data-theme="dark"] [style*="border-top: 1px solid rgba(0, 0, 0"],
+[data-theme="dark"] [style*="border-bottom: 1px solid rgba(0, 0, 0"] {
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Card inner text defaults */
+html.dark .glass-container-inner,
+[data-theme="dark"] .glass-container-inner {
+  color: #f4f4f5 !important;
 }
 
 /* Override hardcoded light backgrounds */

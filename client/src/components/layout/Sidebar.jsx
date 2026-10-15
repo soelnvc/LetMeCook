@@ -194,7 +194,7 @@ export default function Sidebar({
               height: 44,
               minWidth: 44,
               flexShrink: 0,
-              color: '#000000'
+              color: isDark ? '#ffffff' : '#000000'
             }}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -211,7 +211,7 @@ export default function Sidebar({
               fontSize: 17,
               fontWeight: 800,
               letterSpacing: '-0.4px',
-              color: '#000000',
+              color: isDark ? '#ffffff' : '#000000',
               maxWidth: navHovered ? 140 : 0,
               opacity: navHovered ? 1 : 0,
               transform: navHovered ? 'translateX(0)' : 'translateX(-6px)',
@@ -241,6 +241,7 @@ export default function Sidebar({
             const isActive = item.id === 'search'
               ? Boolean(showSearchModal)
               : (item.id === 'kitchen' ? showKitchenModal : activeTab === item.id);
+            const itemColor = isDark ? (isActive ? '#ffffff' : '#f4f4f5') : '#000000';
             return (
               <button
                 key={item.id}
@@ -263,14 +264,20 @@ export default function Sidebar({
                   height: 44,
                   padding: 0,
                   borderRadius: 12,
-                  background: isActive ? 'rgba(0, 0, 0, 0.08)' : 'transparent',
-                  color: '#000000',
+                  background: isActive ? (isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0, 0, 0, 0.08)') : 'transparent',
+                  color: itemColor,
                   border: 'none',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'background 0.16s ease',
+                  transition: 'background 0.16s ease, color 0.16s ease',
                   boxSizing: 'border-box',
                   overflow: 'hidden'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
                 }}
                 className="btn-zoom-click"
               >
@@ -283,7 +290,7 @@ export default function Sidebar({
                     height: 44,
                     minWidth: 44,
                     flexShrink: 0,
-                    color: '#000000'
+                    color: itemColor
                   }}
                 >
                   {item.icon(isActive)}
@@ -292,7 +299,7 @@ export default function Sidebar({
                   style={{
                     overflow: 'hidden',
                     whiteSpace: 'nowrap',
-                    color: '#000000',
+                    color: itemColor,
                     fontSize: 14.5,
                     letterSpacing: '-0.1px',
                     fontWeight: isActive ? 700 : 500,
@@ -312,7 +319,7 @@ export default function Sidebar({
         </div>
 
         {/* Bottom Area: Instagram style "More" button */}
-        <div style={{ padding: '14px 10px', display: 'flex', borderTop: '1px solid rgba(0, 0, 0, 0.08)' }}>
+        <div style={{ padding: '14px 10px', display: 'flex', borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)' }}>
           <button
             onClick={() => setShowMoreMenu((prev) => !prev)}
             title="More"
@@ -323,14 +330,20 @@ export default function Sidebar({
               height: 44,
               padding: 0,
               borderRadius: 12,
-              background: showMoreMenu ? 'rgba(0, 0, 0, 0.08)' : 'transparent',
-              color: '#000000',
+              background: showMoreMenu ? (isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0, 0, 0, 0.08)') : 'transparent',
+              color: isDark ? (showMoreMenu ? '#ffffff' : '#f4f4f5') : '#000000',
               border: 'none',
               cursor: 'pointer',
               textAlign: 'left',
-              transition: 'background 0.16s ease',
+              transition: 'background 0.16s ease, color 0.16s ease',
               boxSizing: 'border-box',
               overflow: 'hidden'
+            }}
+            onMouseEnter={(e) => {
+              if (!showMoreMenu) e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+            }}
+            onMouseLeave={(e) => {
+              if (!showMoreMenu) e.currentTarget.style.backgroundColor = 'transparent';
             }}
             className="btn-zoom-click"
           >
@@ -343,7 +356,7 @@ export default function Sidebar({
                 height: 44,
                 minWidth: 44,
                 flexShrink: 0,
-                color: '#000000'
+                color: isDark ? (showMoreMenu ? '#ffffff' : '#f4f4f5') : '#000000'
               }}
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={showMoreMenu ? '2.5' : '2'} strokeLinecap="round" strokeLinejoin="round">
@@ -356,7 +369,7 @@ export default function Sidebar({
               style={{
                 overflow: 'hidden',
                 whiteSpace: 'nowrap',
-                color: '#000000',
+                color: isDark ? (showMoreMenu ? '#ffffff' : '#f4f4f5') : '#000000',
                 fontSize: 14.5,
                 letterSpacing: '-0.1px',
                 fontWeight: showMoreMenu ? 700 : 500,
@@ -426,12 +439,12 @@ export default function Sidebar({
                   cursor: 'pointer',
                   fontSize: 14,
                   fontWeight: 500,
-                  color: '#000000',
+                  color: isDark ? '#f4f4f5' : '#000000',
                   textAlign: 'left',
                   width: '100%',
                   transition: 'background 0.15s ease'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -561,12 +574,12 @@ export default function Sidebar({
                   cursor: 'pointer',
                   fontSize: 14,
                   fontWeight: 500,
-                  color: '#000000',
+                  color: isDark ? '#f4f4f5' : '#000000',
                   textAlign: 'left',
                   width: '100%',
                   transition: 'background 0.15s ease'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -578,7 +591,7 @@ export default function Sidebar({
               </button>
 
               {/* Divider */}
-              <div style={{ height: 1, backgroundColor: 'rgba(0, 0, 0, 0.08)', margin: '4px 6px' }} />
+              <div style={{ height: 1, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)', margin: '4px 6px' }} />
 
               {/* Logout */}
               <button

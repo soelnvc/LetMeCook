@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import { useConfirm } from '@/context/ConfirmContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function HomeDashboard({
   user,
@@ -19,6 +20,7 @@ export default function HomeDashboard({
   onOpenDishDetail
 }) {
   const { confirm } = useConfirm();
+  const { isDark } = useTheme();
   const [historyFilter, setHistoryFilter] = useState('all'); // 'all' | 'hosted' | 'joined'
 
   // Category vector icon helper for Saved Recipes
@@ -285,7 +287,7 @@ export default function HomeDashboard({
               )}
               <div>
                 <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '3px 6px', lineHeight: 1.2 }}>
-                  <span style={{ fontSize: 13.5, fontWeight: 700, color: '#09090b' }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: isDark ? '#ffffff' : '#09090b' }}>
                     {creatorName}
                   </span>
                   {sourceText && (
@@ -293,7 +295,7 @@ export default function HomeDashboard({
                       style={{
                         fontSize: 11,
                         fontWeight: 500,
-                        color: '#71717a',
+                        color: isDark ? '#e4e4e7' : '#71717a',
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 4,
@@ -309,7 +311,7 @@ export default function HomeDashboard({
                     </span>
                   )}
                 </div>
-                <div style={{ fontSize: 11.5, color: '#71717a', marginTop: 1 }}>
+                <div style={{ fontSize: 11.5, color: isDark ? '#d4d4d8' : '#71717a', marginTop: 1 }}>
                   @{creatorUsername}
                 </div>
               </div>
@@ -323,8 +325,9 @@ export default function HomeDashboard({
                 textTransform: 'uppercase',
                 padding: '3px 8px',
                 borderRadius: 9999,
-                backgroundColor: 'rgba(0, 0, 0, 0.06)',
-                color: '#3f3f46'
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
+                color: isDark ? '#f4f4f5' : '#3f3f46',
+                border: isDark ? '1px solid rgba(255, 255, 255, 0.18)' : 'none'
               }}
             >
               {dish.category || 'ACTIVITY'}
@@ -332,13 +335,24 @@ export default function HomeDashboard({
           </div>
 
           {/* Badge: Minimized color in text */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 9999, backgroundColor: 'rgba(0, 0, 0, 0.05)', marginBottom: 10 }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '3px 9px',
+              borderRadius: 9999,
+              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(0, 0, 0, 0.05)',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.14)' : 'none',
+              marginBottom: 10
+            }}
+          >
             {isCreatorVerified && (
               <svg width="11" height="11" viewBox="0 0 24 24" fill="#0095f6">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
               </svg>
             )}
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#3f3f46' }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: isDark ? '#f4f4f5' : '#3f3f46' }}>
               {badgeLabel}
             </span>
           </div>
@@ -347,7 +361,7 @@ export default function HomeDashboard({
           <p
             style={{
               fontSize: 14,
-              color: '#18181b',
+              color: isDark ? '#f4f4f5' : '#18181b',
               margin: '0 0 12px 0',
               lineHeight: 1.45,
               fontWeight: 500,
@@ -369,9 +383,9 @@ export default function HomeDashboard({
               alignItems: 'center',
               justifyContent: 'space-between',
               paddingTop: 12,
-              borderTop: '1px solid rgba(0, 0, 0, 0.06)',
+              borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.10)' : '1px solid rgba(0, 0, 0, 0.06)',
               fontSize: 12,
-              color: '#71717a',
+              color: isDark ? '#e4e4e7' : '#71717a',
               fontWeight: 500,
               marginBottom: 12
             }}
@@ -413,8 +427,9 @@ export default function HomeDashboard({
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
-                  color: '#27272a',
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  color: isDark ? '#f4f4f5' : '#27272a',
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.05)',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.18)' : 'none',
                   padding: '6px 14px',
                   borderRadius: 9999
                 }}
@@ -462,17 +477,17 @@ export default function HomeDashboard({
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: 940, margin: '0 auto', color: '#000000', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ width: '100%', maxWidth: 940, margin: '0 auto', color: isDark ? '#ffffff' : '#000000', fontFamily: "'Inter', sans-serif" }}>
       
       {/* ========================================================= */}
       {/* 1. TOP HEADER                                             */}
       {/* ========================================================= */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 18, marginBottom: 26 }}>
         <div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.7px', color: '#09090b', lineHeight: 1.15 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.7px', color: isDark ? '#ffffff' : '#09090b', lineHeight: 1.15 }}>
             {greeting}, {displayName}.
           </h1>
-          <p style={{ fontSize: 14.5, color: '#71717a', margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 14.5, color: isDark ? '#e4e4e7' : '#71717a', margin: 0, fontWeight: 500 }}>
             What are we coordinating today?
           </p>
         </div>
@@ -485,7 +500,7 @@ export default function HomeDashboard({
               padding: '8px 22px',
               fontSize: 13.5,
               fontWeight: 600,
-              color: '#000000',
+              color: isDark ? '#ffffff' : '#000000',
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6
@@ -639,13 +654,13 @@ export default function HomeDashboard({
               gap: 2
             }}
           >
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.6px', color: '#71717a' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.6px', color: isDark ? '#e4e4e7' : '#71717a' }}>
               {metric.label}
             </span>
-            <span style={{ fontSize: 26, fontWeight: 800, color: '#09090b', letterSpacing: '-0.5px' }}>
+            <span style={{ fontSize: 26, fontWeight: 800, color: isDark ? '#ffffff' : '#09090b', letterSpacing: '-0.5px' }}>
               {metric.value}
             </span>
-            <span style={{ fontSize: 11.5, color: '#a1a1aa', fontWeight: 500 }}>
+            <span style={{ fontSize: 11.5, color: isDark ? '#d4d4d8' : '#a1a1aa', fontWeight: 500 }}>
               {metric.desc}
             </span>
           </GlassContainer>
@@ -658,7 +673,7 @@ export default function HomeDashboard({
       <div style={{ marginBottom: 38 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: '#71717a', margin: 0 }}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', color: isDark ? '#e4e4e7' : '#71717a', margin: 0 }}>
               Saved Recipes
             </h3>
             {recipes && recipes.length > 0 && (
@@ -668,8 +683,9 @@ export default function HomeDashboard({
                   fontWeight: 700,
                   padding: '2px 7px',
                   borderRadius: 9999,
-                  backgroundColor: 'rgba(0, 0, 0, 0.06)',
-                  color: '#52525b'
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
+                  color: isDark ? '#f4f4f5' : '#52525b',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.16)' : 'none'
                 }}
               >
                 {recipes.length}
@@ -684,7 +700,7 @@ export default function HomeDashboard({
                 border: 'none',
                 fontSize: 12,
                 fontWeight: 600,
-                color: '#09090b',
+                color: isDark ? '#ffffff' : '#09090b',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -909,7 +925,7 @@ export default function HomeDashboard({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h3 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.4px' }}>
+              <h3 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: isDark ? '#ffffff' : '#09090b', letterSpacing: '-0.4px' }}>
                 Happening in Your Network
               </h3>
               <span
@@ -918,14 +934,15 @@ export default function HomeDashboard({
                   borderRadius: 9999,
                   fontSize: 11.5,
                   fontWeight: 700,
-                  backgroundColor: 'rgba(0, 0, 0, 0.06)',
-                  color: '#52525b'
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
+                  color: isDark ? '#f4f4f5' : '#52525b',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.16)' : 'none'
                 }}
               >
                 {networkDishes.length}
               </span>
             </div>
-            <p style={{ margin: '3px 0 0 0', fontSize: 12.5, color: '#71717a' }}>
+            <p style={{ margin: '3px 0 0 0', fontSize: 12.5, color: isDark ? '#e4e4e7' : '#71717a' }}>
               {isInstituteVerified && instituteName
                 ? `Verified peers from ${instituteName} & affiliated tuition, coaching, and campus network`
                 : 'Connect and cook with verified campus peers and local student network'}
@@ -938,7 +955,7 @@ export default function HomeDashboard({
               padding: '6px 16px',
               fontSize: 12.5,
               fontWeight: 600,
-              color: '#09090b',
+              color: isDark ? '#ffffff' : '#09090b',
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6
@@ -955,7 +972,7 @@ export default function HomeDashboard({
         {/* Network Cards Grid or Clean Empty State */}
         {networkDishes.length === 0 ? (
           <GlassContainer radius={22} innerStyle={{ padding: '36px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: 14.5, fontWeight: 600, color: '#71717a' }}>
+            <div style={{ fontSize: 14.5, fontWeight: 600, color: isDark ? '#e4e4e7' : '#71717a' }}>
               No campus network dishes right now.
             </div>
           </GlassContainer>
@@ -973,7 +990,7 @@ export default function HomeDashboard({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h3 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.4px' }}>
+              <h3 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: isDark ? '#ffffff' : '#09090b', letterSpacing: '-0.4px' }}>
                 Cooking History
               </h3>
               <span
@@ -982,14 +999,15 @@ export default function HomeDashboard({
                   borderRadius: 9999,
                   fontSize: 11.5,
                   fontWeight: 700,
-                  backgroundColor: 'rgba(0, 0, 0, 0.06)',
-                  color: '#52525b'
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
+                  color: isDark ? '#f4f4f5' : '#52525b',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.16)' : 'none'
                 }}
               >
                 {completedDishes.length}
               </span>
             </div>
-            <p style={{ margin: '3px 0 0 0', fontSize: 12.5, color: '#71717a' }}>
+            <p style={{ margin: '3px 0 0 0', fontSize: 12.5, color: isDark ? '#e4e4e7' : '#71717a' }}>
               All previous dishes you hosted or participated in
             </p>
           </div>
@@ -1022,26 +1040,26 @@ export default function HomeDashboard({
                     gap: 6,
                     padding: '7px 16px',
                     borderRadius: 9999,
-                    border: 'none',
+                    border: isActive && isDark ? '1px solid rgba(255, 255, 255, 0.32)' : 'none',
                     fontSize: 12.5,
                     fontWeight: isActive ? 600 : 500,
                     cursor: 'pointer',
-                    background: isActive ? '#09090b' : 'transparent',
-                    color: isActive ? '#ffffff' : '#52525b',
+                    background: isActive ? (isDark ? 'rgba(255, 255, 255, 0.22)' : '#09090b') : 'transparent',
+                    color: isActive ? '#ffffff' : (isDark ? '#e4e4e7' : '#52525b'),
                     boxShadow: isActive ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none',
                     transition: 'all 0.18s ease',
                     fontFamily: 'inherit'
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
-                      e.currentTarget.style.color = '#18181b';
+                      e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(0, 0, 0, 0.05)';
+                      e.currentTarget.style.color = isDark ? '#ffffff' : '#18181b';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = '#52525b';
+                      e.currentTarget.style.color = isDark ? '#e4e4e7' : '#52525b';
                     }
                   }}
                 >
@@ -1055,7 +1073,7 @@ export default function HomeDashboard({
         {/* Cooking History List */}
         {completedDishes.length === 0 ? (
           <GlassContainer radius={20} innerStyle={{ padding: '36px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#71717a' }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#e4e4e7' : '#71717a' }}>
               No completed dishes found in this filter.
             </div>
           </GlassContainer>
@@ -1093,8 +1111,9 @@ export default function HomeDashboard({
                           fontWeight: 700,
                           padding: '3px 10px',
                           borderRadius: 9999,
-                          backgroundColor: 'rgba(0, 0, 0, 0.06)',
-                          color: '#3f3f46',
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
+                          color: isDark ? '#f4f4f5' : '#3f3f46',
+                          border: isDark ? '1px solid rgba(255, 255, 255, 0.18)' : 'none',
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: 5
@@ -1127,8 +1146,9 @@ export default function HomeDashboard({
                           textTransform: 'uppercase',
                           padding: '2px 8px',
                           borderRadius: 9999,
-                          backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                          color: '#71717a'
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(0, 0, 0, 0.05)',
+                          color: isDark ? '#e4e4e7' : '#71717a',
+                          border: isDark ? '1px solid rgba(255, 255, 255, 0.14)' : 'none'
                         }}
                       >
                         {dish.category}
@@ -1142,17 +1162,17 @@ export default function HomeDashboard({
                         <polyline points="22 4 12 14.01 9 11.01" />
                       </svg>
                       <span>Cooked</span>
-                      <span style={{ color: '#a1a1aa', fontWeight: 400 }}>• {dish.completedAt || 'Finished'}</span>
+                      <span style={{ color: isDark ? '#d4d4d8' : '#a1a1aa', fontWeight: 400 }}>• {dish.completedAt || 'Finished'}</span>
                     </div>
                   </div>
 
                   {/* Activity Description */}
-                  <div style={{ fontSize: 14, color: '#18181b', fontWeight: 500, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 14, color: isDark ? '#f4f4f5' : '#18181b', fontWeight: 500, lineHeight: 1.4 }}>
                     {dish.description}
                   </div>
 
                   {/* Footer Meta */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid rgba(0, 0, 0, 0.05)', fontSize: 12, color: '#71717a' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.10)' : '1px solid rgba(0, 0, 0, 0.05)', fontSize: 12, color: isDark ? '#e4e4e7' : '#71717a' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -1168,12 +1188,12 @@ export default function HomeDashboard({
                         onClick={() => onViewProfile && onViewProfile(dish.creator)}
                         style={{
                           fontSize: 11.5,
-                          color: '#71717a',
+                          color: isDark ? '#e4e4e7' : '#71717a',
                           cursor: onViewProfile ? 'pointer' : 'default'
                         }}
                         title={onViewProfile ? `View @${dish.creator.username || 'user'}'s profile` : ''}
                       >
-                        Host: <strong style={{ color: '#09090b', textDecoration: onViewProfile ? 'underline' : 'none' }}>{dish.creator.name}</strong>
+                        Host: <strong style={{ color: isDark ? '#ffffff' : '#09090b', textDecoration: onViewProfile ? 'underline' : 'none' }}>{dish.creator.name}</strong>
                       </span>
                     )}
                   </div>
