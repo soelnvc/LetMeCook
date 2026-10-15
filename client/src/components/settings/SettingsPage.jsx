@@ -5,6 +5,7 @@ import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import { apiFetch } from '@/lib/api';
 import { useToast } from '@/context/ToastContext';
+import { useTheme } from '@/context/ThemeContext';
 
 /**
  * Custom Input wrapped in GlassContainer to avoid browser default styles
@@ -645,7 +646,8 @@ export default function SettingsPage({
   });
 
   // 4. Appearance Settings States
-  const [currentTheme, setCurrentTheme] = useState(themePreference || 'system');
+  const { isDark, themePreference: globalTheme, setTheme: setGlobalTheme } = useTheme();
+  const [currentTheme, setCurrentTheme] = useState(themePreference || globalTheme || 'light');
 
   // 5. Credentials & Verification States
   const [mobileNumber, setMobileNumber] = useState(user?.mobile || '');
@@ -2423,6 +2425,7 @@ export default function SettingsPage({
                         onClick={() => {
                           setCurrentTheme(mode.id);
                           if (onThemeChange) onThemeChange(mode.id);
+                          setGlobalTheme(mode.id);
                           triggerSuccess(`Theme set to ${mode.title}`);
                         }}
                         style={{
@@ -2432,15 +2435,19 @@ export default function SettingsPage({
                           gap: 10,
                           padding: '16px 12px',
                           borderRadius: 16,
-                          border: isSelected ? '2px solid #09090b' : '1px solid rgba(0, 0, 0, 0.08)',
-                          background: isSelected ? 'rgba(0, 0, 0, 0.06)' : 'transparent',
+                          border: isSelected
+                            ? (isDark ? '2px solid #ffffff' : '2px solid #09090b')
+                            : (isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)'),
+                          background: isSelected
+                            ? (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)')
+                            : 'transparent',
                           cursor: 'pointer',
-                          color: '#09090b',
+                          color: isDark ? '#ffffff' : '#09090b',
                           transition: 'all 0.15s ease'
                         }}
                       >
                         {mode.icon}
-                        <span style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500 }}>
+                        <span style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500, color: isDark ? '#ffffff' : '#09090b' }}>
                           {mode.title}
                         </span>
                       </button>

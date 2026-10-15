@@ -21,6 +21,7 @@ import GlobalSearchModal from '@/components/search/GlobalSearchModal';
 import NotificationsView from '@/components/notifications/NotificationsView';
 import { ToastProvider, useToast } from '@/context/ToastContext';
 import { ConfirmProvider, useConfirm } from '@/context/ConfirmContext';
+import { useTheme } from '@/context/ThemeContext';
 import { dishService } from '@/services/dish.service';
 import { authService } from '@/services/auth.service';
 import {
@@ -121,7 +122,7 @@ function AppContent() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportDescription, setReportDescription] = useState('');
   const [reportSubmitted, setReportSubmitted] = useState(false);
-  const [themePreference, setThemePreference] = useState('light');
+  const { themePreference, setTheme: setThemePreference, isDark, toggleTheme, syncWithUser } = useTheme();
 
   // Kitchen states
   const [isSubmittingDish, setIsSubmittingDish] = useState(false);
@@ -274,6 +275,9 @@ function AppContent() {
     try {
       const res = await apiFetch('/auth/me');
       setUser(res.data);
+      if (res.data.theme) {
+        syncWithUser(res.data.theme);
+      }
       setProfileName(res.data.name || '');
       setPronouns(res.data.pronouns || 'He/Him');
       setBio(res.data.bio || '');
@@ -550,6 +554,9 @@ function AppContent() {
 
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
+      if (res.data.user?.theme) {
+        syncWithUser(res.data.user.theme);
+      }
       setMessage('Authenticated successfully');
     } catch (err) {
       setError(err.message);
@@ -1329,7 +1336,7 @@ function AppContent() {
   // Unauthenticated View
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#e6dfe4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, boxSizing: 'border-box' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app, #e6dfe4)', color: 'var(--text-primary, #000000)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, boxSizing: 'border-box' }}>
         <GlassContainer radius={28} style={{ width: '100%', maxWidth: 460 }} innerStyle={{ padding: 28, fontFamily: "'Inter', sans-serif" }}>
           <h2 style={{ margin: '0 0 16px 0', fontSize: 22, fontWeight: 700 }}>LetMeCook — Auth Test</h2>
           <div style={{ marginBottom: 16 }}>
@@ -1517,7 +1524,7 @@ function AppContent() {
 
   // Authenticated View
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#e6dfe4', fontFamily: "'Inter', sans-serif", color: '#000000' }}>
+    <div className="main-app-shell" style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-app, #e6dfe4)', fontFamily: "'Inter', sans-serif", color: 'var(--text-primary, #000000)' }}>
       {/* Mobile Top Header & Bottom Bar (Instagram UX) */}
       <MobileNav
         user={user}
@@ -2647,12 +2654,12 @@ function AppContent() {
           <GlassContainer
             radius={24}
             style={{ width: '100%', maxWidth: 430 }}
-            innerStyle={{ padding: 26, color: '#000000' }}
+            innerStyle={{ padding: 26, color: isDark ? '#ffffff' : '#000000' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: '50%', backgroundColor: 'rgba(0, 0, 0, 0.06)' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: '50%', backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)' }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                   </svg>
@@ -2672,14 +2679,14 @@ function AppContent() {
               </FluidButton>
             </div>
 
-            <p style={{ fontSize: 13.5, color: '#52525b', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13.5, color: isDark ? '#a1a1aa' : '#52525b', margin: '0 0 16px 0', lineHeight: 1.5 }}>
               Choose your display appearance for LetMeCook:
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
               {[
                 { id: 'light', label: 'Light Mode', desc: 'Soft frosted daylight tone (Default)' },
-                { id: 'dark', label: 'Dark Mode', desc: 'Deep obsidian night theme (Coming soon)' },
+                { id: 'dark', label: 'Dark Mode', desc: 'Deep obsidian night theme (Active)' },
                 { id: 'system', label: 'System Default', desc: 'Match your operating system appearance' }
               ].map((theme) => {
                 const isSelected = themePreference === theme.id;
@@ -2692,24 +2699,30 @@ function AppContent() {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '12px 14px',
-                      borderRadius: 12,
-                      border: isSelected ? '1.5px solid #000000' : '1px solid rgba(0, 0, 0, 0.08)',
-                      background: isSelected ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.4)',
+                      borderRadius: 14,
+                      border: isSelected
+                        ? (isDark ? '1.5px solid #ffffff' : '1.5px solid #000000')
+                        : (isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)'),
+                      background: isSelected
+                        ? (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.05)')
+                        : (isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.4)'),
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.15s ease'
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: '#000000' }}>{theme.label}</div>
-                      <div style={{ fontSize: 12, color: '#666' }}>{theme.desc}</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#ffffff' : '#000000' }}>{theme.label}</div>
+                      <div style={{ fontSize: 12, color: isDark ? '#a1a1aa' : '#666' }}>{theme.desc}</div>
                     </div>
                     <div
                       style={{
                         width: 18,
                         height: 18,
                         borderRadius: '50%',
-                        border: isSelected ? '5px solid #000000' : '2px solid #ccc',
+                        border: isSelected
+                          ? (isDark ? '5px solid #ffffff' : '5px solid #000000')
+                          : (isDark ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #ccc'),
                         boxSizing: 'border-box'
                       }}
                     />

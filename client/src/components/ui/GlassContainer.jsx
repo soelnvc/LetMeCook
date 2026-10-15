@@ -91,19 +91,19 @@ export default function GlassContainer({
   const innerRadius = isPill ? '9999px' : `${Math.max(0, radius - borderWidth)}px`;
 
   const borderBackground = `conic-gradient(from ${angle}deg at 50% 50%,
-    rgba(255, 255, 255, 0.98) 0deg,
-    rgba(255, 255, 255, 0.35) 45deg,
-    rgba(255, 255, 255, 0.04) 90deg,
-    rgba(255, 255, 255, 0.35) 135deg,
-    rgba(255, 255, 255, 0.98) 180deg,
-    rgba(255, 255, 255, 0.35) 225deg,
-    rgba(255, 255, 255, 0.04) 270deg,
-    rgba(255, 255, 255, 0.35) 315deg,
-    rgba(255, 255, 255, 0.98) 360deg)`;
+    var(--glass-border-hi, rgba(255, 255, 255, 0.98)) 0deg,
+    var(--glass-border-mid, rgba(255, 255, 255, 0.35)) 45deg,
+    var(--glass-border-low, rgba(255, 255, 255, 0.04)) 90deg,
+    var(--glass-border-mid, rgba(255, 255, 255, 0.35)) 135deg,
+    var(--glass-border-hi, rgba(255, 255, 255, 0.98)) 180deg,
+    var(--glass-border-mid, rgba(255, 255, 255, 0.35)) 225deg,
+    var(--glass-border-low, rgba(255, 255, 255, 0.04)) 270deg,
+    var(--glass-border-mid, rgba(255, 255, 255, 0.35)) 315deg,
+    var(--glass-border-hi, rgba(255, 255, 255, 0.98)) 360deg)`;
 
   const vignetteShadow = isPill
-    ? 'inset 0 0 12px rgba(0, 0, 0, 0.04), inset 0 0 4px rgba(0, 0, 0, 0.02)'
-    : 'inset 0 0 24px rgba(0, 0, 0, 0.045), inset 0 0 8px rgba(0, 0, 0, 0.02)';
+    ? 'var(--glass-vignette-pill, inset 0 0 12px rgba(0, 0, 0, 0.04), inset 0 0 4px rgba(0, 0, 0, 0.02))'
+    : 'var(--glass-vignette, inset 0 0 24px rgba(0, 0, 0, 0.045), inset 0 0 8px rgba(0, 0, 0, 0.02))';
 
   return (
     <Component
@@ -112,7 +112,7 @@ export default function GlassContainer({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
-      className={className}
+      className={`glass-container-wrapper ${className}`}
       style={{
         position: 'relative',
         borderRadius: outerRadius,
@@ -132,10 +132,10 @@ export default function GlassContainer({
       {...restProps}
     >
       <div
-        className={innerClassName}
+        className={`glass-container-inner ${innerClassName}`}
         style={{
           borderRadius: innerRadius,
-          backgroundColor: '#e6dfe4',
+          backgroundColor: 'var(--glass-inner-bg, #e6dfe4)',
           boxShadow: vignetteShadow,
           width: '100%',
           height: '100%',

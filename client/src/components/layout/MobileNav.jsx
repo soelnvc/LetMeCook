@@ -2,6 +2,7 @@
 
 import React from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
+import { useTheme } from '@/context/ThemeContext';
 
 /**
  * MobileNav.jsx
@@ -26,6 +27,7 @@ export default function MobileNav({
   settingsSection = null,
   onBackFromSettings
 }) {
+  const { isDark, toggleTheme } = useTheme();
   const profilePhotoUrl = user ? (user.avatar || user.profilePhoto || user.profilePicture || user.avatarUrl) : null;
 
   // Contextual back action
@@ -73,10 +75,10 @@ export default function MobileNav({
           left: 0,
           right: 0,
           height: 52,
-          backgroundColor: 'rgba(230, 223, 228, 0.94)',
+          backgroundColor: isDark ? 'rgba(18, 19, 22, 0.94)' : 'rgba(230, 223, 228, 0.94)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
           zIndex: 70,
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -97,7 +99,7 @@ export default function MobileNav({
               border: 'none',
               padding: '6px 4px',
               cursor: 'pointer',
-              color: '#09090b',
+              color: isDark ? '#ffffff' : '#09090b',
               fontWeight: 700,
               fontSize: 14.5
             }}
@@ -116,7 +118,7 @@ export default function MobileNav({
               border: 'none',
               padding: 6,
               cursor: 'pointer',
-              color: '#09090b',
+              color: isDark ? '#ffffff' : '#09090b',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -151,7 +153,7 @@ export default function MobileNav({
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#000000'
+              color: isDark ? '#ffffff' : '#000000'
             }}
           >
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -166,7 +168,7 @@ export default function MobileNav({
               fontSize: 18,
               fontWeight: 800,
               letterSpacing: '-0.4px',
-              color: '#09090b',
+              color: isDark ? '#ffffff' : '#09090b',
               fontFamily: "'Inter', sans-serif"
             }}
           >
@@ -174,51 +176,88 @@ export default function MobileNav({
           </span>
         </div>
 
-        {/* Right: Notification Heart Icon */}
-        <button
-          id="mobile-header-notifications"
-          onClick={() => setActiveTab('notifications')}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: 6,
-            cursor: 'pointer',
-            color: activeTab === 'notifications' ? '#ef4444' : '#09090b',
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-          className="mobile-nav-item"
-          title="Notifications"
-        >
-          <svg
-            width="23"
-            height="23"
-            viewBox="0 0 24 24"
-            fill={activeTab === 'notifications' ? '#ef4444' : 'none'}
-            stroke={activeTab === 'notifications' ? '#ef4444' : 'currentColor'}
-            strokeWidth={activeTab === 'notifications' ? '2.2' : '1.9'}
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        {/* Right side: Quick Theme Toggle & Notifications */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            id="mobile-header-theme-toggle"
+            onClick={toggleTheme}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 6,
+              cursor: 'pointer',
+              color: isDark ? '#ffffff' : '#09090b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            className="mobile-nav-item"
+            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-          {unreadNotificationsCount > 0 && (
-            <span
-              style={{
-                position: 'absolute',
-                top: 4,
-                right: 4,
-                width: 7,
-                height: 7,
-                borderRadius: '50%',
-                backgroundColor: '#ef4444',
-                boxShadow: '0 0 0 2px #e6dfe4'
-              }}
-            />
-          )}
-        </button>
+            {isDark ? (
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            ) : (
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            )}
+          </button>
+
+          <button
+            id="mobile-header-notifications"
+            onClick={() => setActiveTab('notifications')}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 6,
+              cursor: 'pointer',
+              color: activeTab === 'notifications' ? '#ef4444' : (isDark ? '#ffffff' : '#09090b'),
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            className="mobile-nav-item"
+            title="Notifications"
+          >
+            <svg
+              width="23"
+              height="23"
+              viewBox="0 0 24 24"
+              fill={activeTab === 'notifications' ? '#ef4444' : 'none'}
+              stroke={activeTab === 'notifications' ? '#ef4444' : 'currentColor'}
+              strokeWidth={activeTab === 'notifications' ? '2.2' : '1.9'}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            {unreadNotificationsCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 4,
+                  right: 4,
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  backgroundColor: '#ef4444',
+                  boxShadow: isDark ? '0 0 0 2px #121316' : '0 0 0 2px #e6dfe4'
+                }}
+              />
+            )}
+          </button>
+        </div>
       </header>
 
       {/* ========================================================= */}
@@ -232,10 +271,10 @@ export default function MobileNav({
           left: 0,
           right: 0,
           height: 54,
-          backgroundColor: 'rgba(230, 223, 228, 0.94)',
+          backgroundColor: isDark ? 'rgba(18, 19, 22, 0.94)' : 'rgba(230, 223, 228, 0.94)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+          borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
           zIndex: 80,
           display: 'flex',
           alignItems: 'center',
@@ -356,7 +395,7 @@ export default function MobileNav({
                 height: 7,
                 borderRadius: '50%',
                 backgroundColor: '#ef4444',
-                boxShadow: '0 0 0 2px #e6dfe4'
+                boxShadow: isDark ? '0 0 0 2px #121316' : '0 0 0 2px #e6dfe4'
               }}
             />
           )}

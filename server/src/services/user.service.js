@@ -24,7 +24,8 @@ const updateProfile = async (userId, updateData) => {
     'gender',
     'mobile',
     'email',
-    'address'
+    'address',
+    'theme'
   ];
   const updatePayload = {};
 

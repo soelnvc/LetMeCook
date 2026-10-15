@@ -1,11 +1,3 @@
-@import "tailwindcss";
-
-html, body, button, input, select, textarea {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #000000;
-  background-color: #e6dfe4;
-}
-
 :root {
   --f-cubic: cubic-bezier(0.35, 0.35, 0, 1);
   --f-cubic-in: cubic-bezier(0.69, 0, 0, 1);
@@ -14,14 +6,88 @@ html, body, button, input, select, textarea {
   --f-smooth-alt: cubic-bezier(0.6, 0, 0.05, 1);
   --f-bounce: cubic-bezier(0.6, 0.5, 0, 3);
   --f-bounce-alt: cubic-bezier(0.6, 0.5, 0, 2);
+
+  /* Light Theme Color Tokens */
   --c-grey: #e6dfe4;
   --c-grey-rgb: 230, 223, 228;
   --c-grey-dark: #544d56;
   --c-grey-dark-rgb: 84, 77, 86;
   --c-black: #101214;
   --c-black-rgb: 16, 18, 20;
-  --c-white: #fff;
+  --c-white: #ffffff;
   --c-white-rgb: 255, 255, 255;
+
+  --bg-app: #e6dfe4;
+  --text-primary: #101214;
+  --text-secondary: #544d56;
+  --text-muted: #71717a;
+
+  /* Glass Containers (Light) */
+  --glass-inner-bg: #e6dfe4;
+  --glass-border-hi: rgba(255, 255, 255, 0.98);
+  --glass-border-mid: rgba(255, 255, 255, 0.35);
+  --glass-border-low: rgba(255, 255, 255, 0.04);
+  --glass-vignette: inset 0 0 24px rgba(0, 0, 0, 0.045), inset 0 0 8px rgba(0, 0, 0, 0.02);
+  --glass-vignette-pill: inset 0 0 12px rgba(0, 0, 0, 0.04), inset 0 0 4px rgba(0, 0, 0, 0.02);
+
+  /* Fluid Button (Light) */
+  --btn-fluid-color: #101214;
+  --btn-fluid-glare-bg: rgba(167, 167, 180, 0.12);
+  --btn-fluid-glare-border: rgba(255, 255, 255, 0.2);
+  --btn-fluid-glare-shadow: inset 0 0 0.4rem 0.2rem rgba(16, 18, 20, 0.08);
+
+  /* Inputs & Panels */
+  --input-bg: rgba(255, 255, 255, 0.5);
+  --input-border: rgba(0, 0, 0, 0.12);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.55);
+}
+
+/* ========================================================= */
+/* DARK MODE TOKENS (Directly calibrated to reference image) */
+/* ========================================================= */
+html.dark,
+:root[data-theme="dark"] {
+  --c-grey: #121316;
+  --c-grey-rgb: 18, 19, 22;
+  --c-grey-dark: #a1a1aa;
+  --c-grey-dark-rgb: 161, 161, 170;
+  --c-black: #ffffff;
+  --c-black-rgb: 255, 255, 255;
+  --c-white: #121316;
+  --c-white-rgb: 18, 19, 22;
+
+  --bg-app: #121316;
+  --text-primary: #ffffff;
+  --text-secondary: #d4d4d8;
+  --text-muted: #a1a1aa;
+
+  /* Glass Containers (Dark) */
+  --glass-inner-bg: #18191e;
+  --glass-border-hi: rgba(255, 255, 255, 0.35);
+  --glass-border-mid: rgba(255, 255, 255, 0.15);
+  --glass-border-low: rgba(255, 255, 255, 0.03);
+  --glass-vignette: inset 0 0 24px rgba(0, 0, 0, 0.45), inset 0 0 8px rgba(0, 0, 0, 0.25);
+  --glass-vignette-pill: inset 0 0 12px rgba(0, 0, 0, 0.35), inset 0 0 4px rgba(0, 0, 0, 0.15);
+
+  /* Fluid Button (Dark - Exact match to user screenshot) */
+  --btn-fluid-color: #ffffff;
+  --btn-fluid-glare-bg: rgba(255, 255, 255, 0.08);
+  --btn-fluid-glare-border: rgba(255, 255, 255, 0.18);
+  --btn-fluid-glare-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12), inset 0 -1px 2px rgba(0, 0, 0, 0.45);
+
+  /* Inputs & Panels */
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.15);
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.78);
+}
+
+html, body, button, input, select, textarea {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text-primary, #101214);
+  background-color: var(--bg-app, #e6dfe4);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 @keyframes opacityGlare {
@@ -548,5 +614,178 @@ html, body, button, input, select, textarea {
     gap: 18px !important;
   }
 }
+
+/* ========================================================= */
+/* COMPREHENSIVE DARK MODE OVERRIDES                         */
+/* Inspired directly by minimalist frosted charcoal UI       */
+/* ========================================================= */
+
+html.dark body,
+[data-theme="dark"] body {
+  background-color: #121316 !important;
+  color: #ffffff !important;
+}
+
+/* Fluid Button Dark Mode styling matching reference screenshot */
+html.dark .btn-fluid,
+[data-theme="dark"] .btn-fluid {
+  color: #ffffff !important;
+}
+
+html.dark .btn-fluid .btn-glare,
+[data-theme="dark"] .btn-fluid .btn-glare {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12), inset 0 -1px 2px rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+html.dark .btn-fluid:hover:not(:disabled) .btn-glare,
+[data-theme="dark"] .btn-fluid:hover:not(:disabled) .btn-glare {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.32) !important;
+}
+
+html.dark .btn-fluid:active:not(:disabled) .btn-glare,
+[data-theme="dark"] .btn-fluid:active:not(:disabled) .btn-glare {
+  background-color: rgba(255, 255, 255, 0.20) !important;
+}
+
+html.dark .btn-fluid .btn-label,
+[data-theme="dark"] .btn-fluid .btn-label {
+  color: #ffffff !important;
+}
+
+/* Circular icon buttons (like 'i' in reference image) */
+html.dark .btn-fluid-icon,
+[data-theme="dark"] .btn-fluid-icon {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+}
+
+/* Glass Containers in Dark Mode */
+html.dark .glass-container-inner,
+[data-theme="dark"] .glass-container-inner {
+  background-color: #18191e !important;
+  color: #ffffff !important;
+}
+
+/* Category Filter Pills & Tab Pills (exact screenshot pill style) */
+html.dark .pill-filter,
+html.dark .dinein-tab-pill,
+[data-theme="dark"] .pill-filter,
+[data-theme="dark"] .dinein-tab-pill {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+}
+
+html.dark .pill-filter:hover,
+html.dark .dinein-tab-pill:hover,
+[data-theme="dark"] .pill-filter:hover,
+[data-theme="dark"] .dinein-tab-pill:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.32) !important;
+}
+
+/* Dark Mode Navigation Bars */
+html.dark .desktop-sidebar-nav,
+[data-theme="dark"] .desktop-sidebar-nav {
+  background-color: #121316 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark .mobile-header-bar,
+html.dark .mobile-bottom-bar,
+[data-theme="dark"] .mobile-header-bar,
+[data-theme="dark"] .mobile-bottom-bar {
+  background-color: rgba(18, 19, 22, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+/* Dark Mode Inputs, Dropdowns, Textareas */
+html.dark input,
+html.dark textarea,
+html.dark select,
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder,
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #71717a !important;
+}
+
+/* Universal Dark Mode Contrast Rules */
+html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark h5, html.dark h6,
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3,
+[data-theme="dark"] h4, [data-theme="dark"] h5, [data-theme="dark"] h6 {
+  color: #ffffff !important;
+}
+
+/* Override hardcoded dark text colors in dark mode */
+html.dark [style*="color: #000000"],
+html.dark [style*="color:#000000"],
+html.dark [style*="color: #101214"],
+html.dark [style*="color:#101214"],
+html.dark [style*="color: #09090b"],
+html.dark [style*="color:#09090b"],
+[data-theme="dark"] [style*="color: #000000"],
+[data-theme="dark"] [style*="color:#000000"],
+[data-theme="dark"] [style*="color: #101214"],
+[data-theme="dark"] [style*="color:#101214"],
+[data-theme="dark"] [style*="color: #09090b"],
+[data-theme="dark"] [style*="color:#09090b"] {
+  color: #ffffff !important;
+}
+
+/* Secondary muted texts in dark mode */
+html.dark [style*="color: #544d56"],
+html.dark [style*="color:#544d56"],
+html.dark [style*="color: #52525b"],
+html.dark [style*="color:#52525b"],
+html.dark [style*="color: #666"],
+html.dark [style*="color:#666"],
+[data-theme="dark"] [style*="color: #544d56"],
+[data-theme="dark"] [style*="color:#544d56"],
+[data-theme="dark"] [style*="color: #52525b"],
+[data-theme="dark"] [style*="color:#52525b"],
+[data-theme="dark"] [style*="color: #666"],
+[data-theme="dark"] [style*="color:#666"] {
+  color: #a1a1aa !important;
+}
+
+/* Override hardcoded light backgrounds */
+html.dark [style*="backgroundColor: #e6dfe4"],
+html.dark [style*="background-color: #e6dfe4"],
+html.dark [style*="backgroundColor: '#e6dfe4'"],
+html.dark [style*="background: #e6dfe4"],
+[data-theme="dark"] [style*="backgroundColor: #e6dfe4"],
+[data-theme="dark"] [style*="background-color: #e6dfe4"],
+[data-theme="dark"] [style*="backgroundColor: '#e6dfe4'"],
+[data-theme="dark"] [style*="background: #e6dfe4"] {
+  background-color: #121316 !important;
+}
+
+/* Dark mode scrollbars */
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb,
+[data-theme="dark"] .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.32) !important;
+}
+
 
 

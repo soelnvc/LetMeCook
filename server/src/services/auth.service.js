@@ -96,7 +96,8 @@ const register = async ({ username, name, email, mobile, password, age, institut
       verifiedInstitutes: newUser.verifiedInstitutes || [],
       verification: newUser.verification,
       privacy: newUser.privacy,
-      stats: newUser.stats
+      stats: newUser.stats,
+      theme: newUser.theme || 'light'
     },
     token
   };
@@ -153,7 +154,8 @@ const login = async ({ identifier, password }) => {
       verification: user.verification,
       privacy: user.privacy,
       stats,
-      isDeactivated: user.isDeactivated
+      isDeactivated: user.isDeactivated,
+      theme: user.theme || 'light'
     },
     token,
     wasReactivated

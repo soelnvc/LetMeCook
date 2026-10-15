@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function Sidebar({
   user,
@@ -20,6 +21,7 @@ export default function Sidebar({
 }) {
   const [navHovered, setNavHovered] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
   const isAdult = Boolean(user?.age && Number(user.age) >= 18);
 
@@ -93,7 +95,7 @@ export default function Sidebar({
                 height: 7,
                 borderRadius: '50%',
                 backgroundColor: '#ef4444',
-                boxShadow: '0 0 0 1.5px #e6dfe4'
+                boxShadow: isDark ? '0 0 0 1.5px #121316' : '0 0 0 1.5px #e6dfe4'
               }}
             />
           )}
@@ -158,9 +160,9 @@ export default function Sidebar({
         style={{
           width: navHovered ? 210 : 64,
           transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
-          backgroundColor: '#e6dfe4',
-          borderRight: '1px solid rgba(0, 0, 0, 0.08)',
-          boxShadow: 'inset -4px 0 16px rgba(0, 0, 0, 0.02)',
+          backgroundColor: isDark ? '#121316' : '#e6dfe4',
+          borderRight: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
+          boxShadow: isDark ? 'inset -4px 0 16px rgba(0, 0, 0, 0.3)' : 'inset -4px 0 16px rgba(0, 0, 0, 0.02)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -439,6 +441,78 @@ export default function Sidebar({
                 Settings
               </button>
 
+              {/* Quick Dark Mode Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  toggleTheme();
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: isDark ? '#ffffff' : '#000000',
+                  textAlign: 'left',
+                  width: '100%',
+                  transition: 'background 0.15s ease'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {isDark ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="5" />
+                      <line x1="12" y1="1" x2="12" y2="3" />
+                      <line x1="12" y1="21" x2="12" y2="23" />
+                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                      <line x1="1" y1="12" x2="3" y2="12" />
+                      <line x1="21" y1="12" x2="23" y2="12" />
+                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                  )}
+                  <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+                </div>
+                <div
+                  style={{
+                    width: 32,
+                    height: 18,
+                    borderRadius: 9999,
+                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.18)',
+                    position: 'relative',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '2px 2px',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 14,
+                      height: 14,
+                      borderRadius: '50%',
+                      backgroundColor: isDark ? '#ffffff' : '#09090b',
+                      transform: isDark ? 'translateX(14px)' : 'translateX(0)',
+                      transition: 'transform 0.2s cubic-bezier(0.35, 0.35, 0, 1)'
+                    }}
+                  />
+                </div>
+              </button>
+
               {/* Appearance */}
               <button
                 onClick={() => {
@@ -456,18 +530,18 @@ export default function Sidebar({
                   cursor: 'pointer',
                   fontSize: 14,
                   fontWeight: 500,
-                  color: '#000000',
+                  color: isDark ? '#ffffff' : '#000000',
                   textAlign: 'left',
                   width: '100%',
                   transition: 'background 0.15s ease'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.06)')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                 </svg>
-                Appearance
+                Theme Details
               </button>
 
               {/* Report a Problem */}
