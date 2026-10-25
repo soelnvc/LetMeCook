@@ -156,6 +156,17 @@ b, strong {
   to { opacity: 0; transform: translate(-50%, -54%) scale(0.95); }
 }
 
+@keyframes authFormSlideFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes fadeSlideDown {
   from {
     opacity: 0;

@@ -63,6 +63,58 @@ const getTabLabel = (tab) => {
   }
 };
 
+// Smooth animated height container for transitioning gracefully between forms
+function SmoothExpandWrapper({ children, activeKey }) {
+  const contentRef = useRef(null);
+  const [height, setHeight] = useState('auto');
+  const hasMountedRef = useRef(false);
+
+  useEffect(() => {
+    if (!contentRef.current) return;
+
+    const measureHeight = () => {
+      if (contentRef.current) {
+        const measured = Math.ceil(contentRef.current.getBoundingClientRect().height);
+        if (measured > 0) {
+          setHeight(measured);
+        }
+      }
+    };
+
+    measureHeight();
+
+    const ro = new ResizeObserver(() => {
+      measureHeight();
+    });
+
+    ro.observe(contentRef.current);
+
+    const timer = setTimeout(() => {
+      hasMountedRef.current = true;
+    }, 60);
+
+    return () => {
+      ro.disconnect();
+      clearTimeout(timer);
+    };
+  }, [activeKey]);
+
+  return (
+    <div
+      style={{
+        height: typeof height === 'number' ? `${height}px` : 'auto',
+        transition: hasMountedRef.current ? 'height 0.45s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
+        overflow: 'hidden',
+        willChange: 'height'
+      }}
+    >
+      <div ref={contentRef} style={{ width: '100%' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function AppContent() {
   const { showError, showStatus } = useToast();
   const { confirm } = useConfirm();
@@ -1352,78 +1404,127 @@ function AppContent() {
         }}
       >
         {/* ========================================================= */}
-        {/* MONOCHROMATIC ARCHITECTURAL SVG GEOMETRY (No glow/shadow)  */}
+        {/* MONOCHROMATIC BOLD THICK GEOMETRIC SHAPES (No thin lines)  */}
         {/* ========================================================= */}
 
-        {/* Top-Left Minimal Concentric Technical Rings */}
-        <svg
-          width="480"
-          height="480"
-          viewBox="0 0 480 480"
-          fill="none"
-          stroke={isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}
-          style={{
-            position: 'absolute',
-            top: -120,
-            left: -120,
-            pointerEvents: 'none',
-            zIndex: 0
-          }}
-        >
-          <circle cx="240" cy="240" r="230" strokeWidth="1" strokeDasharray="4 6" />
-          <circle cx="240" cy="240" r="170" strokeWidth="1" />
-          <circle cx="240" cy="240" r="110" strokeWidth="1" strokeDasharray="2 4" />
-          <line x1="240" y1="0" x2="240" y2="480" strokeWidth="0.8" strokeDasharray="3 6" />
-          <line x1="0" y1="240" x2="480" y2="240" strokeWidth="0.8" strokeDasharray="3 6" />
-        </svg>
-
-        {/* Bottom-Right Minimal Intersecting Arcs & Structural Lines */}
+        {/* Top-Left Thick Geometric Composition */}
         <svg
           width="500"
-          height="440"
-          viewBox="0 0 500 440"
+          height="500"
+          viewBox="0 0 500 500"
           fill="none"
-          stroke={isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}
           style={{
             position: 'absolute',
-            bottom: -80,
-            right: -80,
+            top: -100,
+            left: -100,
             pointerEvents: 'none',
             zIndex: 0
           }}
         >
-          <circle cx="440" cy="400" r="380" strokeWidth="1" />
-          <circle cx="440" cy="400" r="280" strokeWidth="1" strokeDasharray="5 5" />
-          <circle cx="440" cy="400" r="180" strokeWidth="1" />
-          <line x1="60" y1="400" x2="500" y2="400" strokeWidth="0.8" />
-          <line x1="440" y1="20" x2="440" y2="440" strokeWidth="0.8" />
+          {/* Large solid disc */}
+          <circle cx="140" cy="140" r="230" fill={isDark ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)'} />
+          {/* Heavy bold curved band (52px thick) */}
+          <path
+            d="M 0 350 A 320 320 0 0 0 350 0"
+            stroke={isDark ? 'rgba(255, 255, 255, 0.045)' : 'rgba(0, 0, 0, 0.045)'}
+            strokeWidth="52"
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* Thick solid rounded block */}
+          <rect x="-20" y="250" width="290" height="78" rx="39" fill={isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)'} />
         </svg>
 
-        {/* Minimal Registration Crosshairs */}
-        <div style={{ position: 'absolute', top: '12%', left: '8%', pointerEvents: 'none', zIndex: 0, opacity: isDark ? 0.2 : 0.25 }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
-            <line x1="7" y1="0" x2="7" y2="14" />
-            <line x1="0" y1="7" x2="14" y2="7" />
-          </svg>
-        </div>
-        <div style={{ position: 'absolute', top: '15%', right: '10%', pointerEvents: 'none', zIndex: 0, opacity: isDark ? 0.2 : 0.25 }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
-            <line x1="7" y1="0" x2="7" y2="14" />
-            <line x1="0" y1="7" x2="14" y2="7" />
-          </svg>
-        </div>
-        <div style={{ position: 'absolute', bottom: '14%', left: '12%', pointerEvents: 'none', zIndex: 0, opacity: isDark ? 0.2 : 0.25 }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
-            <line x1="7" y1="0" x2="7" y2="14" />
-            <line x1="0" y1="7" x2="14" y2="7" />
-          </svg>
-        </div>
-        <div style={{ position: 'absolute', bottom: '16%', right: '14%', pointerEvents: 'none', zIndex: 0, opacity: isDark ? 0.2 : 0.25 }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
-            <line x1="7" y1="0" x2="7" y2="14" />
-            <line x1="0" y1="7" x2="14" y2="7" />
-          </svg>
-        </div>
+        {/* Bottom-Right Thick Geometric Composition */}
+        <svg
+          width="540"
+          height="500"
+          viewBox="0 0 540 500"
+          fill="none"
+          style={{
+            position: 'absolute',
+            bottom: -90,
+            right: -90,
+            pointerEvents: 'none',
+            zIndex: 0
+          }}
+        >
+          {/* Large solid disc */}
+          <circle cx="410" cy="390" r="240" fill={isDark ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)'} />
+          {/* Heavy bold curved band (56px thick) */}
+          <path
+            d="M 80 470 A 350 350 0 0 1 470 80"
+            stroke={isDark ? 'rgba(255, 255, 255, 0.045)' : 'rgba(0, 0, 0, 0.045)'}
+            strokeWidth="56"
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* Thick solid rounded block */}
+          <rect x="180" y="340" width="320" height="88" rx="44" fill={isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)'} />
+        </svg>
+
+        {/* Thick Floating Solid Accents */}
+        {/* Bold pill capsule upper-right */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '18%',
+            right: '8%',
+            width: 140,
+            height: 52,
+            borderRadius: 9999,
+            background: isDark ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)',
+            transform: 'rotate(-12deg)',
+            pointerEvents: 'none',
+            zIndex: 0
+          }}
+        />
+
+        {/* Bold rounded square lower-left */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '22%',
+            left: '8%',
+            width: 88,
+            height: 88,
+            borderRadius: 24,
+            background: isDark ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)',
+            transform: 'rotate(16deg)',
+            pointerEvents: 'none',
+            zIndex: 0
+          }}
+        />
+
+        {/* Bold solid circle mid-left */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '46%',
+            left: '5%',
+            width: 46,
+            height: 46,
+            borderRadius: '50%',
+            background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+            pointerEvents: 'none',
+            zIndex: 0
+          }}
+        />
+
+        {/* Bold solid circle mid-right */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '58%',
+            right: '6%',
+            width: 58,
+            height: 58,
+            borderRadius: '50%',
+            background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+            pointerEvents: 'none',
+            zIndex: 0
+          }}
+        />
 
         {/* ========================================================= */}
         {/* MONOCHROMATIC BOLD AUTH CARD (No shadows, crisp borders)  */}
@@ -1470,7 +1571,7 @@ function AppContent() {
             </div>
 
             {/* Title & Subtitle */}
-            <div>
+            <div key={isLogin ? 'welcome-heading' : 'create-heading'} className="auth-form-animated">
               <h1
                 style={{
                   margin: '0 0 4px 0',
@@ -1569,33 +1670,41 @@ function AppContent() {
             </button>
           </div>
 
-          {/* Error Banner */}
-          {error && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '9px 12px',
-                borderRadius: 10,
-                background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-                border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.2)',
-                color: isDark ? '#ffffff' : '#09090b',
-                fontSize: 12.5,
-                fontWeight: 500
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              <span>{error}</span>
-            </div>
-          )}
+          {/* Smooth Animated Height Form Container */}
+          <SmoothExpandWrapper activeKey={`${isLogin ? 'signin' : 'create'}-${error ? 'err' : 'noerr'}`}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Error Banner */}
+              {error && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '9px 12px',
+                    borderRadius: 10,
+                    background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.2)',
+                    color: isDark ? '#ffffff' : '#09090b',
+                    fontSize: 12.5,
+                    fontWeight: 500
+                  }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span>{error}</span>
+                </div>
+              )}
 
-          {/* Form */}
-          <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Form with key-triggered smooth slide-fade animation */}
+              <form
+                key={isLogin ? 'signin' : 'create'}
+                onSubmit={handleAuth}
+                className="auth-form-animated"
+                style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+              >
             {isLogin ? (
               <>
                 {/* Username or Email Input */}
@@ -2069,7 +2178,9 @@ function AppContent() {
                 </div>
               </>
             )}
-          </form>
+              </form>
+            </div>
+          </SmoothExpandWrapper>
 
           {/* Bottom Switch Link */}
           <div style={{ textAlign: 'center', fontSize: 12.5, color: isDark ? '#a1a1aa' : '#71717a' }}>
