@@ -108,6 +108,7 @@ function AppContent() {
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [registerAge, setRegisterAge] = useState('');
+  const [showAuthPassword, setShowAuthPassword] = useState(false);
 
   // Dine-in states
   const [dishes, setDishes] = useState([]);
@@ -1336,188 +1337,787 @@ function AppContent() {
   // Unauthenticated View
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app, #e6dfe4)', color: 'var(--text-primary, #000000)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, boxSizing: 'border-box' }}>
-        <GlassContainer radius={28} style={{ width: '100%', maxWidth: 460 }} innerStyle={{ padding: 28, fontFamily: "'Inter', sans-serif" }}>
-          <h2 style={{ margin: '0 0 16px 0', fontSize: 22, fontWeight: 700 }}>LetMeCook — Auth Test</h2>
-          <div style={{ marginBottom: 16 }}>
-            <button
-              onClick={() => { setIsLogin(true); setError(''); }}
-              style={{ fontWeight: isLogin ? 'bold' : 'normal', marginRight: 8, padding: '4px 8px', cursor: 'pointer' }}
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: isDark ? '#09090b' : '#f8f8fa',
+          color: isDark ? '#ffffff' : '#09090b',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '32px 16px',
+          boxSizing: 'border-box',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        {/* ========================================================= */}
+        {/* MONOCHROMATIC ARCHITECTURAL SVG GEOMETRY (No glow/shadow)  */}
+        {/* ========================================================= */}
+
+        {/* Top-Left Minimal Concentric Technical Rings */}
+        <svg
+          width="480"
+          height="480"
+          viewBox="0 0 480 480"
+          fill="none"
+          stroke={isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}
+          style={{
+            position: 'absolute',
+            top: -120,
+            left: -120,
+            pointerEvents: 'none',
+            zIndex: 0
+          }}
+        >
+          <circle cx="240" cy="240" r="230" strokeWidth="1" strokeDasharray="4 6" />
+          <circle cx="240" cy="240" r="170" strokeWidth="1" />
+          <circle cx="240" cy="240" r="110" strokeWidth="1" strokeDasharray="2 4" />
+          <line x1="240" y1="0" x2="240" y2="480" strokeWidth="0.8" strokeDasharray="3 6" />
+          <line x1="0" y1="240" x2="480" y2="240" strokeWidth="0.8" strokeDasharray="3 6" />
+        </svg>
+
+        {/* Bottom-Right Minimal Intersecting Arcs & Structural Lines */}
+        <svg
+          width="500"
+          height="440"
+          viewBox="0 0 500 440"
+          fill="none"
+          stroke={isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}
+          style={{
+            position: 'absolute',
+            bottom: -80,
+            right: -80,
+            pointerEvents: 'none',
+            zIndex: 0
+          }}
+        >
+          <circle cx="440" cy="400" r="380" strokeWidth="1" />
+          <circle cx="440" cy="400" r="280" strokeWidth="1" strokeDasharray="5 5" />
+          <circle cx="440" cy="400" r="180" strokeWidth="1" />
+          <line x1="60" y1="400" x2="500" y2="400" strokeWidth="0.8" />
+          <line x1="440" y1="20" x2="440" y2="440" strokeWidth="0.8" />
+        </svg>
+
+        {/* Minimal Registration Crosshairs */}
+        <div style={{ position: 'absolute', top: '12%', left: '8%', pointerEvents: 'none', zIndex: 0, opacity: isDark ? 0.2 : 0.25 }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <line x1="7" y1="0" x2="7" y2="14" />
+            <line x1="0" y1="7" x2="14" y2="7" />
+          </svg>
+        </div>
+        <div style={{ position: 'absolute', top: '15%', right: '10%', pointerEvents: 'none', zIndex: 0, opacity: isDark ? 0.2 : 0.25 }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <line x1="7" y1="0" x2="7" y2="14" />
+            <line x1="0" y1="7" x2="14" y2="7" />
+          </svg>
+        </div>
+        <div style={{ position: 'absolute', bottom: '14%', left: '12%', pointerEvents: 'none', zIndex: 0, opacity: isDark ? 0.2 : 0.25 }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <line x1="7" y1="0" x2="7" y2="14" />
+            <line x1="0" y1="7" x2="14" y2="7" />
+          </svg>
+        </div>
+        <div style={{ position: 'absolute', bottom: '16%', right: '14%', pointerEvents: 'none', zIndex: 0, opacity: isDark ? 0.2 : 0.25 }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <line x1="7" y1="0" x2="7" y2="14" />
+            <line x1="0" y1="7" x2="14" y2="7" />
+          </svg>
+        </div>
+
+        {/* ========================================================= */}
+        {/* MONOCHROMATIC BOLD AUTH CARD (No shadows, crisp borders)  */}
+        {/* ========================================================= */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 420,
+            position: 'relative',
+            zIndex: 1,
+            borderRadius: 24,
+            background: isDark ? '#121214' : '#ffffff',
+            border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)',
+            boxSizing: 'border-box',
+            padding: '28px 24px',
+            fontFamily: "'Inter', sans-serif",
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20
+          }}
+        >
+          {/* Header Branding */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 10 }}>
+            {/* Minimal Logo Badge */}
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                background: isDark ? '#1c1c1f' : '#f4f4f5',
+                border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: isDark ? '#ffffff' : '#09090b'
+              }}
             >
-              [Sign In]
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 12h20" />
+                <path d="M4 12v6a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6" />
+                <path d="M8 8a4 4 0 0 1 8 0" />
+                <path d="M12 2v2" />
+              </svg>
+            </div>
+
+            {/* Title & Subtitle */}
+            <div>
+              <h1
+                style={{
+                  margin: '0 0 4px 0',
+                  fontSize: 22,
+                  fontWeight: 700,
+                  letterSpacing: '-0.03em',
+                  color: isDark ? '#ffffff' : '#09090b'
+                }}
+              >
+                {isLogin ? 'Welcome Back' : 'Create Account'}
+              </h1>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12.5,
+                  color: isDark ? '#a1a1aa' : '#71717a',
+                  lineHeight: 1.4,
+                  fontWeight: 400
+                }}
+              >
+                {isLogin
+                  ? 'Sign in to hop into live cooking sessions & dine-in'
+                  : 'Join fellow student cooks on campus'}
+              </p>
+            </div>
+          </div>
+
+          {/* Monochromatic Segmented Switcher */}
+          <div
+            style={{
+              display: 'flex',
+              padding: 3,
+              gap: 3,
+              borderRadius: 9999,
+              background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
+              boxSizing: 'border-box',
+              width: '100%'
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => { setIsLogin(true); setError(''); }}
+              style={{
+                flex: 1,
+                padding: '7px 12px',
+                borderRadius: 9999,
+                border: isLogin
+                  ? (isDark ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(0, 0, 0, 0.08)')
+                  : '1px solid transparent',
+                fontSize: 12.5,
+                fontWeight: isLogin ? 500 : 400,
+                cursor: 'pointer',
+                background: isLogin
+                  ? (isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.95)')
+                  : 'transparent',
+                color: isLogin
+                  ? (isDark ? '#ffffff' : '#101214')
+                  : (isDark ? '#a1a1aa' : '#71717a'),
+                boxShadow: isLogin
+                  ? (isDark ? '0 1px 3px rgba(0, 0, 0, 0.25)' : '0 1px 3px rgba(84, 77, 86, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.8)')
+                  : 'none',
+                transition: 'all 0.15s ease',
+                textAlign: 'center'
+              }}
+            >
+              Sign In
             </button>
             <button
+              type="button"
               onClick={() => { setIsLogin(false); setError(''); }}
-              style={{ fontWeight: !isLogin ? 'bold' : 'normal', padding: '4px 8px', cursor: 'pointer' }}
+              style={{
+                flex: 1,
+                padding: '7px 12px',
+                borderRadius: 9999,
+                border: !isLogin
+                  ? (isDark ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(0, 0, 0, 0.08)')
+                  : '1px solid transparent',
+                fontSize: 12.5,
+                fontWeight: !isLogin ? 500 : 400,
+                cursor: 'pointer',
+                background: !isLogin
+                  ? (isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.95)')
+                  : 'transparent',
+                color: !isLogin
+                  ? (isDark ? '#ffffff' : '#101214')
+                  : (isDark ? '#a1a1aa' : '#71717a'),
+                boxShadow: !isLogin
+                  ? (isDark ? '0 1px 3px rgba(0, 0, 0, 0.25)' : '0 1px 3px rgba(84, 77, 86, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.8)')
+                  : 'none',
+                transition: 'all 0.15s ease',
+                textAlign: 'center'
+              }}
             >
-              [Register]
+              Create Account
             </button>
           </div>
 
-          <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* Error Banner */}
+          {error && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '9px 12px',
+                borderRadius: 10,
+                background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.2)',
+                color: isDark ? '#ffffff' : '#09090b',
+                fontSize: 12.5,
+                fontWeight: 500
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {isLogin ? (
               <>
-                <label style={{ fontSize: 13, fontWeight: 600 }}>Email or Username:</label>
-                <input
-                  type="text"
-                  required
-                  disabled={isAuthSubmitting}
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  autoComplete="off"
-                  placeholder="chef_arjun or arjun@example.com"
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
-                />
-                <label style={{ fontSize: 13, fontWeight: 600 }}>Password:</label>
-                <input
-                  type="password"
-                  required
-                  disabled={isAuthSubmitting}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
-                />
-                <button
-                  type="submit"
-                  disabled={isAuthSubmitting}
-                  style={{
-                    marginTop: 10,
-                    padding: '10px 16px',
-                    borderRadius: 8,
-                    backgroundColor: '#000',
-                    color: '#fff',
-                    border: 'none',
-                    cursor: isAuthSubmitting ? 'not-allowed' : 'pointer',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    opacity: isAuthSubmitting ? 0.75 : 1,
-                    transition: 'opacity 0.2s ease'
-                  }}
-                >
-                  {isAuthSubmitting && (
-                    <span
+                {/* Username or Email Input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#e4e4e7' : '#27272a' }}>
+                    Email or Username
+                  </label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '0 12px',
+                      height: 42,
+                      borderRadius: 12,
+                      background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+                      border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <input
+                      type="text"
+                      required
+                      disabled={isAuthSubmitting}
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      autoComplete="username"
+                      placeholder="e.g. chef_arjun or arjun@example.com"
                       style={{
-                        width: 14,
-                        height: 14,
-                        border: '2px solid rgba(255,255,255,0.3)',
-                        borderTopColor: '#fff',
-                        borderRadius: '50%',
-                        display: 'inline-block',
-                        animation: 'spin 0.75s linear infinite'
+                        width: '100%',
+                        height: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: 13,
+                        color: isDark ? '#ffffff' : '#09090b',
+                        fontFamily: 'inherit'
                       }}
                     />
-                  )}
-                  <span>{isAuthSubmitting ? 'Signing in...' : 'Submit Login'}</span>
-                </button>
+                  </div>
+                </div>
+
+                {/* Password Input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#e4e4e7' : '#27272a' }}>
+                    Password
+                  </label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '0 12px',
+                      height: 42,
+                      borderRadius: 12,
+                      background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+                      border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <input
+                      type={showAuthPassword ? 'text' : 'password'}
+                      required
+                      disabled={isAuthSubmitting}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                      placeholder="Enter your password"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: 13,
+                        color: isDark ? '#ffffff' : '#09090b',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAuthPassword((prev) => !prev)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        color: '#71717a',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      {showAuthPassword ? (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Customized FluidButton CTA */}
+                <div style={{ marginTop: 6 }}>
+                  <FluidButton
+                    type="submit"
+                    disabled={isAuthSubmitting}
+                    style={{
+                      width: '100%',
+                      padding: '11px 16px',
+                      fontSize: 13.5,
+                      fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      color: isDark ? '#ffffff' : '#101214'
+                    }}
+                  >
+                    {isAuthSubmitting && (
+                      <span
+                        style={{
+                          width: 14,
+                          height: 14,
+                          border: isDark ? '2px solid rgba(255,255,255,0.3)' : '2px solid rgba(0,0,0,0.3)',
+                          borderTopColor: isDark ? '#ffffff' : '#101214',
+                          borderRadius: '50%',
+                          display: 'inline-block',
+                          animation: 'spin 0.75s linear infinite'
+                        }}
+                      />
+                    )}
+                    <span>{isAuthSubmitting ? 'Signing in...' : 'Sign In'}</span>
+                  </FluidButton>
+                </div>
               </>
             ) : (
               <>
-                <label style={{ fontSize: 13, fontWeight: 600 }}>Username (min 3 chars):</label>
-                <input
-                  type="text"
-                  required
-                  disabled={isAuthSubmitting}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoComplete="off"
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
-                />
-                <label style={{ fontSize: 13, fontWeight: 600 }}>Display Name:</label>
-                <input
-                  type="text"
-                  required
-                  disabled={isAuthSubmitting}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  autoComplete="off"
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
-                />
-                <label style={{ fontSize: 13, fontWeight: 600 }}>Email:</label>
-                <input
-                  type="email"
-                  required
-                  disabled={isAuthSubmitting}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="off"
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
-                />
-                <label style={{ fontSize: 13, fontWeight: 600 }}>Mobile Number:</label>
-                <input
-                  type="text"
-                  required
-                  disabled={isAuthSubmitting}
-                  value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
-                  autoComplete="off"
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
-                />
-                <label style={{ fontSize: 13, fontWeight: 600 }}>Age (must be entered):</label>
-                <input
-                  type="number"
-                  required
-                  min="13"
-                  max="120"
-                  placeholder="e.g. 19"
-                  disabled={isAuthSubmitting}
-                  value={registerAge}
-                  onChange={(e) => setRegisterAge(e.target.value)}
-                  autoComplete="off"
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
-                />
-                <label style={{ fontSize: 13, fontWeight: 600 }}>Password (min 6 chars):</label>
-                <input
-                  type="password"
-                  required
-                  disabled={isAuthSubmitting}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.2)', backgroundColor: isAuthSubmitting ? 'rgba(240,240,240,0.6)' : 'rgba(255,255,255,0.7)', opacity: isAuthSubmitting ? 0.7 : 1 }}
-                />
-                <button
-                  type="submit"
-                  disabled={isAuthSubmitting}
-                  style={{
-                    marginTop: 10,
-                    padding: '10px 16px',
-                    borderRadius: 8,
-                    backgroundColor: '#000',
-                    color: '#fff',
-                    border: 'none',
-                    cursor: isAuthSubmitting ? 'not-allowed' : 'pointer',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    opacity: isAuthSubmitting ? 0.75 : 1,
-                    transition: 'opacity 0.2s ease'
-                  }}
-                >
-                  {isAuthSubmitting && (
-                    <span
+                {/* Username Input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#e4e4e7' : '#27272a' }}>
+                    Username (min 3 chars)
+                  </label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '0 12px',
+                      height: 40,
+                      borderRadius: 12,
+                      background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+                      border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94" />
+                    </svg>
+                    <input
+                      type="text"
+                      required
+                      disabled={isAuthSubmitting}
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      autoComplete="username"
+                      placeholder="e.g. chef_nikita"
                       style={{
-                        width: 14,
-                        height: 14,
-                        border: '2px solid rgba(255,255,255,0.3)',
-                        borderTopColor: '#fff',
-                        borderRadius: '50%',
-                        display: 'inline-block',
-                        animation: 'spin 0.75s linear infinite'
+                        width: '100%',
+                        height: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: 13,
+                        color: isDark ? '#ffffff' : '#09090b',
+                        fontFamily: 'inherit'
                       }}
                     />
-                  )}
-                  <span>{isAuthSubmitting ? 'Registering...' : 'Submit Register'}</span>
-                </button>
+                  </div>
+                </div>
+
+                {/* Display Name Input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#e4e4e7' : '#27272a' }}>
+                    Display Name
+                  </label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '0 12px',
+                      height: 40,
+                      borderRadius: 12,
+                      background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+                      border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <input
+                      type="text"
+                      required
+                      disabled={isAuthSubmitting}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      autoComplete="name"
+                      placeholder="e.g. Nikita Sharma"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: 13,
+                        color: isDark ? '#ffffff' : '#09090b',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Email Input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#e4e4e7' : '#27272a' }}>
+                    Email
+                  </label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '0 12px',
+                      height: 40,
+                      borderRadius: 12,
+                      background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+                      border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <rect x="2" y="4" width="20" height="16" rx="2" />
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                    </svg>
+                    <input
+                      type="email"
+                      required
+                      disabled={isAuthSubmitting}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
+                      placeholder="e.g. student@university.edu"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: 13,
+                        color: isDark ? '#ffffff' : '#09090b',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Mobile & Age Row (2-columns) */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 10 }}>
+                  {/* Mobile Input */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#e4e4e7' : '#27272a' }}>
+                      Mobile
+                    </label>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '0 10px',
+                        height: 40,
+                        borderRadius: 12,
+                        background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+                        border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)'
+                      }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                      </svg>
+                      <input
+                        type="text"
+                        required
+                        disabled={isAuthSubmitting}
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                        autoComplete="tel"
+                        placeholder="Phone #"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          background: 'transparent',
+                          border: 'none',
+                          outline: 'none',
+                          fontSize: 12.5,
+                          color: isDark ? '#ffffff' : '#09090b',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Age Input */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#e4e4e7' : '#27272a' }}>
+                      Age
+                    </label>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '0 10px',
+                        height: 40,
+                        borderRadius: 12,
+                        background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+                        border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)'
+                      }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                      <input
+                        type="number"
+                        required
+                        min="13"
+                        max="120"
+                        placeholder="Age"
+                        disabled={isAuthSubmitting}
+                        value={registerAge}
+                        onChange={(e) => setRegisterAge(e.target.value)}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          background: 'transparent',
+                          border: 'none',
+                          outline: 'none',
+                          fontSize: 12.5,
+                          color: isDark ? '#ffffff' : '#09090b',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Password Input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#e4e4e7' : '#27272a' }}>
+                    Password (min 6 chars)
+                  </label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '0 12px',
+                      height: 40,
+                      borderRadius: 12,
+                      background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+                      border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <input
+                      type={showAuthPassword ? 'text' : 'password'}
+                      required
+                      disabled={isAuthSubmitting}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="new-password"
+                      placeholder="Create a secure password"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: 13,
+                        color: isDark ? '#ffffff' : '#09090b',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAuthPassword((prev) => !prev)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        color: '#71717a',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      {showAuthPassword ? (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Customized FluidButton CTA */}
+                <div style={{ marginTop: 6 }}>
+                  <FluidButton
+                    type="submit"
+                    disabled={isAuthSubmitting}
+                    style={{
+                      width: '100%',
+                      padding: '11px 16px',
+                      fontSize: 13.5,
+                      fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      color: isDark ? '#ffffff' : '#101214'
+                    }}
+                  >
+                    {isAuthSubmitting && (
+                      <span
+                        style={{
+                          width: 14,
+                          height: 14,
+                          border: isDark ? '2px solid rgba(255,255,255,0.3)' : '2px solid rgba(0,0,0,0.3)',
+                          borderTopColor: isDark ? '#ffffff' : '#101214',
+                          borderRadius: '50%',
+                          display: 'inline-block',
+                          animation: 'spin 0.75s linear infinite'
+                        }}
+                      />
+                    )}
+                    <span>{isAuthSubmitting ? 'Creating account...' : 'Create Account'}</span>
+                  </FluidButton>
+                </div>
               </>
             )}
           </form>
-        </GlassContainer>
+
+          {/* Bottom Switch Link */}
+          <div style={{ textAlign: 'center', fontSize: 12.5, color: isDark ? '#a1a1aa' : '#71717a' }}>
+            {isLogin ? (
+              <span>
+                New to LetMeCook?{' '}
+                <button
+                  type="button"
+                  onClick={() => { setIsLogin(false); setError(''); }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: isDark ? '#ffffff' : '#09090b',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    fontSize: 12.5,
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  Create an account
+                </button>
+              </span>
+            ) : (
+              <span>
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => { setIsLogin(true); setError(''); }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: isDark ? '#ffffff' : '#09090b',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    fontSize: 12.5,
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  Sign In
+                </button>
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
