@@ -32,7 +32,11 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 // Apply general rate limiting across /api
 app.use('/api', generalLimiter);
 
-// Health Check
+// Root & Health Checks
+app.get('/', (req, res) => {
+  res.status(200).json({ success: true, message: 'LetMeCook API is online' });
+});
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'LetMeCook server running' });
 });

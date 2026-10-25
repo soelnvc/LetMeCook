@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, API_BASE } from '@/lib/api';
 import { useToast } from '@/context/ToastContext';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -947,7 +947,7 @@ export default function SettingsPage({
     setIsDownloadingData(true);
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-      const res = await fetch('http://localhost:5001/api/users/me/export-data', {
+      const res = await fetch(`${API_BASE}/users/me/export-data`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
