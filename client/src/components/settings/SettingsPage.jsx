@@ -1235,6 +1235,54 @@ export default function SettingsPage({
                 </div>
               ))}
             </div>
+
+            {/* Logout Button at bottom of menu */}
+            {(!searchQuery || 'logout'.includes(searchQuery.toLowerCase().trim()) || 'log out'.includes(searchQuery.toLowerCase().trim())) && (
+              <div
+                style={{
+                  marginTop: 'auto',
+                  paddingTop: 10,
+                  borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.06)'
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => onLogout && onLogout()}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '9px 12px',
+                    borderRadius: 12,
+                    border: 'none',
+                    background: 'transparent',
+                    color: '#ef4444',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                    width: '100%',
+                    fontFamily: 'inherit'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  <span style={{ color: '#ef4444', display: 'flex', flexShrink: 0 }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                  </span>
+                  <span style={{ color: '#ef4444', fontWeight: 500 }}>Log Out</span>
+                </button>
+              </div>
+            )}
           </GlassContainer>
         </aside>
 
