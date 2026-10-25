@@ -326,7 +326,7 @@ export default function DishCard({
             backgroundColor: '#ef4444',
             color: '#ffffff',
             fontSize: 11,
-            fontWeight: 800,
+            fontWeight: 500,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -418,7 +418,7 @@ export default function DishCard({
             >
               <span
                 style={{
-                  fontWeight: 'bold',
+                  fontWeight: 500,
                   fontSize: 15,
                   color: '#000000',
                   textTransform: 'uppercase',
@@ -469,7 +469,7 @@ export default function DishCard({
             wordBreak: 'break-word'
           }}
         >
-          <span style={{ fontWeight: 600, color: '#000000' }}>Description: </span>
+          <span style={{ fontWeight: 500, color: '#000000' }}>Description: </span>
           {isExpanded || (dish.description || '').length <= 80
             ? dish.description
             : `${dish.description.slice(0, 80)}...`}
@@ -487,7 +487,7 @@ export default function DishCard({
                 cursor: 'pointer',
                 textDecoration: 'underline',
                 padding: 0,
-                fontWeight: 'bold'
+                fontWeight: 500
               }}
             >
               {isExpanded ? 'show less' : 'read more'}
@@ -504,7 +504,7 @@ export default function DishCard({
             display: 'flex',
             flexWrap: 'wrap',
             gap: 8,
-            fontWeight: '500'
+            fontWeight: 400
           }}
         >
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -598,7 +598,7 @@ export default function DishCard({
               style={{
                 padding: '5px 14px',
                 fontSize: 12,
-                fontWeight: 700,
+                fontWeight: 500,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5
@@ -617,7 +617,7 @@ export default function DishCard({
                 e.stopPropagation();
                 if (onJoin) onJoin(dish._id);
               }}
-              style={{ padding: '5px 14px', fontSize: 12, fontWeight: 600 }}
+              style={{ padding: '5px 14px', fontSize: 12, fontWeight: 500 }}
             >
               {dish.joinMode === 'auto' ? 'Join Dish' : 'Request to Join'}
             </FluidButton>
@@ -628,7 +628,7 @@ export default function DishCard({
               style={{
                 padding: '5px 14px',
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 500,
                 color: '#71717a',
                 opacity: 0.85,
                 cursor: 'not-allowed'
@@ -640,7 +640,7 @@ export default function DishCard({
           {isParticipant && !isCreator && dish.status !== 'cooked' && (
             <FluidButton
               onClick={() => onLeave && onLeave(dish._id)}
-              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600 }}
+              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 500 }}
             >
               Leave Dish
             </FluidButton>
@@ -648,7 +648,7 @@ export default function DishCard({
           {isCreator && dish.status === 'lets_cook' && (
             <FluidButton
               onClick={() => onStartCooking && onStartCooking(dish._id)}
-              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600 }}
+              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 500 }}
             >
               Start Cooking
             </FluidButton>
@@ -656,7 +656,7 @@ export default function DishCard({
           {isCreator && dish.status === 'cooking' && (
             <FluidButton
               onClick={() => onMarkCooked && onMarkCooked(dish._id)}
-              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600 }}
+              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 500 }}
             >
               Mark Cooked
             </FluidButton>

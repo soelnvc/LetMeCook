@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import GlassContainer from '@/components/ui/GlassContainer';
 import FluidButton from '@/components/ui/FluidButton';
 import DishCard from '@/components/dish/DishCard';
@@ -31,6 +31,30 @@ export default function DineInFeed({
   const [autoJoinOnly, setAutoJoinOnly] = useState(false);
   const [openSpotsOnly, setOpenSpotsOnly] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showGenreDropdown, setShowGenreDropdown] = useState(false);
+  const genreDropdownRef = useRef(null);
+
+  // Close genre dropdown on click outside or Escape
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (genreDropdownRef.current && !genreDropdownRef.current.contains(event.target)) {
+        setShowGenreDropdown(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setShowGenreDropdown(false);
+      }
+    };
+    if (showGenreDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showGenreDropdown]);
 
   // Institution and connection matching helpers
   const getInstName = (inst) => {
@@ -197,6 +221,10 @@ export default function DineInFeed({
     }
   ];
 
+  const currentCategoryObj = useMemo(() => {
+    return categories.find((c) => c.id === selectedCategory) || categories[0];
+  }, [categories, selectedCategory]);
+
   // Refresh trigger with smooth micro-animation
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -279,27 +307,28 @@ export default function DineInFeed({
   return (
     <section style={{ width: '100%', maxWidth: 960, margin: '0 auto', color: '#09090b', paddingBottom: 60 }}>
       {/* ========================================================= */}
-      {/* 1. TOP HEADER & APP-BAR */}
+      {/* ========================================================= */}
+      {/* 1. TOP HEADER & APP-BAR (Head-Sub head on top left, reload & drop a dish on top right) */}
       {/* ========================================================= */}
       <div
+        className="dinein-header-row"
         style={{
           display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 16,
-          marginBottom: 24
+          gap: 12,
+          marginBottom: 16
         }}
       >
-        <div>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <h1
             style={{
-              fontSize: 34,
-              fontWeight: 800,
+              fontSize: 28,
+              fontWeight: 600,
               fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
               letterSpacing: '-0.03em',
               lineHeight: 1.15,
-              margin: '0 0 6px 0',
+              margin: '0 0 3px 0',
               color: isDark ? '#ffffff' : '#09090b'
             }}
           >
@@ -307,10 +336,10 @@ export default function DineInFeed({
           </h1>
           <p
             style={{
-              fontSize: 13,
-              color: isDark ? '#e4e4e7' : '#52525b',
+              fontSize: 12.5,
+              color: isDark ? '#a1a1aa' : '#71717a',
               margin: 0,
-              lineHeight: 1.4,
+              lineHeight: 1.35,
               fontWeight: 400
             }}
           >
@@ -318,22 +347,24 @@ export default function DineInFeed({
           </p>
         </div>
 
-        {/* Action Button Cluster */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Action Button Cluster on Top Right Next to Head-Subhead */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           {/* Refresh Button using FluidButton design */}
           <FluidButton
             variant="icon"
             onClick={handleRefresh}
             title="Refresh live tickets"
             style={{
-              width: 42,
-              height: 42,
+              width: 36,
+              height: 36,
+              minWidth: 36,
+              minHeight: 36,
               padding: 0
             }}
           >
             <svg
-              width="17"
-              height="17"
+              width="15"
+              height="15"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -354,144 +385,123 @@ export default function DineInFeed({
           <FluidButton
             onClick={() => onOpenKitchenModal && onOpenKitchenModal()}
             style={{
-              padding: '8px 18px',
-              fontSize: 13,
-              fontWeight: 600,
+              padding: '7px 14px',
+              fontSize: 12.5,
+              fontWeight: 500,
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 6
+              gap: 5,
+              whiteSpace: 'nowrap'
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            Drop a Dish
+            <span>Drop a Dish</span>
           </FluidButton>
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* 2. FEED TYPE SELECTOR (Same Institution vs Connections vs All) */}
+      {/* 2. FEED TYPE SELECTOR (Reduced in size to fit horizontally) */}
       {/* ========================================================= */}
-      <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'nowrap', maxWidth: '100%' }}>
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            color: '#71717a',
-            flexShrink: 0
+      <div style={{ marginBottom: 10, width: '100%', maxWidth: 540 }}>
+        <GlassContainer
+          radius={9999}
+          className="dinein-scope-container"
+          style={{ width: '100%' }}
+          innerStyle={{
+            display: 'flex',
+            padding: 3,
+            gap: 3,
+            boxSizing: 'border-box',
+            width: '100%'
           }}
         >
-          Feed:
-        </span>
-        <div className="mobile-horiz-scroll" style={{ maxWidth: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 2 }}>
-          <GlassContainer
-            radius={9999}
-            style={{ display: 'inline-flex' }}
-            innerStyle={{
-              display: 'inline-flex',
-              padding: 4,
-              gap: 4,
-              boxSizing: 'border-box',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {[
-              {
-                id: 'all',
-                label: 'All Dine In',
-                shortLabel: 'All',
-                count: counts.allFeed
-              },
-              {
-                id: 'institution',
-                label: userInstituteName ? `Same Institution (${userInstituteName})` : 'Same Institution',
-                shortLabel: userInstituteName
-                  ? `Campus (${userInstituteName.length > 14 ? userInstituteName.slice(0, 11) + '…' : userInstituteName})`
-                  : 'Same Campus',
-                fullLabel: userInstituteName ? `Same Institution (${userInstituteName})` : 'Same Institution',
-                count: counts.sameInstFeed
-              },
-              {
-                id: 'connections',
-                label: 'The Connections',
-                shortLabel: 'Connections',
-                count: counts.connFeed
-              }
-            ].map((feed) => {
-              const isSelected = feedScope === feed.id;
-              return (
-                <button
-                  key={feed.id}
-                  onClick={() => setFeedScope(feed.id)}
-                  title={feed.fullLabel || feed.label}
-                  className="dinein-pill-btn"
+          {[
+            {
+              id: 'all',
+              label: 'All Dine In',
+              shortLabel: 'All',
+              count: counts.allFeed
+            },
+            {
+              id: 'institution',
+              label: userInstituteName ? `Same Institution (${userInstituteName})` : 'Same Institution',
+              shortLabel: 'Campus',
+              fullLabel: userInstituteName ? `Same Institution (${userInstituteName})` : 'Same Institution',
+              count: counts.sameInstFeed
+            },
+            {
+              id: 'connections',
+              label: 'The Connections',
+              shortLabel: 'Connections',
+              count: counts.connFeed
+            }
+          ].map((feed) => {
+            const isSelected = feedScope === feed.id;
+            return (
+              <button
+                key={feed.id}
+                onClick={() => setFeedScope(feed.id)}
+                title={feed.fullLabel || feed.label}
+                className="dinein-pill-btn"
+                style={{
+                  flex: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 5,
+                  padding: '5px 8px',
+                  borderRadius: 9999,
+                  border: isSelected ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(0, 0, 0, 0.08)') : '1px solid transparent',
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? 500 : 400,
+                  cursor: 'pointer',
+                  background: isSelected ? (isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.95)') : 'transparent',
+                  color: isSelected ? (isDark ? '#ffffff' : '#101214') : (isDark ? '#d4d4d8' : '#52525b'),
+                  boxShadow: isSelected ? (isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(84, 77, 86, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.8)') : 'none',
+                  transition: 'background 0.18s ease, border-color 0.18s ease',
+                  whiteSpace: 'nowrap',
+                  minWidth: 0
+                }}
+              >
+                <span className="desktop-only" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{feed.label}</span>
+                <span className="mobile-only">{feed.shortLabel || feed.label}</span>
+                <span
                   style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '7px 14px',
+                    padding: '1.5px 6px',
                     borderRadius: 9999,
-                    border: isSelected ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #09090b') : '1px solid transparent',
-                    fontSize: 12.5,
-                    fontWeight: isSelected ? 600 : 500,
-                    cursor: 'pointer',
-                    background: isSelected ? (isDark ? 'rgba(255, 255, 255, 0.18)' : '#09090b') : 'transparent',
-                    color: isSelected ? '#ffffff' : (isDark ? '#d4d4d8' : '#52525b'),
-                    boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.16)' : 'none',
-                    transition: 'background 0.18s ease, border-color 0.18s ease',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = 'transparent';
-                    }
+                    fontSize: 10,
+                    fontWeight: 500,
+                    background: isSelected ? (isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.08)') : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)'),
+                    color: isDark ? '#ffffff' : (isSelected ? '#101214' : '#71717a'),
+                    lineHeight: 1.2
                   }}
                 >
-                  <span className="desktop-only">{feed.label}</span>
-                  <span className="mobile-only">{feed.shortLabel || feed.label}</span>
-                  <span
-                    style={{
-                      padding: '2px 7px',
-                      borderRadius: 9999,
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      background: isSelected ? (isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.22)') : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.07)'),
-                      color: isDark ? '#ffffff' : (isSelected ? '#ffffff' : '#71717a')
-                    }}
-                  >
-                    {feed.count}
-                  </span>
-                </button>
-              );
-            })}
-          </GlassContainer>
-        </div>
+                  {feed.count}
+                </span>
+              </button>
+            );
+          })}
+        </GlassContainer>
       </div>
 
       {/* ========================================================= */}
-      {/* 3. SEGMENTED SUB-TAB SWITCHER (Wrapped in GlassContainer) */}
+      {/* 3. SEGMENTED SUB-TAB SWITCHER (Reduced in size to fit horizontally) */}
       {/* ========================================================= */}
-      <div className="mobile-horiz-scroll" style={{ width: '100%', maxWidth: 580, overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginBottom: 20, paddingBottom: 2 }}>
+      <div style={{ width: '100%', maxWidth: 540, marginBottom: 14 }}>
         <GlassContainer
           radius={9999}
           className="dinein-subtabs-glass"
-          style={{ width: '100%', minWidth: 'min-content' }}
+          style={{ width: '100%' }}
           innerStyle={{
             display: 'flex',
-            padding: 4,
-            gap: 4,
+            padding: 3,
+            gap: 3,
             boxSizing: 'border-box',
-            whiteSpace: 'nowrap'
+            width: '100%'
           }}
         >
           {[
@@ -501,7 +511,7 @@ export default function DineInFeed({
               shortLabel: 'Join to Cook',
               count: counts.join_to_cook,
               icon: (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
                   <line x1="19" y1="8" x2="19" y2="14" />
@@ -516,7 +526,7 @@ export default function DineInFeed({
               count: counts.cooking,
               isLive: counts.cooking > 0,
               icon: (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                 </svg>
               )
@@ -527,7 +537,7 @@ export default function DineInFeed({
               shortLabel: 'My Dishes',
               count: counts.my_dishes,
               icon: (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                 </svg>
               )
@@ -544,29 +554,19 @@ export default function DineInFeed({
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 7,
-                  padding: '9px 15px',
+                  gap: 5,
+                  padding: '6px 8px',
                   borderRadius: 9999,
-                  border: isActive ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #09090b') : '1px solid transparent',
-                  fontSize: 12.5,
-                  fontWeight: isActive ? 600 : 500,
+                  border: isActive ? (isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(0, 0, 0, 0.08)') : '1px solid transparent',
+                  fontSize: 11.5,
+                  fontWeight: isActive ? 500 : 400,
                   cursor: 'pointer',
-                  background: isActive ? (isDark ? 'rgba(255, 255, 255, 0.18)' : '#09090b') : 'transparent',
-                  color: isActive ? '#ffffff' : (isDark ? '#d4d4d8' : '#52525b'),
-                  boxShadow: isActive ? '0 2px 10px rgba(0, 0, 0, 0.16)' : 'none',
+                  background: isActive ? (isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.95)') : 'transparent',
+                  color: isActive ? (isDark ? '#ffffff' : '#101214') : (isDark ? '#d4d4d8' : '#52525b'),
+                  boxShadow: isActive ? (isDark ? '0 2px 10px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(84, 77, 86, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.8)') : 'none',
                   transition: 'background 0.18s ease, border-color 0.18s ease',
                   whiteSpace: 'nowrap',
-                  flexShrink: 0
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = 'transparent';
-                  }
+                  minWidth: 0
                 }}
               >
                 {tab.icon}
@@ -577,11 +577,12 @@ export default function DineInFeed({
                 {tab.isLive && (
                   <span
                     style={{
-                      width: 6,
-                      height: 6,
+                      width: 5,
+                      height: 5,
                       borderRadius: '50%',
                       backgroundColor: '#f97316',
-                      boxShadow: '0 0 5px #f97316'
+                      boxShadow: '0 0 5px #f97316',
+                      flexShrink: 0
                     }}
                   />
                 )}
@@ -589,13 +590,13 @@ export default function DineInFeed({
                 {/* Badge count */}
                 <span
                   style={{
-                    padding: '2px 7px',
+                    padding: '1.5px 6px',
                     borderRadius: 9999,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    background: isActive ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)',
-                    color: isActive ? '#ffffff' : '#52525b',
-                    marginLeft: 2
+                    fontSize: 10,
+                    fontWeight: 500,
+                    background: isActive ? (isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.08)') : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)'),
+                    color: isDark ? '#ffffff' : (isActive ? '#101214' : '#52525b'),
+                    lineHeight: 1.2
                   }}
                 >
                   {tab.count}
@@ -607,21 +608,20 @@ export default function DineInFeed({
       </div>
 
       {/* ========================================================= */}
-      {/* 3. DISCOVERY & SEARCH BAR (Built with GlassContainer & FluidButtons) */}
+      {/* 4. SEARCH & FILTER ROW (Auto-Join, Spots Available, Genre Dropdown) */}
       {/* ========================================================= */}
       <div
         style={{
           display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
+          flexDirection: 'column',
           gap: 10,
-          marginBottom: 14
+          marginBottom: 16
         }}
       >
         {/* Search Input using our GlassContainer design */}
         <GlassContainer
           radius={9999}
-          style={{ flex: '1 1 280px' }}
+          style={{ width: '100%' }}
           innerStyle={{
             display: 'flex',
             alignItems: 'center',
@@ -686,92 +686,206 @@ export default function DineInFeed({
           )}
         </GlassContainer>
 
-        {/* Quick Filter Toggles using our FluidButton design */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        {/* Beneath search bar: Auto-Join, Spots Available, and Genre Dropdown Button */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            width: '100%'
+          }}
+        >
           {/* Auto-join only toggle button */}
           <FluidButton
             onClick={() => setAutoJoinOnly((prev) => !prev)}
             style={{
-              padding: '7px 16px',
-              fontSize: 12.5,
-              fontWeight: autoJoinOnly ? 600 : 500,
-              color: autoJoinOnly ? '#ffffff' : (isDark ? '#d4d4d8' : '#52525b'),
-              backgroundColor: autoJoinOnly ? (isDark ? 'rgba(255, 255, 255, 0.22)' : '#09090b') : 'transparent',
-              transition: 'all 0.18s ease'
+              flex: 1,
+              padding: '6px 10px',
+              fontSize: 12,
+              fontWeight: autoJoinOnly ? 500 : 400,
+              color: autoJoinOnly ? (isDark ? '#ffffff' : '#101214') : (isDark ? '#d4d4d8' : '#52525b'),
+              backgroundColor: autoJoinOnly ? (isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.95)') : 'transparent',
+              boxShadow: autoJoinOnly ? (isDark ? '0 2px 8px rgba(0, 0, 0, 0.25)' : '0 2px 8px rgba(84, 77, 86, 0.14), inset 0 0 0 1px rgba(255, 255, 255, 0.9)') : 'none',
+              transition: 'all 0.18s ease',
+              whiteSpace: 'nowrap'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: autoJoinOnly ? 600 : 500 }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill={autoJoinOnly ? '#ffffff' : 'currentColor'} stroke="none">
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, fontSize: 12 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill={autoJoinOnly ? (isDark ? '#ffffff' : '#101214') : 'currentColor'} stroke="none">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
               </svg>
-              Auto-Join
+              <span>Auto-Join</span>
             </span>
           </FluidButton>
 
-          {/* Open spots only toggle button */}
+          {/* Spots available only toggle button */}
           <FluidButton
             onClick={() => setOpenSpotsOnly((prev) => !prev)}
             style={{
-              padding: '7px 16px',
-              fontSize: 12.5,
-              fontWeight: openSpotsOnly ? 600 : 500,
-              color: openSpotsOnly ? '#ffffff' : (isDark ? '#d4d4d8' : '#52525b'),
-              backgroundColor: openSpotsOnly ? (isDark ? 'rgba(255, 255, 255, 0.22)' : '#09090b') : 'transparent',
-              transition: 'all 0.18s ease'
+              flex: 1,
+              padding: '6px 10px',
+              fontSize: 12,
+              fontWeight: openSpotsOnly ? 500 : 400,
+              color: openSpotsOnly ? (isDark ? '#ffffff' : '#101214') : (isDark ? '#d4d4d8' : '#52525b'),
+              backgroundColor: openSpotsOnly ? (isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.95)') : 'transparent',
+              boxShadow: openSpotsOnly ? (isDark ? '0 2px 8px rgba(0, 0, 0, 0.25)' : '0 2px 8px rgba(84, 77, 86, 0.14), inset 0 0 0 1px rgba(255, 255, 255, 0.9)') : 'none',
+              transition: 'all 0.18s ease',
+              whiteSpace: 'nowrap'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: openSpotsOnly ? 600 : 500 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={openSpotsOnly ? '2.5' : '2'} strokeLinecap="round" strokeLinejoin="round">
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, fontSize: 12 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={openSpotsOnly ? '2.2' : '1.8'} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <polyline points="16 11 18 13 22 9" />
               </svg>
-              Spots Available
+              <span>Spots Available</span>
             </span>
           </FluidButton>
-        </div>
-      </div>
 
-      {/* ========================================================= */}
-      {/* 4. HORIZONTAL CATEGORY PILL CAROUSEL (Built with FluidButtons) */}
-      {/* ========================================================= */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          overflowX: 'auto',
-          paddingBottom: 8,
-          marginBottom: 16,
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch',
-          alignItems: 'center'
-        }}
-      >
-        {categories.map((cat) => {
-          const isSelected = selectedCategory === cat.id;
-          return (
+          {/* Genre Dropdown Button on the Right */}
+          <div ref={genreDropdownRef} style={{ position: 'relative', flex: 1 }}>
             <FluidButton
-              key={cat.id || 'all'}
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => setShowGenreDropdown((prev) => !prev)}
               style={{
-                padding: '7px 16px',
-                fontSize: 12.5,
-                fontWeight: isSelected ? 600 : 500,
-                color: isSelected ? '#ffffff' : (isDark ? '#d4d4d8' : '#52525b'),
-                backgroundColor: isSelected ? (isDark ? 'rgba(255, 255, 255, 0.22)' : '#09090b') : 'transparent',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                transition: 'all 0.18s ease'
+                width: '100%',
+                padding: '6px 10px',
+                fontSize: 12,
+                fontWeight: selectedCategory ? 500 : 400,
+                color: selectedCategory ? (isDark ? '#ffffff' : '#101214') : (isDark ? '#d4d4d8' : '#52525b'),
+                backgroundColor: selectedCategory ? (isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.95)') : (showGenreDropdown ? (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)') : 'transparent'),
+                boxShadow: selectedCategory ? (isDark ? '0 2px 8px rgba(0, 0, 0, 0.25)' : '0 2px 8px rgba(84, 77, 86, 0.14), inset 0 0 0 1px rgba(255, 255, 255, 0.9)') : 'none',
+                transition: 'all 0.18s ease',
+                whiteSpace: 'nowrap'
               }}
             >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: isSelected ? 600 : 500 }}>
-                {cat.icon}
-                <span>{cat.label}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, fontSize: 12, width: '100%' }}>
+                <span style={{ display: 'flex', flexShrink: 0 }}>
+                  {currentCategoryObj.icon}
+                </span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+                  {selectedCategory ? currentCategoryObj.label : 'Genre'}
+                </span>
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    transform: showGenreDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    flexShrink: 0,
+                    marginLeft: 1
+                  }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
               </span>
             </FluidButton>
-          );
-        })}
+
+            {/* Customized Genre Dropdown Menu */}
+            {showGenreDropdown && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  zIndex: 999,
+                  minWidth: 205,
+                  maxWidth: '90vw',
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  background: isDark ? 'rgba(24, 24, 27, 0.94)' : 'rgba(255, 255, 255, 0.96)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.14)' : '1px solid rgba(0, 0, 0, 0.08)',
+                  boxShadow: isDark
+                    ? '0 12px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                    : '0 12px 28px rgba(84, 77, 86, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+                  padding: 5,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  animation: 'fadeSlideDown 0.16s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
+              >
+                <div
+                  style={{
+                    padding: '6px 10px 4px 10px',
+                    fontSize: 10.5,
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.6px',
+                    color: isDark ? '#a1a1aa' : '#71717a'
+                  }}
+                >
+                  Select Genre
+                </div>
+                {categories.map((cat) => {
+                  const isCatSelected = selectedCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id || 'all'}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory(cat.id);
+                        setShowGenreDropdown(false);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 10,
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: 'none',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        background: isCatSelected
+                          ? (isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0, 0, 0, 0.06)')
+                          : 'transparent',
+                        color: isCatSelected
+                          ? (isDark ? '#ffffff' : '#09090b')
+                          : (isDark ? '#d4d4d8' : '#52525b'),
+                        fontSize: 12.5,
+                        fontWeight: isCatSelected ? 500 : 400,
+                        transition: 'background 0.15s ease, color 0.15s ease',
+                        width: '100%',
+                        boxSizing: 'border-box'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isCatSelected) {
+                          e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isCatSelected) {
+                          e.currentTarget.style.background = 'transparent';
+                        }
+                      }}
+                    >
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ color: isCatSelected ? (isDark ? '#ffffff' : '#09090b') : (isDark ? '#a1a1aa' : '#71717a'), display: 'flex' }}>
+                          {cat.icon}
+                        </span>
+                        <span>{cat.label}</span>
+                      </span>
+                      {isCatSelected && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* ========================================================= */}

@@ -736,7 +736,7 @@ export default function KitchenModal({
             {/* STEP 1: CHOOSE CUSTOMIZATION */}
             {mainStep === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 600, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Choose Customization
                   <InfoTooltip text="Select the type of Dish you'd like to cook." />
                 </h2>
@@ -827,7 +827,7 @@ export default function KitchenModal({
             {/* STEP 2: CATEGORY */}
             {mainStep === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 600, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   What are we cooking?
                   <InfoTooltip text="Pick the category that best fits your activity." />
                 </h2>
@@ -877,7 +877,7 @@ export default function KitchenModal({
             {/* STEP 3.1: JOIN MODE */}
             {mainStep === 3 && subStep === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 600, margin: '0 0 32px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Join Mode
                   <InfoTooltip text="Control who can join your dish." />
                 </h2>
@@ -944,7 +944,7 @@ export default function KitchenModal({
             {/* STEP 3.2: CAPACITY */}
             {mainStep === 3 && subStep === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 600, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Capacity
                   <InfoTooltip text="Choose the number of seats or allow unlimited." />
                 </h2>
@@ -1054,7 +1054,7 @@ export default function KitchenModal({
             {/* STEP 3.3: LOCATION */}
             {mainStep === 3 && subStep === 3 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 600, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Location
                   <InfoTooltip text="Specify where participants should meet." />
                 </h2>
@@ -1092,7 +1092,7 @@ export default function KitchenModal({
             {/* STEP 4.1: GENDER ELIGIBILITY */}
             {mainStep === 4 && subStep === 1 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 600, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Gender Eligibility
                   <InfoTooltip text="Filter by participant gender preference." />
                 </h2>
@@ -1137,7 +1137,7 @@ export default function KitchenModal({
             {/* STEP 4.2: INSTITUTE RESTRICTION (YES / NO TEXT SELECTION) */}
             {mainStep === 4 && subStep === 2 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 600, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Institute Verified only?
                   <InfoTooltip text="Limit dish joining to members of your verified institute." />
                 </h2>
@@ -1207,7 +1207,7 @@ export default function KitchenModal({
             {/* STEP 4.3: SKILL SELECTION */}
             {mainStep === 4 && subStep === 3 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 600, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Skill Level
                   <InfoTooltip text="Set expected skill or experience level." />
                 </h2>
@@ -1248,7 +1248,7 @@ export default function KitchenModal({
             {/* STEP 4.4: AGE SELECTION */}
             {mainStep === 4 && subStep === 4 && isChefsSpecial && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 600, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Age Requirement
                   <InfoTooltip text="Directly pick 18+, under 18, or custom range." />
                 </h2>
@@ -1342,7 +1342,7 @@ export default function KitchenModal({
             {/* STEP 5: DESCRIBE YOUR DISH (Same as Location with single line and horizontal scroll) */}
             {mainStep === 5 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                <h2 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: 23, fontWeight: 600, margin: '0 0 24px 0', letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#101214', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Describe your Dish
                   <InfoTooltip text="Tell others what you're planning and what to expect." />
                 </h2>

@@ -2131,7 +2131,7 @@ export default function DishDetailModal({
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <h4 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#09090b', letterSpacing: '-0.02em' }}>
+                  <h4 style={{ margin: 0, fontSize: 18, fontWeight: 550, color: '#09090b', letterSpacing: '-0.02em' }}>
                     {hasPendingReq ? 'Request Pending Approval' : isInvited ? 'You are Invited!' : 'Dish Room Locked'}
                   </h4>
                   <p style={{ margin: 0, fontSize: 13, color: '#71717a', lineHeight: 1.5, maxWidth: 320 }}>
@@ -2673,7 +2673,7 @@ export default function DishDetailModal({
             innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#09090b' }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 550, color: '#09090b' }}>
                 Invite Peers to Dish
               </h3>
               <FluidButton
@@ -2704,7 +2704,7 @@ export default function DishDetailModal({
                   style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: '#09090b', fontFamily: 'inherit' }}
                 />
               </GlassContainer>
-              <FluidButton type="submit" disabled={isInviting || !inviteUsername.trim()} style={{ padding: '8px 16px', fontSize: 12.5, fontWeight: 700 }}>
+              <FluidButton type="submit" disabled={isInviting || !inviteUsername.trim()} style={{ padding: '8px 16px', fontSize: 12.5, fontWeight: 500 }}>
                 {isInviting ? 'Sending...' : 'Invite'}
               </FluidButton>
             </form>
@@ -2712,7 +2712,7 @@ export default function DishDetailModal({
             {/* Quick Connections List */}
             {connections && connections.length > 0 && (
               <div>
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: '#71717a', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                <div style={{ fontSize: 11.5, fontWeight: 500, color: '#71717a', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                   Quick Invite Connections:
                 </div>
                 <div className="custom-scrollbar" style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -2736,21 +2736,21 @@ export default function DishDetailModal({
                           {u.avatar ? (
                             <img src={u.avatar} alt={u.name} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
                           ) : (
-                            <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#8257e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#8257e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 500 }}>
                               {((u.name || u.username || 'U')[0]).toUpperCase()}
                             </div>
                           )}
-                          <span style={{ fontSize: 12.5, fontWeight: 600, color: '#09090b' }}>
+                          <span style={{ fontSize: 12.5, fontWeight: 500, color: '#09090b' }}>
                             @{u.username}
                           </span>
                         </div>
 
                         {isAlreadyIn ? (
-                          <span style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>In Dish</span>
+                          <span style={{ fontSize: 11, color: '#71717a', fontWeight: 500 }}>In Dish</span>
                         ) : (
                           <FluidButton
                             onClick={() => handleSendInvite(u.username)}
-                            style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700 }}
+                            style={{ padding: '4px 10px', fontSize: 11, fontWeight: 500 }}
                           >
                             Invite
                           </FluidButton>
@@ -2790,7 +2790,7 @@ export default function DishDetailModal({
             innerStyle={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'center' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#09090b' }}>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 550, color: '#09090b' }}>
                 Rate Dish Experience
               </h3>
               <FluidButton
@@ -2834,10 +2834,10 @@ export default function DishDetailModal({
             </div>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 4 }}>
-              <FluidButton onClick={() => setShowRateModal(false)} style={{ padding: '8px 16px', fontSize: 12.5, fontWeight: 600 }}>
+              <FluidButton onClick={() => setShowRateModal(false)} style={{ padding: '8px 16px', fontSize: 12.5, fontWeight: 500 }}>
                 Cancel
               </FluidButton>
-              <FluidButton onClick={handleSubmitRating} style={{ padding: '8px 20px', fontSize: 12.5, fontWeight: 700 }}>
+              <FluidButton onClick={handleSubmitRating} style={{ padding: '8px 20px', fontSize: 12.5, fontWeight: 500 }}>
                 Submit Rating
               </FluidButton>
             </div>

@@ -1082,7 +1082,7 @@ export default function SettingsPage({
               <h2
                 style={{
                   fontSize: 24,
-                  fontWeight: 800,
+                  fontWeight: 600,
                   margin: '0 0 12px 0',
                   letterSpacing: '-0.02em',
                   color: '#09090b'
@@ -1283,7 +1283,7 @@ export default function SettingsPage({
           {activeSection === 'edit_profile' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <h2 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
                   Edit Profile
                 </h2>
                 <p style={{ fontSize: 13, color: '#71717a', margin: 0 }}>
@@ -1312,7 +1312,7 @@ export default function SettingsPage({
                         justifyContent: 'center',
                         color: '#ffffff',
                         fontSize: 24,
-                        fontWeight: 800,
+                        fontWeight: 600,
                         flexShrink: 0,
                         boxShadow: '0 2px 10px rgba(0, 0, 0, 0.12)'
                       }}
@@ -1708,7 +1708,7 @@ export default function SettingsPage({
           {activeSection === 'privacy' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <h2 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
                   Privacy Controls
                 </h2>
                 <p style={{ fontSize: 13, color: '#71717a', margin: 0 }}>
@@ -1887,7 +1887,7 @@ export default function SettingsPage({
           {activeSection === 'safety' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <h2 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
                   Safety & Location Privacy
                 </h2>
                 <p style={{ fontSize: 13, color: '#71717a', margin: 0 }}>
@@ -2273,7 +2273,7 @@ export default function SettingsPage({
           {activeSection === 'notifications' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <h2 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
                   Notification Controls
                 </h2>
                 <p style={{ fontSize: 13, color: '#71717a', margin: 0 }}>
@@ -2364,7 +2364,7 @@ export default function SettingsPage({
           {activeSection === 'appearance' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <h2 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
                   Appearance & Theme
                 </h2>
                 <p style={{ fontSize: 13, color: '#71717a', margin: 0 }}>
@@ -2462,7 +2462,7 @@ export default function SettingsPage({
           {activeSection === 'account' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <h2 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
                   Account & Verification
                 </h2>
                 <p style={{ fontSize: 13, color: '#71717a', margin: 0 }}>
@@ -2485,7 +2485,7 @@ export default function SettingsPage({
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: 18,
-                      fontWeight: 800,
+                      fontWeight: 600,
                       flexShrink: 0,
                       border: '1.5px solid rgba(0, 0, 0, 0.08)'
                     }}
@@ -2832,7 +2832,7 @@ export default function SettingsPage({
           {activeSection === 'management' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <h2 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
                   Account Management
                 </h2>
                 <p style={{ fontSize: 13, color: '#71717a', margin: 0 }}>
@@ -3051,7 +3051,7 @@ export default function SettingsPage({
                   >
                     Step 1 of 2 • Deactivation Warning
                   </div>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
                     Deactivate Your Account
                   </h3>
                 </div>
@@ -3097,7 +3097,7 @@ export default function SettingsPage({
                   >
                     Step 2 of 2 • Password Confirmation
                   </div>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
                     Confirm Deactivation
                   </h3>
                   <p style={{ fontSize: 12.5, color: '#71717a', margin: '4px 0 0 0' }}>
@@ -3203,7 +3203,7 @@ export default function SettingsPage({
                   >
                     Step 1 of 3 • Permanent Deletion Warning
                   </div>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
                     Permanently Delete Account
                   </h3>
                 </div>
@@ -3251,7 +3251,7 @@ export default function SettingsPage({
                   >
                     Step 2 of 3 • Credentials Verification
                   </div>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
                     Enter Credentials
                   </h3>
                   <p style={{ fontSize: 12.5, color: '#71717a', margin: '4px 0 0 0' }}>
@@ -3348,7 +3348,7 @@ export default function SettingsPage({
                   >
                     Step 3 of 3 • Security Code Verification
                   </div>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
                     Enter 6-Digit Code
                   </h3>
                   <p style={{ fontSize: 12.5, color: '#71717a', margin: '4px 0 0 0' }}>
@@ -3500,7 +3500,7 @@ export default function SettingsPage({
                     </svg>
                   </div>
                   <div>
-                    <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
+                    <h3 style={{ fontSize: 17, fontWeight: 600, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>
                       {verifyStep === 1 ? 'Verify Academic Standing' : 'Enter Verification Code'}
                     </h3>
                     <p style={{ fontSize: 12.5, color: '#71717a', margin: '2px 0 0 0' }}>
@@ -3686,7 +3686,7 @@ export default function SettingsPage({
                         fontSize: 24,
                         letterSpacing: 10,
                         textAlign: 'center',
-                        fontWeight: 800,
+                        fontWeight: 600,
                         fontFamily: 'monospace'
                       }}
                     />

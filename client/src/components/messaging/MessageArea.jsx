@@ -108,7 +108,7 @@ export default function MessageArea({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 16 }}>🍽️</span>
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: '#09090b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+            <span style={{ fontSize: 12.5, fontWeight: 500, color: '#09090b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
               Dish Join Request
             </span>
           </div>
@@ -116,7 +116,7 @@ export default function MessageArea({
           <span
             style={{
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 500,
               padding: '2px 8px',
               borderRadius: 9999,
               background:
@@ -149,7 +149,7 @@ export default function MessageArea({
               backgroundColor: 'rgba(0, 0, 0, 0.04)',
               border: '1px solid rgba(0, 0, 0, 0.06)',
               fontSize: 13,
-              fontWeight: 600,
+              fontWeight: 500,
               color: '#18181b',
               lineHeight: 1.4
             }}
@@ -171,7 +171,7 @@ export default function MessageArea({
                 flex: 1,
                 padding: '6px 14px',
                 fontSize: 12.5,
-                fontWeight: 700,
+                fontWeight: 500,
                 color: '#16a34a'
               }}
             >
@@ -185,7 +185,7 @@ export default function MessageArea({
                 flex: 1,
                 padding: '6px 14px',
                 fontSize: 12.5,
-                fontWeight: 600,
+                fontWeight: 500,
                 color: '#dc2626'
               }}
             >
@@ -195,18 +195,18 @@ export default function MessageArea({
         )}
 
         {!isBubbleMe && effectiveStatus === 'approved' && (
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#16a34a', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ fontSize: 12, fontWeight: 500, color: '#16a34a', display: 'flex', alignItems: 'center', gap: 4 }}>
             <span>✓ Request Accepted • Added to table</span>
           </div>
         )}
         {!isBubbleMe && effectiveStatus === 'rejected' && (
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#71717a' }}>
+          <div style={{ fontSize: 12, fontWeight: 500, color: '#71717a' }}>
             <span>✕ Request Declined</span>
           </div>
         )}
 
         {isBubbleMe && (
-          <div style={{ fontSize: 12, fontWeight: 600, color: effectiveStatus === 'approved' ? '#16a34a' : effectiveStatus === 'rejected' ? '#dc2626' : '#71717a' }}>
+          <div style={{ fontSize: 12, fontWeight: 500, color: effectiveStatus === 'approved' ? '#16a34a' : effectiveStatus === 'rejected' ? '#dc2626' : '#71717a' }}>
             {effectiveStatus === 'approved'
               ? '✓ Host accepted your request!'
               : effectiveStatus === 'rejected'
@@ -264,7 +264,10 @@ export default function MessageArea({
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: 'transparent',
-        minWidth: 0
+        minWidth: 0,
+        height: '100%',
+        minHeight: 0,
+        overflow: 'hidden'
       }}
     >
       {activeUser ? (
@@ -277,7 +280,8 @@ export default function MessageArea({
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottom: '1.5px solid rgba(255, 255, 255, 0.7)',
-              backgroundColor: 'transparent'
+              backgroundColor: 'transparent',
+              flexShrink: 0
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
@@ -344,7 +348,7 @@ export default function MessageArea({
                       justifyContent: 'center',
                       color: '#fff',
                       fontSize: 22,
-                      fontWeight: 'bold',
+                      fontWeight: 500,
                       flexShrink: 0
                     }}
                   >
@@ -356,7 +360,7 @@ export default function MessageArea({
                 <div
                   style={{
                     fontSize: 16.5,
-                    fontWeight: 600,
+                    fontWeight: 500,
                     color: '#09090b',
                     letterSpacing: '-0.3px',
                     lineHeight: '20px'
@@ -375,7 +379,7 @@ export default function MessageArea({
 
           {/* Pending Invitation Banner (Sender: 1 message allowed) */}
           {showSenderInitialForm && (
-            <div style={{ padding: '14px 28px 0 28px' }}>
+            <div style={{ padding: '14px 28px 0 28px', flexShrink: 0 }}>
               <GlassContainer
                 radius={18}
                 innerStyle={{
@@ -401,8 +405,10 @@ export default function MessageArea({
 
           {/* Messages Feed */}
           <div
+            className="custom-scrollbar"
             style={{
               flex: 1,
+              minHeight: 0,
               overflowY: 'auto',
               padding: '24px 32px',
               display: 'flex',
@@ -697,7 +703,7 @@ export default function MessageArea({
             </div>
           ) : showSenderWaiting ? (
             /* Sender Waiting Screen: Message sent, waiting for peer to accept */
-            <div style={{ padding: '16px 24px', backgroundColor: 'transparent' }}>
+            <div style={{ padding: '16px 24px', backgroundColor: 'transparent', flexShrink: 0 }}>
               <GlassContainer
                 radius={22}
                 innerStyle={{
@@ -710,7 +716,7 @@ export default function MessageArea({
                   color: '#000000'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500, fontSize: 14 }}>
                   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12 6 12 12 16 14" />
@@ -724,7 +730,7 @@ export default function MessageArea({
             </div>
           ) : (
             /* Normal Input Form (either accepted, or sending the 1 invitation message) */
-            <div style={{ padding: '16px 24px', backgroundColor: 'transparent', position: 'relative' }}>
+            <div style={{ padding: '16px 24px', backgroundColor: 'transparent', position: 'relative', flexShrink: 0 }}>
               <EmojiPicker
                 isOpen={showEmojiPicker}
                 onClose={() => setShowEmojiPicker(false)}
@@ -847,7 +853,7 @@ export default function MessageArea({
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
           </div>
-          <div style={{ fontSize: 16, fontWeight: 600 }}>Select a conversation to start chatting</div>
+          <div style={{ fontSize: 16, fontWeight: 500 }}>Select a conversation to start chatting</div>
         </div>
       )}
     </div>

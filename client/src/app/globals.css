@@ -85,9 +85,37 @@ html.dark,
 
 html, body, button, input, select, textarea {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 400;
   color: var(--text-primary, #101214);
   background-color: var(--bg-app, #e6dfe4);
   transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  font-weight: 550;
+  letter-spacing: -0.02em;
+}
+
+h3, h4 {
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+h5, h6 {
+  font-weight: 450;
+  letter-spacing: -0.01em;
+}
+
+b, strong {
+  font-weight: 550;
 }
 
 @keyframes opacityGlare {
@@ -128,6 +156,17 @@ html, body, button, input, select, textarea {
   to { opacity: 0; transform: translate(-50%, -54%) scale(0.95); }
 }
 
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Subtle Zoom-out effect on click */
 .btn-zoom-click {
   transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.15s ease;
@@ -157,7 +196,7 @@ html, body, button, input, select, textarea {
   padding: 0.62rem 1.6rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 14.5px;
-  font-weight: 500;
+  font-weight: 450;
   line-height: 1.2;
   color: #101214;
   text-decoration: none;
@@ -292,8 +331,8 @@ html, body, button, input, select, textarea {
   gap: 8px;
   white-space: nowrap;
   pointer-events: none;
-  font-weight: 500;
-  color: #101214;
+  font-weight: inherit;
+  color: inherit;
 }
 
 /* Circular Icon Variant (e.g. 'i' button in StringTune header) */
@@ -557,13 +596,15 @@ html, body, button, input, select, textarea {
   /* Dine-In mobile pills & subtabs */
   .dinein-scope-container {
     max-width: 100% !important;
+    width: 100% !important;
   }
   .dinein-subtabs-glass {
     max-width: 100% !important;
+    width: 100% !important;
   }
   .dinein-pill-btn {
     white-space: nowrap !important;
-    flex-shrink: 0 !important;
+    min-width: 0 !important;
   }
 
   /* Dish Card Mobile */
@@ -713,7 +754,7 @@ html.dark .btn-fluid:active:not(:disabled) .btn-glare,
 
 html.dark .btn-fluid .btn-label,
 [data-theme="dark"] .btn-fluid .btn-label {
-  color: #ffffff !important;
+  color: inherit;
 }
 
 /* Circular icon buttons in dark mode */

@@ -166,7 +166,7 @@ export default function MobileNav({
           <span
             style={{
               fontSize: 18,
-              fontWeight: 800,
+              fontWeight: 600,
               letterSpacing: '-0.4px',
               color: isDark ? '#ffffff' : '#09090b',
               fontFamily: "'Inter', sans-serif"

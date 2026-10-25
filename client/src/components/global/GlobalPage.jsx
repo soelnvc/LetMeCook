@@ -52,7 +52,7 @@ export default function GlobalPage({
           </div>
 
           <div>
-            <h3 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 6px 0', color: '#09090b', letterSpacing: '-0.02em' }}>
+            <h3 style={{ fontSize: 20, fontWeight: 600, margin: '0 0 6px 0', color: '#09090b', letterSpacing: '-0.02em' }}>
               Global Discovery is Restricted (18+ Only)
             </h3>
             <p style={{ fontSize: 13, color: '#71717a', maxWidth: 440, margin: 0, lineHeight: 1.55 }}>
@@ -62,7 +62,7 @@ export default function GlobalPage({
 
           <FluidButton
             onClick={() => onNavigateTab && onNavigateTab('dine-in')}
-            style={{ padding: '8px 22px', fontSize: 13, fontWeight: 700, marginTop: 4 }}
+            style={{ padding: '8px 22px', fontSize: 13, fontWeight: 500, marginTop: 4 }}
           >
             Return to Campus Feed
           </FluidButton>
@@ -200,15 +200,15 @@ export default function GlobalPage({
               <line x1="2" y1="12" x2="22" y2="12" />
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
             </svg>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#ea580c', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <span style={{ fontSize: 11, fontWeight: 500, color: '#ea580c', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Location-Based • 5 km Perimeter
             </span>
           </div>
 
-          <h1 style={{ fontSize: 36, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.7px', color: '#09090b', lineHeight: 1.15 }}>
+          <h1 style={{ fontSize: 36, fontWeight: 600, margin: '0 0 4px 0', letterSpacing: '-0.7px', color: '#09090b', lineHeight: 1.15 }}>
             Global Dishes
           </h1>
-          <p style={{ fontSize: 14.5, color: '#71717a', margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 14.5, color: '#71717a', margin: 0, fontWeight: 400 }}>
             Open real-world activities from students and peers within a 5 km radius
           </p>
         </div>
@@ -218,7 +218,7 @@ export default function GlobalPage({
           style={{
             padding: '8px 22px',
             fontSize: 13.5,
-            fontWeight: 600,
+            fontWeight: 500,
             display: 'inline-flex',
             alignItems: 'center',
             gap: 6

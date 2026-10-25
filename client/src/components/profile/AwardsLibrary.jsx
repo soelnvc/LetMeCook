@@ -166,7 +166,7 @@ export default function AwardsLibrary({ user, isSelf = true }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       {/* Header */}
       <div>
-        <h3 style={{ fontSize: 19, fontWeight: 800, margin: '0 0 4px 0', color: '#000000', letterSpacing: '-0.3px' }}>
+        <h3 style={{ fontSize: 19, fontWeight: 600, margin: '0 0 4px 0', color: '#000000', letterSpacing: '-0.3px' }}>
           {isSelf ? 'Award Library' : `@${username}'s Award Library`}
         </h3>
         <p style={{ fontSize: 12.5, color: '#6b7280', margin: 0 }}>
@@ -227,7 +227,7 @@ export default function AwardsLibrary({ user, isSelf = true }) {
                     </svg>
                     Unlocked
                   </div>
-                  <h4 style={{ fontSize: 15.5, fontWeight: 800, margin: '0 0 3px 0', color: '#000000' }}>
+                  <h4 style={{ fontSize: 15.5, fontWeight: 550, margin: '0 0 3px 0', color: '#000000' }}>
                     {award.title}
                   </h4>
                   <p style={{ fontSize: 12, color: '#4b5563', margin: 0, lineHeight: 1.4 }}>
@@ -308,7 +308,7 @@ export default function AwardsLibrary({ user, isSelf = true }) {
                   </svg>
                   Locked
                 </div>
-                <h4 style={{ fontSize: 15.5, fontWeight: 800, margin: '0 0 3px 0', color: '#000000' }}>
+                <h4 style={{ fontSize: 15.5, fontWeight: 550, margin: '0 0 3px 0', color: '#000000' }}>
                   {locked.title}
                 </h4>
                 <p style={{ fontSize: 12, color: '#4b5563', margin: '0 0 10px 0', lineHeight: 1.4 }}>
@@ -317,7 +317,7 @@ export default function AwardsLibrary({ user, isSelf = true }) {
 
                 {/* Progress bar with that person's exact numbers */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', fontWeight: 600 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', fontWeight: 500 }}>
                     <span>Progress</span>
                     <span>{locked.progress}</span>
                   </div>

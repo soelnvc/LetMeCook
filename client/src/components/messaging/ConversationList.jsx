@@ -57,6 +57,9 @@ export default function ConversationList({
       className="messages-conv-panel"
       style={{
         width: 360,
+        height: '100%',
+        minHeight: 0,
+        overflow: 'hidden',
         flexShrink: 0,
         borderRight: '1.5px solid rgba(255, 255, 255, 0.7)',
         display: 'flex',
@@ -65,13 +68,13 @@ export default function ConversationList({
       }}
     >
       {/* Header: User Display Name + Customized Segmented Selector */}
-      <div style={{ padding: '20px 22px 0 22px' }}>
+      <div style={{ padding: '20px 22px 0 22px', flexShrink: 0 }}>
         <div
           style={{
-            fontSize: 24,
-            fontWeight: 700,
+            fontSize: 22,
+            fontWeight: 600,
             color: '#09090b',
-            letterSpacing: '-0.4px',
+            letterSpacing: '-0.3px',
             marginBottom: 14
           }}
         >
@@ -100,8 +103,8 @@ export default function ConversationList({
               padding: '7px 16px',
               borderRadius: 9999,
               border: 'none',
-              fontSize: 13.5,
-              fontWeight: messagesTab === 'message' ? 600 : 500,
+              fontSize: 13,
+              fontWeight: messagesTab === 'message' ? 500 : 400,
               cursor: 'pointer',
               fontFamily: 'inherit',
               background: messagesTab === 'message' ? '#09090b' : 'transparent',
@@ -124,8 +127,8 @@ export default function ConversationList({
               padding: '7px 16px',
               borderRadius: 9999,
               border: 'none',
-              fontSize: 13.5,
-              fontWeight: messagesTab === 'requests' ? 600 : 500,
+              fontSize: 13,
+              fontWeight: messagesTab === 'requests' ? 500 : 400,
               cursor: 'pointer',
               fontFamily: 'inherit',
               background: messagesTab === 'requests' ? '#09090b' : 'transparent',
@@ -141,7 +144,7 @@ export default function ConversationList({
                   backgroundColor: messagesTab === 'requests' ? '#ffffff' : '#f43f5e',
                   color: messagesTab === 'requests' ? '#09090b' : '#ffffff',
                   fontSize: 11,
-                  fontWeight: 700,
+                  fontWeight: 500,
                   padding: '1px 6px',
                   borderRadius: 9999,
                   lineHeight: '14px'
@@ -155,7 +158,7 @@ export default function ConversationList({
       </div>
 
       {/* Pill Search Bar */}
-      <div style={{ padding: '14px 20px 8px 20px' }}>
+      <div style={{ padding: '14px 20px 8px 20px', flexShrink: 0 }}>
         <GlassContainer
           radius={9999}
           innerStyle={{
@@ -215,7 +218,7 @@ export default function ConversationList({
       </div>
 
       {/* Conversation List (Instagram Direct UI/UX overhaul) */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '6px 12px' }}>
+      <div className="custom-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '6px 12px' }}>
         {filteredList.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px 12px', color: '#71717a', fontSize: 13 }}>
             {messagesTab === 'requests' ? 'No pending message requests.' : 'No conversations yet.'}
@@ -316,7 +319,7 @@ export default function ConversationList({
                       <span
                         style={{
                           fontSize: 14,
-                          fontWeight: 600,
+                          fontWeight: 500,
                           color: '#09090b',
                           letterSpacing: '-0.2px',
                           whiteSpace: 'nowrap',
@@ -385,7 +388,7 @@ export default function ConversationList({
                           border: 'none',
                           borderRadius: 6,
                           cursor: 'pointer',
-                          fontWeight: 600
+                          fontWeight: 500
                         }}
                       >
                         Accept
@@ -403,7 +406,7 @@ export default function ConversationList({
                           border: '1px solid #d4d4d8',
                           borderRadius: 6,
                           cursor: 'pointer',
-                          fontWeight: 600
+                          fontWeight: 500
                         }}
                       >
                         Decline

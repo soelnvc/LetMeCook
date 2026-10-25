@@ -345,7 +345,7 @@ export default function GlobalSearchModal({
               background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
               border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)',
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 500,
               letterSpacing: '0.4px',
               color: isDark ? '#e4e4e7' : '#71717a',
               cursor: 'pointer',
@@ -396,7 +396,7 @@ export default function GlobalSearchModal({
             <span
               style={{
                 fontSize: 11.5,
-                fontWeight: 700,
+                fontWeight: 500,
                 textTransform: 'uppercase',
                 letterSpacing: '0.6px',
                 color: isDark ? '#e4e4e7' : '#71717a'
@@ -491,7 +491,7 @@ export default function GlobalSearchModal({
                     </svg>
                   </div>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#ffffff' : '#09090b' }}>
+                    <div style={{ fontSize: 14, fontWeight: 550, color: isDark ? '#ffffff' : '#09090b' }}>
                       No recent searches
                     </div>
                     <div style={{ fontSize: 12.5, color: isDark ? '#d4d4d8' : '#71717a', marginTop: 3 }}>
@@ -531,7 +531,7 @@ export default function GlobalSearchModal({
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#ffffff',
-                            fontWeight: 700,
+                            fontWeight: 500,
                             fontSize: 15,
                             flexShrink: 0,
                             boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)'
@@ -553,7 +553,7 @@ export default function GlobalSearchModal({
                           <span
                             style={{
                               fontSize: 13.5,
-                              fontWeight: 700,
+                              fontWeight: 500,
                               color: isDark ? '#ffffff' : '#09090b',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
@@ -655,7 +655,7 @@ export default function GlobalSearchModal({
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#ffffff',
-                            fontWeight: 700,
+                            fontWeight: 500,
                             fontSize: 15,
                             flexShrink: 0,
                             boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)'
@@ -677,7 +677,7 @@ export default function GlobalSearchModal({
                           <span
                             style={{
                               fontSize: 13.5,
-                              fontWeight: 700,
+                              fontWeight: 500,
                               color: isDark ? '#ffffff' : '#09090b',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
@@ -761,7 +761,7 @@ export default function GlobalSearchModal({
                       </svg>
                     </div>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#ffffff' : '#09090b' }}>
+                      <div style={{ fontSize: 14, fontWeight: 550, color: isDark ? '#ffffff' : '#09090b' }}>
                         No people found
                       </div>
                       <div style={{ fontSize: 12.5, color: isDark ? '#d4d4d8' : '#71717a', marginTop: 3 }}>

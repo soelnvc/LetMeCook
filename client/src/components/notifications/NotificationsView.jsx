@@ -362,9 +362,13 @@ export default function NotificationsView({
       style={{
         maxWidth: 740,
         margin: "0 auto",
-        padding: "10px 0 60px 0",
+        height: "calc(100vh - 32px)",
+        maxHeight: "calc(100vh - 32px)",
+        display: "flex",
+        flexDirection: "column",
         width: "100%",
         boxSizing: "border-box",
+        overflow: "hidden"
       }}
     >
       {/* Main Glass Panel */}
@@ -372,7 +376,16 @@ export default function NotificationsView({
         radius={26}
         className="notif-container-glass"
         innerClassName="notif-container-inner"
-        innerStyle={{ padding: "26px 28px" }}
+        style={{ height: "100%", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}
+        innerStyle={{
+          padding: "24px 26px",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          minHeight: 0,
+          overflow: "hidden",
+          boxSizing: "border-box"
+        }}
       >
         {/* Header Row */}
         <div
@@ -382,8 +395,9 @@ export default function NotificationsView({
             justifyContent: "space-between",
             flexWrap: "wrap",
             gap: 16,
-            paddingBottom: 20,
+            paddingBottom: 16,
             borderBottom: "1px solid rgba(0, 0, 0, 0.07)",
+            flexShrink: 0
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -415,7 +429,7 @@ export default function NotificationsView({
               <h1
                 style={{
                   fontSize: 20,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   letterSpacing: "-0.3px",
                   color: "#09090b",
                   margin: 0,
@@ -488,11 +502,12 @@ export default function NotificationsView({
           style={{
             display: "flex",
             alignItems: "center",
-            padding: "16px 0 18px 0",
+            padding: "14px 0 16px 0",
             borderBottom: "1px solid rgba(0, 0, 0, 0.05)",
             overflowX: "auto",
             WebkitOverflowScrolling: "touch",
             maxWidth: "100%",
+            flexShrink: 0
           }}
         >
           <GlassContainer
@@ -533,7 +548,7 @@ export default function NotificationsView({
                     borderRadius: 9999,
                     border: "none",
                     fontSize: 12.5,
-                    fontWeight: isSelected ? 600 : 500,
+                    fontWeight: isSelected ? 500 : 400,
                     cursor: "pointer",
                     background: isSelected ? "#09090b" : "transparent",
                     color: isSelected ? "#ffffff" : "#52525b",
@@ -563,7 +578,7 @@ export default function NotificationsView({
                         padding: "1px 6px",
                         borderRadius: 9999,
                         fontSize: 11,
-                        fontWeight: 700,
+                        fontWeight: 500,
                         background: isSelected
                           ? "rgba(255, 255, 255, 0.22)"
                           : tab.isRed
@@ -587,11 +602,16 @@ export default function NotificationsView({
 
         {/* Notifications List or Loading Skeleton */}
         <div
+          className="custom-scrollbar"
           style={{
             display: "flex",
             flexDirection: "column",
             gap: 6,
-            marginTop: 12,
+            marginTop: 10,
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            paddingRight: 4
           }}
         >
           {isFetching && notifications.length === 0 ? (
@@ -919,7 +939,7 @@ export default function NotificationsView({
                         <span
                           onClick={() => onViewProfile && onViewProfile(actor)}
                           style={{
-                            fontWeight: 600,
+                            fontWeight: 500,
                             color: "#09090b",
                             cursor: "pointer",
                             textDecoration: "none",
@@ -934,7 +954,7 @@ export default function NotificationsView({
                         >
                           {actorName}
                         </span>
-                        <span style={{ color: "#3f3f46", fontWeight: 450 }}>
+                        <span style={{ color: "#3f3f46", fontWeight: 400 }}>
                           {item.actionText}
                         </span>
                       </div>
@@ -995,7 +1015,7 @@ export default function NotificationsView({
                           style={{
                             padding: "5px 14px",
                             fontSize: 12,
-                            fontWeight: 600,
+                            fontWeight: 500,
                             borderRadius: 10,
                           }}
                         >
@@ -1009,7 +1029,7 @@ export default function NotificationsView({
                           style={{
                             padding: "5px 11px",
                             fontSize: 12,
-                            fontWeight: 500,
+                            fontWeight: 450,
                             borderRadius: 10,
                           }}
                         >
@@ -1031,7 +1051,7 @@ export default function NotificationsView({
                           <span
                             style={{
                               fontSize: 11.5,
-                              fontWeight: 600,
+                              fontWeight: 500,
                               color: "#16a34a",
                               padding: "3px 8px",
                               borderRadius: 8,
@@ -1130,7 +1150,7 @@ export default function NotificationsView({
                           style={{
                             padding: "5px 14px",
                             fontSize: 12.5,
-                            fontWeight: 600,
+                            fontWeight: 500,
                             color: "#09090b",
                             display: "inline-flex",
                             alignItems: "center",

@@ -1583,9 +1583,10 @@ function AppContent() {
       <div
         className="main-content-layout"
         style={{
-          height: activeTab === 'settings' ? '100vh' : 'auto',
-          maxHeight: activeTab === 'settings' ? '100vh' : 'none',
-          overflow: activeTab === 'settings' ? 'hidden' : 'visible'
+          height: ['settings', 'messages', 'notifications'].includes(activeTab) ? '100vh' : 'auto',
+          maxHeight: ['settings', 'messages', 'notifications'].includes(activeTab) ? '100vh' : 'none',
+          overflow: ['settings', 'messages', 'notifications'].includes(activeTab) ? 'hidden' : 'visible',
+          padding: ['messages', 'notifications'].includes(activeTab) ? '16px 32px' : undefined
         }}
       >
       {/* ========================================================= */}
@@ -1647,20 +1648,24 @@ function AppContent() {
       {/* 4. MESSAGES SCREEN (PRODUCT.md Section 16) */}
       {/* ========================================================= */}
       {activeTab === 'messages' && (
-        <section style={{ width: '100%', maxWidth: 1040, height: 'calc(100vh - 64px)' }}>
+        <section style={{ width: '100%', maxWidth: 1040, height: 'calc(100vh - 32px)', maxHeight: 'calc(100vh - 32px)', display: 'flex', flexDirection: 'column' }}>
           <GlassContainer
             radius={28}
             className="messages-container-glass"
-            style={{ width: '100%', height: '100%' }}
+            style={{ width: '100%', height: '100%', minHeight: 0, flex: 1 }}
             innerStyle={{
               display: 'flex',
               height: '100%',
               width: '100%',
+              minHeight: 0,
               overflow: 'hidden'
             }}
           >
             {/* Left Panel: Conversations List */}
-            <div className={`messages-conv-panel ${selectedConvId ? 'mobile-hidden-chat' : ''}`}>
+            <div
+              className={`messages-conv-panel ${selectedConvId ? 'mobile-hidden-chat' : ''}`}
+              style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}
+            >
               <ConversationList
                 userName={user.name || user.username}
                 conversations={conversations}
@@ -1696,7 +1701,7 @@ function AppContent() {
               return (
                 <div
                   className={`messages-area-panel ${!selectedConvId ? 'mobile-hidden-list' : ''}`}
-                  style={{ flex: 1, display: 'flex', height: '100%', minWidth: 0 }}
+                  style={{ flex: 1, display: 'flex', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}
                 >
                   <MessageArea
                     currentUser={user}

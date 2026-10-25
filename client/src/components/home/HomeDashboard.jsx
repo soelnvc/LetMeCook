@@ -484,10 +484,10 @@ export default function HomeDashboard({
       {/* ========================================================= */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 18, marginBottom: 26 }}>
         <div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.7px', color: isDark ? '#ffffff' : '#09090b', lineHeight: 1.15 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 600, margin: '0 0 4px 0', letterSpacing: '-0.7px', color: isDark ? '#ffffff' : '#09090b', lineHeight: 1.15 }}>
             {greeting}, {displayName}.
           </h1>
-          <p style={{ fontSize: 14.5, color: isDark ? '#e4e4e7' : '#71717a', margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 14.5, color: isDark ? '#e4e4e7' : '#71717a', margin: 0, fontWeight: 400 }}>
             What are we coordinating today?
           </p>
         </div>
@@ -499,7 +499,7 @@ export default function HomeDashboard({
             style={{
               padding: '8px 22px',
               fontSize: 13.5,
-              fontWeight: 600,
+              fontWeight: 500,
               color: isDark ? '#ffffff' : '#000000',
               display: 'inline-flex',
               alignItems: 'center',
@@ -568,7 +568,7 @@ export default function HomeDashboard({
             <span
               style={{
                 fontSize: 11,
-                fontWeight: 700,
+                fontWeight: 500,
                 letterSpacing: '0.8px',
                 textTransform: 'uppercase',
                 color: '#f97316'
@@ -579,7 +579,7 @@ export default function HomeDashboard({
             <h2
               style={{
                 fontSize: 24,
-                fontWeight: 800,
+                fontWeight: 600,
                 margin: 0,
                 letterSpacing: '-0.4px',
                 lineHeight: 1.25,
@@ -605,7 +605,7 @@ export default function HomeDashboard({
                 style={{
                   padding: '8px 22px',
                   fontSize: 13.5,
-                  fontWeight: 600,
+                  fontWeight: 500,
                   backgroundColor: '#ffffff',
                   color: '#09090b',
                   display: 'inline-flex',
@@ -654,13 +654,13 @@ export default function HomeDashboard({
               gap: 2
             }}
           >
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.6px', color: isDark ? '#e4e4e7' : '#71717a' }}>
+            <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.6px', color: isDark ? '#e4e4e7' : '#71717a' }}>
               {metric.label}
             </span>
-            <span style={{ fontSize: 26, fontWeight: 800, color: isDark ? '#ffffff' : '#09090b', letterSpacing: '-0.5px' }}>
+            <span style={{ fontSize: 26, fontWeight: 600, color: isDark ? '#ffffff' : '#09090b', letterSpacing: '-0.5px' }}>
               {metric.value}
             </span>
-            <span style={{ fontSize: 11.5, color: isDark ? '#d4d4d8' : '#a1a1aa', fontWeight: 500 }}>
+            <span style={{ fontSize: 11.5, color: isDark ? '#d4d4d8' : '#a1a1aa', fontWeight: 400 }}>
               {metric.desc}
             </span>
           </GlassContainer>
@@ -891,7 +891,7 @@ export default function HomeDashboard({
       {/* ========================================================= */}
       <div style={{ marginBottom: 44 }}>
         <div style={{ marginBottom: 16 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 550, margin: 0, color: '#09090b', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
             Things you might actually want to do.
           </h2>
         </div>
@@ -899,13 +899,13 @@ export default function HomeDashboard({
         {/* Top Picks Dish Cards or Clean Empty State */}
         {topPicks.length === 0 ? (
           <GlassContainer radius={22} innerStyle={{ padding: '36px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: 14.5, fontWeight: 600, color: '#71717a' }}>
+            <div style={{ fontSize: 14.5, fontWeight: 500, color: '#71717a' }}>
               No active dishes near you right now.
             </div>
             <div style={{ marginTop: 14 }}>
               <FluidButton
                 onClick={() => onOpenKitchenModal && onOpenKitchenModal()}
-                style={{ padding: '7px 20px', fontSize: 13, fontWeight: 600, color: '#000000' }}
+                style={{ padding: '7px 20px', fontSize: 13, fontWeight: 500, color: '#000000' }}
               >
                 Let&apos;s Cook
               </FluidButton>
@@ -925,7 +925,7 @@ export default function HomeDashboard({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h3 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: isDark ? '#ffffff' : '#09090b', letterSpacing: '-0.4px' }}>
+              <h3 style={{ fontSize: 20, fontWeight: 550, margin: 0, color: isDark ? '#ffffff' : '#09090b', letterSpacing: '-0.4px' }}>
                 Happening in Your Network
               </h3>
               <span
@@ -933,7 +933,7 @@ export default function HomeDashboard({
                   padding: '2px 8px',
                   borderRadius: 9999,
                   fontSize: 11.5,
-                  fontWeight: 700,
+                  fontWeight: 500,
                   backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
                   color: isDark ? '#f4f4f5' : '#52525b',
                   border: isDark ? '1px solid rgba(255, 255, 255, 0.16)' : 'none'
@@ -954,7 +954,7 @@ export default function HomeDashboard({
             style={{
               padding: '6px 16px',
               fontSize: 12.5,
-              fontWeight: 600,
+              fontWeight: 500,
               color: isDark ? '#ffffff' : '#09090b',
               display: 'inline-flex',
               alignItems: 'center',
@@ -972,7 +972,7 @@ export default function HomeDashboard({
         {/* Network Cards Grid or Clean Empty State */}
         {networkDishes.length === 0 ? (
           <GlassContainer radius={22} innerStyle={{ padding: '36px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: 14.5, fontWeight: 600, color: isDark ? '#e4e4e7' : '#71717a' }}>
+            <div style={{ fontSize: 14.5, fontWeight: 500, color: isDark ? '#e4e4e7' : '#71717a' }}>
               No campus network dishes right now.
             </div>
           </GlassContainer>
@@ -990,7 +990,7 @@ export default function HomeDashboard({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h3 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: isDark ? '#ffffff' : '#09090b', letterSpacing: '-0.4px' }}>
+              <h3 style={{ fontSize: 20, fontWeight: 550, margin: 0, color: isDark ? '#ffffff' : '#09090b', letterSpacing: '-0.4px' }}>
                 Cooking History
               </h3>
               <span
@@ -998,7 +998,7 @@ export default function HomeDashboard({
                   padding: '2px 8px',
                   borderRadius: 9999,
                   fontSize: 11.5,
-                  fontWeight: 700,
+                  fontWeight: 500,
                   backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
                   color: isDark ? '#f4f4f5' : '#52525b',
                   border: isDark ? '1px solid rgba(255, 255, 255, 0.16)' : 'none'
