@@ -234,6 +234,24 @@ export default function MessageArea({
     }, 0);
   };
 
+  const handleEmojiClick = (e) => {
+    e.preventDefault();
+    const isMobile =
+      typeof window !== 'undefined' &&
+      (window.innerWidth <= 768 ||
+        'ontouchstart' in window ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 0));
+
+    if (isMobile) {
+      setShowEmojiPicker(false);
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    } else {
+      setShowEmojiPicker((prev) => !prev);
+    }
+  };
+
   const isPending = conversation?.requestStatus === 'pending' || conversation?.isRequest;
   const mySentMessages = messages.filter(
     (m) =>
@@ -729,13 +747,22 @@ export default function MessageArea({
               </GlassContainer>
             </div>
           ) : (
-            /* Normal Input Form (either accepted, or sending the 1 invitation message) */
-            <div style={{ padding: '16px 24px', backgroundColor: 'transparent', position: 'relative', flexShrink: 0 }}>
-              <EmojiPicker
-                isOpen={showEmojiPicker}
-                onClose={() => setShowEmojiPicker(false)}
-                onSelectEmoji={handleInsertEmoji}
-              />
+            <div
+              className="message-input-bar-container"
+              style={{
+                padding: '12px 20px',
+                backgroundColor: 'transparent',
+                position: 'relative',
+                flexShrink: 0
+              }}
+            >
+              <div className="desktop-only">
+                <EmojiPicker
+                  isOpen={showEmojiPicker}
+                  onClose={() => setShowEmojiPicker(false)}
+                  onSelectEmoji={handleInsertEmoji}
+                />
+              </div>
               <form onSubmit={onSendMessage}>
                 <GlassContainer
                   radius={9999}
@@ -748,7 +775,7 @@ export default function MessageArea({
                 >
                   <button
                     type="button"
-                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    onClick={handleEmojiClick}
                     style={{
                       border: 'none',
                       background: 'transparent',
@@ -768,7 +795,7 @@ export default function MessageArea({
                       e.currentTarget.style.transform = 'scale(1)';
                       if (!showEmojiPicker) e.currentTarget.style.opacity = '0.75';
                     }}
-                    title="Choose emoji (Ctrl+Cmd+Space for system picker)"
+                    title="Choose emoji"
                   >
                     <svg
                       width="24"
@@ -797,11 +824,12 @@ export default function MessageArea({
                         ? `Send 1 invitation message to @${activeUser?.username}...`
                         : 'Type a Message...'
                     }
+                    className="message-chat-input"
                     style={{
                       border: 'none',
                       background: 'transparent',
                       outline: 'none',
-                      fontSize: 14.5,
+                      fontSize: 16,
                       flex: 1,
                       color: '#09090b',
                       fontFamily: 'inherit'

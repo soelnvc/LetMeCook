@@ -12,6 +12,15 @@ export const metadata = {
   description: "Temporary real-world coordination network.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content"
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>

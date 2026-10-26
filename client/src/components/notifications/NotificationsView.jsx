@@ -362,8 +362,8 @@ export default function NotificationsView({
       style={{
         maxWidth: 740,
         margin: "0 auto",
-        height: "calc(100vh - 32px)",
-        maxHeight: "calc(100vh - 32px)",
+        height: "calc(100dvh - 32px)",
+        maxHeight: "calc(100dvh - 32px)",
         display: "flex",
         flexDirection: "column",
         width: "100%",

@@ -83,6 +83,15 @@ html.dark,
   --modal-overlay-bg: rgba(0, 0, 0, 0.78);
 }
 
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-x: none;
+}
+
 html, body, button, input, select, textarea {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-weight: 400;
@@ -92,6 +101,11 @@ html, body, button, input, select, textarea {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* Prevent double-tap zooming on interactive controls */
+button, a, input, select, textarea {
+  touch-action: manipulation;
 }
 
 h1 {
@@ -391,6 +405,7 @@ b, strong {
   align-items: center;
   justify-content: flex-start;
   min-height: 100vh;
+  min-height: 100dvh;
   min-width: 0;
   box-sizing: border-box;
   color: #000000;
@@ -445,6 +460,12 @@ b, strong {
     transform: scale(0.86);
   }
 
+  /* Prevent iOS Safari auto-zoom on input focus when font-size < 16px */
+  input, select, textarea,
+  input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="search"] {
+    font-size: 16px !important;
+  }
+
   .main-content-layout {
     padding: calc(56px + env(safe-area-inset-top, 0px)) 12px calc(76px + env(safe-area-inset-bottom, 12px)) 12px !important;
     width: 100% !important;
@@ -454,8 +475,8 @@ b, strong {
 
   /* Messages Mobile Instagram Layout */
   .messages-container-glass {
-    height: calc(100vh - 130px) !important;
-    max-height: calc(100vh - 130px) !important;
+    height: calc(100dvh - 120px) !important;
+    max-height: calc(100dvh - 120px) !important;
   }
 
   .messages-conv-panel {
@@ -470,9 +491,14 @@ b, strong {
   .messages-area-panel {
     width: 100% !important;
     flex: 1 1 100% !important;
+    height: 100% !important;
   }
   .messages-area-panel.mobile-hidden-list {
     display: none !important;
+  }
+
+  .message-input-bar-container {
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 6px)) 10px !important;
   }
 
   /* Profile Instagram Mobile Layout */

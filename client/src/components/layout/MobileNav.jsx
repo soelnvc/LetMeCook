@@ -276,7 +276,7 @@ export default function MobileNav({
           WebkitBackdropFilter: 'blur(20px)',
           borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
           zIndex: 80,
-          display: 'flex',
+          display: (activeTab === 'messages' && activeChatUser) ? 'none' : 'flex',
           alignItems: 'center',
           justifyContent: 'space-around',
           paddingBottom: 'env(safe-area-inset-bottom, 6px)',

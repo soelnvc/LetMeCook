@@ -2294,8 +2294,8 @@ function AppContent() {
       <div
         className="main-content-layout"
         style={{
-          height: ['settings', 'messages', 'notifications'].includes(activeTab) ? '100vh' : 'auto',
-          maxHeight: ['settings', 'messages', 'notifications'].includes(activeTab) ? '100vh' : 'none',
+          height: ['settings', 'messages', 'notifications'].includes(activeTab) ? '100dvh' : 'auto',
+          maxHeight: ['settings', 'messages', 'notifications'].includes(activeTab) ? '100dvh' : 'none',
           overflow: ['settings', 'messages', 'notifications'].includes(activeTab) ? 'hidden' : 'visible',
           padding: ['messages', 'notifications'].includes(activeTab) ? '16px 32px' : undefined
         }}
@@ -2359,7 +2359,7 @@ function AppContent() {
       {/* 4. MESSAGES SCREEN (PRODUCT.md Section 16) */}
       {/* ========================================================= */}
       {activeTab === 'messages' && (
-        <section style={{ width: '100%', maxWidth: 1040, height: 'calc(100vh - 32px)', maxHeight: 'calc(100vh - 32px)', display: 'flex', flexDirection: 'column' }}>
+        <section style={{ width: '100%', maxWidth: 1040, height: 'calc(100dvh - 32px)', maxHeight: 'calc(100dvh - 32px)', display: 'flex', flexDirection: 'column' }}>
           <GlassContainer
             radius={28}
             className="messages-container-glass"
